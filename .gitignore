@@ -20,6 +20,7 @@ output-metadata.json
 *.jks
 *.keystore
 
+# firebase
 google-services.json
 
 *.hprof
