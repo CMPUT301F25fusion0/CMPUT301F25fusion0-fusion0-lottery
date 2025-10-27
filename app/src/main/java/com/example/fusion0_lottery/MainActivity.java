@@ -22,6 +22,7 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     /*
+    // random starter variables
     private EditText usernameInput;
     private EditText emailInput;
     private EditText phoneInput;
@@ -54,10 +55,8 @@ public class MainActivity extends AppCompatActivity {
 
         db.collection("users")
                 .add(user1)
-                .addOnSuccessListener(documentReference ->
-                        Log.d("Firestore", "Profile Created: " + documentReference.getId()))
-                .addOnFailureListener(e ->
-                        Log.w("Firestore", "Error Creating Profile", e));
+                .addOnSuccessListener(documentReference -> Log.d("Firestore", "Profile Created: " + documentReference.getId()))
+                .addOnFailureListener(e -> Log.w("Firestore", "Error Creating Profile", e));
 
 
         // below is a test example to see if user2 is added and then delete (working)
@@ -72,28 +71,26 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("Firestore", "Profile Created: " + documentReference.getId());
                     db.collection("users").document(documentReference.getId())
                             .delete()
-                            .addOnSuccessListener(aVoid ->
-                                    Log.d("Firestore", "User2 successfully deleted!"))
-                            .addOnFailureListener(e ->
-                                    Log.w("Firestore", "Error deleting User2", e));
+                            .addOnSuccessListener(aVoid -> Log.d("Firestore", "User2 successfully deleted!"))
+                            .addOnFailureListener(e -> Log.w("Firestore", "Error deleting User2", e));
                 })
-                .addOnFailureListener(e ->
-                        Log.w("Firestore", "Error Creating Profile", e));
+                .addOnFailureListener(e -> Log.w("Firestore", "Error Creating Profile", e));
     }
 }
 
 /*
 // idk some random code that might work template
-private void addUserToDatabase(String username, String email, String phoneNumber){
+private void addUserToDatabase(String username, String email, String phoneNumber) {
     CollectionReference UsersDB = db.collection("Users");
     Users user = new Users(username, email, phoneNumber);
 
-     UsersDB.add(user).addOnSuccessListener(new OnSuccessListener<DocumentReference>(){
+    // add user to Users collection
+     UsersDB.add(user).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
         @Override
         public void onSuccess(DocumentReference documentReference) {
             Toast.makeText(MainActivity.this, "User has successfully been added", Toast.LENGTH_SHORT).show();
         }
-     }).addOnFailureListener(new OnFailureListener(){
+     }).addOnFailureListener(new OnFailureListener() {
         @Override
         public void onFailure(@NonNull Exception e) {
             Toast.makeText(MainActivity.this, "User Creation Failed" + e, Toast.LENGTH_SHORT).show();
