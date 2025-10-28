@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "10081950957",
+    "project_id": "fusion0-decb7",
+    "storage_bucket": "fusion0-decb7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:10081950957:android:5bcccefaaabd111a11c0e4",
+        "android_client_info": {
+          "package_name": "com.example.projectfusion0"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByO9A1uy8I3T4lagL1u0VFZ4LVv9fAAqM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

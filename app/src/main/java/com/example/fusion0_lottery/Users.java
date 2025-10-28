@@ -1,10 +1,11 @@
 package com.example.fusion0_lottery;
 
-public abstract class Users {
+public class Users {
     private String username;
     private String email;
     private String phone;
     private String password;
+
 
     public Users(String username, String email, String phone, String password) {
         this.username = username;
@@ -43,6 +44,5 @@ public abstract class Users {
     public void setPassword(String password) {
         this.password = password;
     }
-
 }
 

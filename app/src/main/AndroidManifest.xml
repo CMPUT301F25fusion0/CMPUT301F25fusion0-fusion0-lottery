@@ -13,13 +13,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Fusion0_lottery">
         <activity
-            android:name="com.example.fusion0_lottery.MainActivityOrganizer"
-            android:exported="false" />
-        <activity
-            android:name="com.example.fusion0_lottery.MainActivityOrganizer"
-            android:exported="false"
-            android:theme="@style/Theme.Fusion0_lottery" />
-        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
