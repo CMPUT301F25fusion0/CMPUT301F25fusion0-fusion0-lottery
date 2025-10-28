@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">fusion0_lottery</string>
+    <string name="sign_up">Sign up</string>
+    <string name="username_hint">Username</string>
+    <string name="email_hint">Email</string>
+    <string name="phone_hint">Phone (Optional)</string>
+    <string name="enter_password_hint">Enter Password</string>
+    <string name="confirm_password_hint">Confirm Password</string>
+    <string name="already_member_message">Already Member?</string>
+    <string name="login_text">Login</string>
+    <string name="sign_up_text">Sign up</string>
 </resources>
