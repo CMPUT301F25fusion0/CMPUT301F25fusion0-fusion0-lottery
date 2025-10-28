@@ -74,11 +74,11 @@ public class LogIn extends Fragment {
                     /*
                     // if user is an Entrant, send them to Entrant dashboard screen
                     if (userRole.equalsIgnoreCase("Entrant")) {
-                        // ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new DashboardFragment());
+                        // ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new EntrantDashboard());
                     }
                     // if user is an Organizer, send them to Organizer dashboard screen
                     else if (userRole.equalsIgnoreCase("Organizer")) {
-                        // ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new DashboardFragment());
+                        // ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new OrganizerDashboard());
                     }
                     */
                 }
