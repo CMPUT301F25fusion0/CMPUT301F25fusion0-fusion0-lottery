@@ -1,5 +1,6 @@
 package com.example.projectfusion0;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -10,6 +11,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.fusion0_lottery.EventCreationActivity;
 import com.example.fusion0_lottery.Users;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -26,11 +28,13 @@ public class MainActivity extends AppCompatActivity {
     private EditText usernameInput, emailInput, phoneInput, passwordInput, confirmPasswordInput;
 
     // button for the sign up button
-    private Button buttonSignUp;
+    private Button buttonSignUp, createEventButton;
 
     // when user is created in the database, store the document ID
     protected String documentID;
     private FirebaseFirestore db;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +50,10 @@ public class MainActivity extends AppCompatActivity {
         passwordInput = findViewById(R.id.passwordInput);
         confirmPasswordInput = findViewById(R.id.confirmPasswordInput);
         buttonSignUp = findViewById(R.id.buttonSignUp);
+
+
+
+
 
         buttonSignUp.setOnClickListener(v -> {
             String username = usernameInput.getText().toString();
@@ -119,4 +127,6 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Error deleting user: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
+
 }
