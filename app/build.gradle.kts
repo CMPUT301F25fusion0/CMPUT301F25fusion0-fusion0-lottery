@@ -1,18 +1,13 @@
 plugins {
     alias(libs.plugins.android.application)
-<<<<<<< HEAD
-=======
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
->>>>>>> e5d0dbfa08fe80c4343368b4bc65016166ba761e
     id("com.google.gms.google-services")
 }
 android {
-    namespace = "com.example.lottery"
+    namespace = "com.example.projectfusion0"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.lottery"
+        applicationId = "com.example.projectfusion0"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -33,12 +28,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-    buildFeatures {
-        compose = true
     }
 }
 
