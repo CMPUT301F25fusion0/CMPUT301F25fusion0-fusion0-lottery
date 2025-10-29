@@ -9,4 +9,5 @@
     <string name="already_member_message">Already Member?</string>
     <string name="login_text">Login</string>
     <string name="sign_up_text">Sign up</string>
+    <string name="role_entrant_organizer_hint">Role (Entrant / Organizer)</string>
 </resources>

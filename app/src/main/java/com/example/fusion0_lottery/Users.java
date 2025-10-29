@@ -1,17 +1,19 @@
-package com.example.fusion0_lottery;
+package com.example.projectfusion0;
 
 public class Users {
     private String username;
     private String email;
     private String phone;
     private String password;
+    private String userRole;
 
 
-    public Users(String username, String email, String phone, String password) {
+    public Users(String username, String email, String phone, String password, String userRole) {
         this.username = username;
         this.email = email;
         this.phone = phone;
         this.password = password;
+        this.userRole = userRole;
     }
 
     public String getUsername() {
@@ -44,5 +46,15 @@ public class Users {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public String getUserRole() {
+        return userRole;
+    }
+
+    public void setUserRole(String userRole) {
+        this.userRole = userRole;
+    }
+
+
 }
 
