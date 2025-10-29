@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.fusion0_lottery.FragmentOrganizer;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
@@ -79,6 +80,7 @@ public class FragmentSignUp extends Fragment {
 
             // add user to the database if all info is correctly filled
             addUserToDatabase(username, email, phone, password, userRole);
+            ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new FragmentOrganizer());
         });
 
         // if user clicks on the log in button, take them to the log in screen
