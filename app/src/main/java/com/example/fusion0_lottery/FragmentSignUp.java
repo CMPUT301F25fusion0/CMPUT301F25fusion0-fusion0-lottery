@@ -80,7 +80,10 @@ public class FragmentSignUp extends Fragment {
 
             // add user to the database if all info is correctly filled
             addUserToDatabase(username, email, phone, password, userRole);
-            ((MainActivity) requireActivity()).replaceFragment(new FragmentOrganizer());
+
+            if (userRole.equalsIgnoreCase("organizer")) {
+                ((MainActivity) requireActivity()).replaceFragment(new FragmentOrganizer());
+            }
         });
 
         // if user clicks on the log in button, take them to the log in screen
