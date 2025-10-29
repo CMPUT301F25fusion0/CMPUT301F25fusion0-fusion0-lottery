@@ -1,4 +1,4 @@
-package com.example.projectfusion0;
+package com.example.fusion0_lottery;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -37,7 +37,7 @@ public class FragmentSignUp extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(com.example.projectfusion0.R.layout.fragment_signup, container, false);
+        View view = inflater.inflate(R.layout.fragment_signup, container, false);
 
         db = FirebaseFirestore.getInstance();
 
@@ -80,12 +80,12 @@ public class FragmentSignUp extends Fragment {
 
             // add user to the database if all info is correctly filled
             addUserToDatabase(username, email, phone, password, userRole);
-            ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new FragmentOrganizer());
+            ((MainActivity) requireActivity()).replaceFragment(new FragmentOrganizer());
         });
 
         // if user clicks on the log in button, take them to the log in screen
         buttonLogin.setOnClickListener(v -> {
-            ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new com.example.projectfusion0.LogIn());
+            ((MainActivity) requireActivity()).replaceFragment(new LogIn());
         });
 
         return view;
@@ -100,7 +100,7 @@ public class FragmentSignUp extends Fragment {
      * @param userRole is the user's role to be added
      */
     public void addUserToDatabase(String username, String email, String phone, String password, String userRole) {
-        com.example.projectfusion0.Users user = new com.example.projectfusion0.Users(username, email, phone, password, userRole);
+        Users user = new Users(username, email, phone, password, userRole);
 
         db.collection("Users")
                 .add(user)

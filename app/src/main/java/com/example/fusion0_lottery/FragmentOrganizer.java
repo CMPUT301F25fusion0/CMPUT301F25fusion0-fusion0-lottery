@@ -13,7 +13,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 
-import com.example.projectfusion0.R;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -35,7 +34,7 @@ public class FragmentOrganizer extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(com.example.projectfusion0.R.layout.fragment_organizer, container, false);
+        View view = inflater.inflate(R.layout.fragment_organizer, container, false);
 
         ListView eventsOrg = view.findViewById(R.id.eventsOrg);
 

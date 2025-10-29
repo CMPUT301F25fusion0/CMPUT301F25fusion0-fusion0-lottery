@@ -3,11 +3,11 @@ plugins {
     id("com.google.gms.google-services")
 }
 android {
-    namespace = "com.example.projectfusion0"
+    namespace = "com.example.fusion0_lottery"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.projectfusion0"
+        applicationId = "com.example.fusion0_lottery"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

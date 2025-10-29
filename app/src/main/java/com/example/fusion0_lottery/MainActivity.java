@@ -1,4 +1,4 @@
-package com.example.projectfusion0;
+package com.example.fusion0_lottery;
 
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,7 +13,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new com.example.projectfusion0.FragmentSignUp())
+                    .replace(R.id.fragment_container, new FragmentSignUp())
                     .commit();
         }
     }

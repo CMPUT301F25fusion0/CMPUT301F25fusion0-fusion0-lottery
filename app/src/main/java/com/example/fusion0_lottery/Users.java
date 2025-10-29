@@ -1,4 +1,4 @@
-package com.example.projectfusion0;
+package com.example.fusion0_lottery;
 
 public class Users {
     private String username;

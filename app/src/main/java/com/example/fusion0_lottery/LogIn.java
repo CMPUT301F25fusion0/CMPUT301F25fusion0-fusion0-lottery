@@ -1,4 +1,4 @@
-package com.example.projectfusion0;
+package com.example.fusion0_lottery;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -75,13 +75,13 @@ public class LogIn extends Fragment {
                     /*
                     // if user is an Entrant, send them to Entrant dashboard screen
                     if (userRole.equalsIgnoreCase("Entrant")) {
-                        // ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new EntrantDashboard());
+                        // ((MainActivity) requireActivity()).replaceFragment(new EntrantDashboard());
                     }
                     */
 
                     // if user is an Organizer, send them to Organizer dashboard screen
                     if (userRole.equalsIgnoreCase("Organizer")) {
-                        ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new FragmentOrganizer());
+                        ((MainActivity) requireActivity()).replaceFragment(new FragmentOrganizer());
                     }
 
                 }
@@ -96,7 +96,7 @@ public class LogIn extends Fragment {
 
         // button to take user back to the sign up screen
         buttonSignUp.setOnClickListener(v -> {
-            ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new com.example.projectfusion0.FragmentSignUp());
+            ((MainActivity) requireActivity()).replaceFragment(new FragmentSignUp());
         });
 
         return view;

@@ -10,8 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.example.projectfusion0.R;
-
 import java.util.ArrayList;
 
 
@@ -34,7 +32,7 @@ public class EventArrayAdapter extends ArrayAdapter<Event> {
     public View getView(int position, View convertView, @NonNull ViewGroup parent){
         View view = convertView;
         if (view == null){
-            view = LayoutInflater.from(context).inflate(com.example.projectfusion0.R.layout.event_layout, parent, false);
+            view = LayoutInflater.from(context).inflate(R.layout.event_layout, parent, false);
         }
 
         Event event = events.get(position);
