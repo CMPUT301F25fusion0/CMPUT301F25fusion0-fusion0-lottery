@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.fusion0_lottery.FragmentOrganizer;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LogIn extends Fragment {
@@ -76,11 +77,13 @@ public class LogIn extends Fragment {
                     if (userRole.equalsIgnoreCase("Entrant")) {
                         // ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new EntrantDashboard());
                     }
-                    // if user is an Organizer, send them to Organizer dashboard screen
-                    else if (userRole.equalsIgnoreCase("Organizer")) {
-                        // ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new OrganizerDashboard());
-                    }
                     */
+
+                    // if user is an Organizer, send them to Organizer dashboard screen
+                    if (userRole.equalsIgnoreCase("Organizer")) {
+                        ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new FragmentOrganizer());
+                    }
+
                 }
 
                 // if we did not find a user with inputted email and password
