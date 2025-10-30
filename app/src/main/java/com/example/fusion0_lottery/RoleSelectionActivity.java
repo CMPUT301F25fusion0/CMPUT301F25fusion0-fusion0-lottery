@@ -10,8 +10,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.projectfusion0.MainActivity;
-import com.example.projectfusion0.R;
+import com.example.fusion0_lottery.MainActivity;
+import com.example.fusion0_lottery.R;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 /**
