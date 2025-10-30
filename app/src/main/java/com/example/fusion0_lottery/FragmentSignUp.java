@@ -1,6 +1,8 @@
-package com.example.projectfusion0;
+package com.example.fusion0_lottery;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,25 +12,15 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-
 public class FragmentSignUp extends Fragment {
-    private EditText usernameInput;
-    private EditText emailInput;
-    private EditText phoneInput;
-    private EditText passwordInput;
-    private EditText confirmPasswordInput;
-    private EditText userRoleInput;
 
-
-    private Button buttonSignUp;
-    private Button buttonLogin;
+    private EditText usernameInput, emailInput, phoneInput, passwordInput, confirmPasswordInput;
+    private Button buttonEntrant, buttonOrganizer;
     private FirebaseFirestore db;
     private String documentID;
 
@@ -36,91 +28,82 @@ public class FragmentSignUp extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(com.example.projectfusion0.R.layout.fragment_signup, container, false);
+
+        // Use the correct R from your current package
+        View view = inflater.inflate(R.layout.fragment_signup, container, false);
+
 
         db = FirebaseFirestore.getInstance();
 
-        // all sign up screen inputs and buttons
+        // Toolbar back arrow
+        Toolbar toolbar = view.findViewById(R.id.toolbar);
+        toolbar.setNavigationOnClickListener(v ->
+                requireActivity().getSupportFragmentManager().popBackStack());
+
         usernameInput = view.findViewById(R.id.usernameInput);
         emailInput = view.findViewById(R.id.emailInput);
         phoneInput = view.findViewById(R.id.phoneInput);
         passwordInput = view.findViewById(R.id.passwordInput);
         confirmPasswordInput = view.findViewById(R.id.confirmPasswordInput);
-        userRoleInput = view.findViewById(R.id.userRoleInput);
-        buttonSignUp = view.findViewById(R.id.buttonSignUp);
-        buttonLogin = view.findViewById(R.id.buttonLogIn);
+        buttonEntrant = view.findViewById(R.id.buttonEntrant);
+        buttonOrganizer = view.findViewById(R.id.buttonOrganizer);
 
-        // when user clicks sign up button, get all user inputs
-        buttonSignUp.setOnClickListener(v -> {
-            String username = usernameInput.getText().toString();
-            String email = emailInput.getText().toString();
-            String phone = phoneInput.getText().toString();
-            String password = passwordInput.getText().toString();
-            String confirmPassword = confirmPasswordInput.getText().toString();
-            String userRole = userRoleInput.getText().toString();
+        // Entrant button click
+        buttonEntrant.setOnClickListener(v -> signupUser("Entrant"));
 
-            // check if important info are all filled
-            if (username.isEmpty() || email.isEmpty() || password.isEmpty() || userRole.isEmpty()) {
-                Toast.makeText(getContext(), "Provide all necessary information", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // check if password = confirm password
-            if (!password.equals(confirmPassword)) {
-                Toast.makeText(getContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // check if user input Entrant or Organizer, else: show error
-            if (!userRole.equalsIgnoreCase("Entrant") && !userRole.equalsIgnoreCase("Organizer")) {
-                Toast.makeText(getContext(), "Invalid role", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // add user to the database if all info is correctly filled
-            addUserToDatabase(username, email, phone, password, userRole);
-        });
-
-        // if user clicks on the log in button, take them to the log in screen
-        buttonLogin.setOnClickListener(v -> {
-            ((com.example.projectfusion0.MainActivity) requireActivity()).replaceFragment(new com.example.projectfusion0.LogIn());
-        });
+        // Organizer button click
+        buttonOrganizer.setOnClickListener(v -> signupUser("Organizer"));
 
         return view;
     }
 
-    /**
-     * this function adds users to the database
-     * @param username is the user's username to be added
-     * @param email is the user's email to be added
-     * @param phone is the user's phone to be added
-     * @param password is the user's password to be added
-     * @param userRole is the user's role to be added
-     */
-    public void addUserToDatabase(String username, String email, String phone, String password, String userRole) {
-        com.example.projectfusion0.Users user = new com.example.projectfusion0.Users(username, email, phone, password, userRole);
+    private void signupUser(String role) {
+        String username = usernameInput.getText().toString().trim();
+        String email = emailInput.getText().toString().trim();
+        String phone = phoneInput.getText().toString().trim();
+        String password = passwordInput.getText().toString().trim();
+        String confirmPassword = confirmPasswordInput.getText().toString().trim();
+
+        if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            Toast.makeText(getContext(), "Please fill all required fields", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            Toast.makeText(getContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Get device ID
+        Context context = getContext();
+        String deviceId = "";
+        if (context != null) {
+            deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        }
+
+        // Use Users class from the current package
+        Users user = new Users(username, email, phone, password, role, deviceId);
 
         db.collection("Users")
                 .add(user)
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        documentID = documentReference.getId();
-                        Toast.makeText(getContext(), "Sign-up successful!", Toast.LENGTH_SHORT).show();
+                .addOnSuccessListener(documentReference -> {
+                    documentID = documentReference.getId();
+                    Toast.makeText(getContext(), "Sign-up successful!", Toast.LENGTH_SHORT).show();
 
-                        // clear inputs
-                        usernameInput.setText("");
-                        emailInput.setText("");
-                        phoneInput.setText("");
-                        passwordInput.setText("");
-                        confirmPasswordInput.setText("");
-                        userRoleInput.setText("");
+                    // Clear fields
+                    usernameInput.setText("");
+                    emailInput.setText("");
+                    phoneInput.setText("");
+                    passwordInput.setText("");
+                    confirmPasswordInput.setText("");
+
+                    // Navigate based on role using current package
+                    if (role.equalsIgnoreCase("Entrant")) {
+                        ((MainActivity) requireActivity()).replaceFragment(EventLottery.newInstance(email));
+                    } else if (role.equalsIgnoreCase("Organizer")) {
+                        ((MainActivity) requireActivity()).replaceFragment(new OrganizerDashboard());
                     }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+                })
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }
