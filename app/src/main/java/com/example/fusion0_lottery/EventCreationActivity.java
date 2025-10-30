@@ -358,12 +358,8 @@ public class EventCreationActivity extends AppCompatActivity {
 
                     Toast.makeText(this, "Event created successfully!", Toast.LENGTH_SHORT).show();
 
-                    // Show the Generate QR Code button
-                    generateQrButton.setVisibility(View.VISIBLE);
-
-                    // Disable the create button to prevent duplicate creation
-                    createEventButton.setEnabled(false);
-                    createEventButton.setText("Event Created");
+                    // Close the activity and return to the previous screen
+                    finish();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error creating event: " + e.getMessage(),
