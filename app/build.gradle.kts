@@ -46,8 +46,8 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-auth")
 
-    // QR Code Generation
-    implementation("com.google.zxing:core:3.5.1")
-    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("me.dm7.barcodescanner:zxing:1.9.1")
+    implementation("com.google.zxing:core:3.4.1")
 }
