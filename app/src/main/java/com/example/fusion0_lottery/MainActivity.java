@@ -1,4 +1,4 @@
-package com.example.projectfusion0;
+package com.example.fusion0_lottery;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,15 +13,13 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.fusion0_lottery.RoleSelectionActivity;
 import com.example.fusion0_lottery.SignUpActivity;
-import com.example.projectfusion0.R;
+import com.example.fusion0_lottery.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
-import java.util.HashMap;
-import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -51,11 +49,16 @@ public class MainActivity extends AppCompatActivity {
                                 finish();
                             } else{
                                 setContentView(R.layout.activity_main);
+
                             }
                         }else{
                             startActivity(new Intent(MainActivity.this, SignUpActivity.class));
+                            finish();
                         }
                     });
+        }else{
+            startActivity(new Intent(MainActivity.this, SignUpActivity.class));
+            finish();
         }
 
     }
