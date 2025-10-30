@@ -1,5 +1,6 @@
 package com.example.fusion0_lottery;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -80,6 +81,14 @@ public class FragmentOrganizer extends Fragment {
                 eventsAdapter.notifyDataSetChanged();
             }
         });
+
+        createNewEvent = view.findViewById(R.id.createEventButton);
+
+        createNewEvent.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), EventCreationActivity.class);
+            startActivity(intent);
+        });
+
 
         // Adds event to listview and database
         eventsArray.add(fortnite);
