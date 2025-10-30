@@ -13,6 +13,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 /**
+ * Reference (https://firebase.google.com/docs/auth/android/anonymous-auth#java_2 line 75-92)
  * purpose:
  * This activity allows user to register and
  * once they registered they will be identified by their device id
