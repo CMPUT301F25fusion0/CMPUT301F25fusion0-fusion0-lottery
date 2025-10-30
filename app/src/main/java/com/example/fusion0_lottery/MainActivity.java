@@ -1,67 +1,70 @@
 package com.example.fusion0_lottery;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-
-import com.example.fusion0_lottery.RoleSelectionActivity;
-import com.example.fusion0_lottery.SignUpActivity;
-import com.example.fusion0_lottery.R;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-
-
 
 public class MainActivity extends AppCompatActivity {
 
     private FirebaseAuth auth;
-
     private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main);
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        if (auth.getCurrentUser() != null){
-            String device_id = auth.getCurrentUser().getUid();
-            db.collection("Users").document(device_id).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if(documentSnapshot.exists()){
-                            String role = documentSnapshot.getString("role");
-                            if (role == null || role.isEmpty()){
-                                Intent intent = new Intent(MainActivity.this, RoleSelectionActivity.class);
-                                intent.putExtra("device_id", device_id);
-                                startActivity(intent);
-                                finish();
-                            } else{
-                                setContentView(R.layout.activity_main);
-
+        if (savedInstanceState == null) {
+            if (auth.getCurrentUser() != null) {
+                // get device ID from current user in the Firestore database
+                String device_id = auth.getCurrentUser().getUid();
+                db.collection("Users").document(device_id).get()
+                        .addOnSuccessListener(documentSnapshot -> {
+                            // if user exists
+                            if (documentSnapshot.exists()) {
+                                // get the user role
+                                String role = documentSnapshot.getString("role");
+                                // if the user currently doesn't have a role (user is currently signing up)
+                                if (role == null || role.isEmpty()) {
+                                    // user is taken to the role selection screen
+                                    replaceFragment(new FragmentRoleSelection());
+                                }
+                                // if the user has a role and they are an "Entrant"
+                                else if (role.equalsIgnoreCase("Entrant")) {
+                                    // take them to the Entrant screen
+                                    // replaceFragment(new FragmentEntrant());
+                                    return;
+                                }
+                                // if the user has a role and they are an "Organizer"
+                                else if (role.equalsIgnoreCase("Organizer")) {
+                                    // take them to the Organizer screen
+                                    replaceFragment(new FragmentOrganizer());
+                                }
+                                else {
+                                    replaceFragment(new FragmentRoleSelection());
+                                }
                             }
-                        }else{
-                            startActivity(new Intent(MainActivity.this, SignUpActivity.class));
-                            finish();
-                        }
-                    });
-        }else{
-            startActivity(new Intent(MainActivity.this, SignUpActivity.class));
-            finish();
+                            // if they don't exist, then show them the signup screen
+                            else {
+                                replaceFragment(new FragmentSignUp());
+                            }
+                        });
+            }
+            else {
+                replaceFragment(new FragmentSignUp());
+            }
         }
+    }
 
+    public void replaceFragment(androidx.fragment.app.Fragment fragment) {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
     }
 }
-
-
