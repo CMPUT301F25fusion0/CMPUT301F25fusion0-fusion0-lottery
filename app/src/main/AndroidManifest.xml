@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,6 +15,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Fusion0_lottery">
+
+        <activity
+            android:name="com.example.fusion0_lottery.QRScannerActivity"
+            android:exported="true" />
+        <activity
+            android:name="com.example.fusion0_lottery.RoleSelectionActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.example.fusion0_lottery.SignUpActivity"
+            android:exported="true" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -20,10 +34,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.example.fusion0_lottery.EventCreationActivity"
-            android:exported="false"
-            android:parentActivityName=".MainActivity"/>
     </application>
 
 </manifest>
