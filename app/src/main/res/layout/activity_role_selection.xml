@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.fusion0_lottery.RoleSelectionActivity"
+    tools:context="com.example.fusion0_lottery.FragmentRoleSelection"
     android:orientation="vertical"
     android:background="#293346"
     android:padding="40dp">
@@ -13,25 +13,27 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select Your Role"
+        android:text="@string/select_your_role"
         android:textStyle="bold"
-        android:textSize="30dp"
+        android:textSize="30sp"
         android:textColor="@color/white"
         android:layout_marginStart="60dp"
         android:layout_marginTop="80dp"/>
+
     <Button
+        android:id="@+id/entrantButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Event Enterant"
-        android:id="@+id/event_enterant"
+        android:text= "@string/role_selection_entrant"
         android:layout_marginEnd="30dp"
         android:layout_marginStart="30dp"
         android:layout_marginTop="100dp"/>
+
     <Button
+        android:id="@+id/organizerButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Organizer"
-        android:id="@+id/organizer"
+        android:text="@string/role_selection_organizer"
         android:layout_marginStart="30dp"
         android:layout_marginEnd="30dp"
         android:layout_marginTop="4dp"/>
