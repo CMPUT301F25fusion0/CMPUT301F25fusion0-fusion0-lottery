@@ -5,15 +5,15 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.fusion0_lottery.SignUpActivity"
+    tools:context="com.example.fusion0_lottery.FragmentSignUp"
     android:orientation="vertical"
     android:background="#293346">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sign up"
-        android:textSize="72dp"
+        android:text="@string/sign_up"
+        android:textSize="72sp"
         android:layout_marginTop="40dp"
         android:textStyle="bold"
         android:layout_marginStart="80dp"
@@ -24,46 +24,70 @@
         android:orientation="vertical"
         android:layout_marginTop="100dp">
         <EditText
+            android:id="@+id/nameInput"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:hint="Full Name"
-            android:id="@+id/name"
+            android:hint="@string/name_hint"
+            android:inputType="textPersonName"
             android:layout_marginStart="20dp"
             android:layout_marginEnd="25dp"
             android:layout_marginTop="8dp"
-            android:background="#475569"
-            android:textColor="@color/white" />
+            android:background="#FFFFFF"
+            android:textColor="@color/black" />
         <EditText
+            android:id="@+id/emailInput"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:hint="Email"
-            android:id="@+id/email_txt"
+            android:hint="@string/email_hint"
+            android:inputType="textEmailAddress"
             android:layout_marginStart="20dp"
             android:layout_marginEnd="25dp"
             android:layout_marginTop="8dp"
-            android:background="#475569"
-            android:textColor="@color/white"/>
+            android:background="#FFFFFF"
+            android:textColor="@color/black"/>
         <EditText
+            android:id="@+id/phoneInput"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:hint="Phone(Optional)"
-            android:id="@+id/phone"
+            android:hint="@string/phone_hint"
+            android:inputType="phone"
             android:layout_marginStart="20dp"
             android:layout_marginEnd="25dp"
             android:layout_marginTop="8dp"
-            android:background="#475569"
-            android:textColor="@color/white"/>
-
+            android:background="#FFFFFF"
+            android:textColor="@color/black"/>
+        <EditText
+            android:id="@+id/passwordInput"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:hint="@string/enter_password_hint"
+            android:inputType="textPassword"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="25dp"
+            android:layout_marginTop="8dp"
+            android:background="#FFFFFF"
+            android:textColor="@color/black"/>
+        <EditText
+            android:id="@+id/confirmPasswordInput"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:hint="@string/confirm_password_hint"
+            android:inputType="textPassword"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="25dp"
+            android:layout_marginTop="8dp"
+            android:background="#FFFFFF"
+            android:textColor="@color/black"/>
 
     </LinearLayout>
 
 
     <Button
+        android:id="@+id/signupButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sign up"
-        android:textSize="20dp"
-        android:id="@+id/signup"
+        android:text="@string/sign_up"
+        android:textSize="20sp"
         android:layout_gravity="center"
         android:layout_marginTop="40dp"
         />

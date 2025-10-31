@@ -7,9 +7,12 @@ package com.example.fusion0_lottery;
  * device_id, and their role
  */
 public class User {
-    public String full_name;
+    public String name;
     private String email;
     private String phone_number;
+
+    private String password;
+
     private String device_id;
     private String role;
 
@@ -20,12 +23,29 @@ public class User {
 
     }
 
-    public User(String device_id,String full_name, String email, String phone_number, String role) {
-        this.full_name = full_name;
+    public User(String name, String email, String phone_number, String password, String role, String device_id) {
+        this.name = name;
         this.email = email;
         this.phone_number = phone_number;
-        this.device_id = device_id;
+        this.password = password;
         this.role = role;
+        this.device_id = device_id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPhone_number() {
@@ -36,27 +56,14 @@ public class User {
         this.phone_number = phone_number;
     }
 
-    public String getEmail() {
-        return email;
-    }
-    public String getDevice_id(){
-        return device_id;
+    public String getPassword() {
+        return password;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
-    public String getFull_name() {
-        return full_name;
-    }
-
-    public void setFull_name(String full_name) {
-        this.full_name = full_name;
-    }
-    public  void setDevice_id(String device_id){
-        this.device_id = device_id;
-    }
 
     public String getRole() {
         return role;
@@ -64,5 +71,13 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getDevice_id(){
+        return device_id;
+    }
+
+    public  void setDevice_id(String device_id){
+        this.device_id = device_id;
     }
 }
