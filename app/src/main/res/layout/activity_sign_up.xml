@@ -56,28 +56,7 @@
             android:layout_marginTop="8dp"
             android:background="#FFFFFF"
             android:textColor="@color/black"/>
-        <EditText
-            android:id="@+id/passwordInput"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:hint="@string/enter_password_hint"
-            android:inputType="textPassword"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="25dp"
-            android:layout_marginTop="8dp"
-            android:background="#FFFFFF"
-            android:textColor="@color/black"/>
-        <EditText
-            android:id="@+id/confirmPasswordInput"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:hint="@string/confirm_password_hint"
-            android:inputType="textPassword"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="25dp"
-            android:layout_marginTop="8dp"
-            android:background="#FFFFFF"
-            android:textColor="@color/black"/>
+
 
     </LinearLayout>
 

@@ -10,8 +10,8 @@ public class User {
     public String name;
     private String email;
     private String phone_number;
-
-    private String password;
+//
+//    private String password;
 
     private String device_id;
     private String role;
@@ -23,11 +23,11 @@ public class User {
 
     }
 
-    public User(String name, String email, String phone_number, String password, String role, String device_id) {
+    public User(String name, String email, String phone_number, String role, String device_id) {
         this.name = name;
         this.email = email;
         this.phone_number = phone_number;
-        this.password = password;
+//        this.password = password;
         this.role = role;
         this.device_id = device_id;
     }
@@ -56,13 +56,13 @@ public class User {
         this.phone_number = phone_number;
     }
 
-    public String getPassword() {
-        return password;
-    }
+//    public String getPassword() {
+//        return password;
+//    }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+//    public void setPassword(String password) {
+//        this.password = password;
+//    }
 
 
     public String getRole() {

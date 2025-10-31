@@ -34,37 +34,37 @@ public class FragmentSignUp extends Fragment {
         nameInput = view.findViewById(R.id.nameInput);
         emailInput = view.findViewById(R.id.emailInput);
         phoneInput = view.findViewById(R.id.phoneInput);
-        passwordInput = view.findViewById(R.id.passwordInput);
-        confirmPasswordInput = view.findViewById(R.id.confirmPasswordInput);
+//        passwordInput = view.findViewById(R.id.passwordInput);
+//        confirmPasswordInput = view.findViewById(R.id.confirmPasswordInput);
         signupButton = view.findViewById(R.id.signupButton);
 
         signupButton.setOnClickListener(v -> {
             String name = nameInput.getText().toString();
             String email = emailInput.getText().toString();
-            String password = passwordInput.getText().toString();
-            String confirmPassword = confirmPasswordInput.getText().toString();
+//            String password = passwordInput.getText().toString();
+//            String confirmPassword = confirmPasswordInput.getText().toString();
             String phone_number = phoneInput.getText().toString();
 
-            if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            if (name.isEmpty() || email.isEmpty() ) {
                 Toast.makeText(getContext(), "All fields not filled", Toast.LENGTH_SHORT).show();
             }
 
-            else if (!password.equals(confirmPassword)) {
-                Toast.makeText(getContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
-            }
+//            else if (!password.equals(confirmPassword)) {
+//                Toast.makeText(getContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
+//            }
             else {
-                createUser(name, email, phone_number, password, "");
+                createUser(name, email, phone_number, "");
             }
         });
 
         return view;
     }
 
-    private void createUser(String name, String email, String phone_number, String password, String role) {
+    private void createUser(String name, String email, String phone_number, String role) {
         auth.signInAnonymously().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 String device_id = auth.getCurrentUser().getUid();
-                User user = new User(name, email, phone_number, password, "" , device_id);
+                User user = new User(name, email, phone_number, "" , device_id);
 
                 db.collection("Users").document(device_id).set(user)
                         .addOnSuccessListener(aVoid -> {

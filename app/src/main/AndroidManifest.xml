@@ -19,12 +19,8 @@
         <activity
             android:name="com.example.fusion0_lottery.QRScannerActivity"
             android:exported="true" />
-        <activity
-            android:name="com.example.fusion0_lottery.RoleSelectionActivity"
-            android:exported="false" />
-        <activity
-            android:name="com.example.fusion0_lottery.SignUpActivity"
-            android:exported="true" />
+        <activity android:name=".EventCreationActivity"
+            android:exported="true"/>
         <activity
             android:name=".MainActivity"
             android:exported="true">
