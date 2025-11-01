@@ -9,6 +9,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import com.example.fusion0_lottery.R;
+
 
 import java.util.ArrayList;
 
