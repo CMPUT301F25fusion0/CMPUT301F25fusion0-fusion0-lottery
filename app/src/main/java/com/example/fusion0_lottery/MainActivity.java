@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.fusion0_lottery.EventLottery;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,9 +39,9 @@ public class MainActivity extends AppCompatActivity {
                                 // if the user has a role and they are an "Entrant"
                                 else if (role.equalsIgnoreCase("Entrant")) {
                                     // take them to the Entrant screen
-                                    // replaceFragment(new FragmentEntrant());
-                                    return;
+                                    replaceFragment(EventLottery.newInstance(auth.getCurrentUser().getEmail()));
                                 }
+
                                 // if the user has a role and they are an "Organizer"
                                 else if (role.equalsIgnoreCase("Organizer")) {
                                     // take them to the Organizer screen
