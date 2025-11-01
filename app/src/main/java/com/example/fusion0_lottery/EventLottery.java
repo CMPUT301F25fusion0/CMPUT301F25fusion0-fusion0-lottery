@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -149,13 +150,14 @@ public class EventLottery extends Fragment {
                                 boolean waitingListClosed = eventSnapshot.getBoolean("waitingListClosed") != null
                                         ? eventSnapshot.getBoolean("waitingListClosed") : false;
 
+                                String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                                 getParentFragmentManager()
                                         .beginTransaction()
                                         .replace(
-                                                R.id.fragmentContainer,
+                                                R.id.fragment_container,
                                                 EventActivityEntrant.newInstance(
                                                         eventId,
-                                                        userEmail,
+                                                        currentUserId,
                                                         eventNameStr != null ? eventNameStr : "No Name",
                                                         eventDescStr != null ? eventDescStr : "No Description",
                                                         eventStartDateStr != null ? eventStartDateStr : "No Date",

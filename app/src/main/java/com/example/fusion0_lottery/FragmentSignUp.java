@@ -1,8 +1,6 @@
 package com.example.fusion0_lottery;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,98 +10,70 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class FragmentSignUp extends Fragment {
 
-    private EditText usernameInput, emailInput, phoneInput, passwordInput, confirmPasswordInput;
-    private Button buttonEntrant, buttonOrganizer;
+    private EditText nameInput, emailInput, phoneInput, passwordInput, confirmPasswordInput;
+    private Button signupButton;
+    private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private String documentID;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.activity_sign_up, container, false);
 
-        // Use the correct R from your current package
-        View view = inflater.inflate(R.layout.fragment_signup, container, false);
-
-
+        auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Toolbar back arrow
-        Toolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v ->
-                requireActivity().getSupportFragmentManager().popBackStack());
-
-        usernameInput = view.findViewById(R.id.usernameInput);
+        nameInput = view.findViewById(R.id.nameInput);
         emailInput = view.findViewById(R.id.emailInput);
         phoneInput = view.findViewById(R.id.phoneInput);
         passwordInput = view.findViewById(R.id.passwordInput);
         confirmPasswordInput = view.findViewById(R.id.confirmPasswordInput);
-        buttonEntrant = view.findViewById(R.id.buttonEntrant);
-        buttonOrganizer = view.findViewById(R.id.buttonOrganizer);
+        signupButton = view.findViewById(R.id.signupButton);
 
-        // Entrant button click
-        buttonEntrant.setOnClickListener(v -> signupUser("Entrant"));
+        signupButton.setOnClickListener(v -> {
+            String name = nameInput.getText().toString();
+            String email = emailInput.getText().toString();
+            String password = passwordInput.getText().toString();
+            String confirmPassword = confirmPasswordInput.getText().toString();
+            String phone_number = phoneInput.getText().toString();
 
-        // Organizer button click
-        buttonOrganizer.setOnClickListener(v -> signupUser("Organizer"));
+            if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(getContext(), "All fields not filled", Toast.LENGTH_SHORT).show();
+            }
+
+            else if (!password.equals(confirmPassword)) {
+                Toast.makeText(getContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                createUser(name, email, phone_number, password, "");
+            }
+        });
 
         return view;
     }
 
-    private void signupUser(String role) {
-        String username = usernameInput.getText().toString().trim();
-        String email = emailInput.getText().toString().trim();
-        String phone = phoneInput.getText().toString().trim();
-        String password = passwordInput.getText().toString().trim();
-        String confirmPassword = confirmPasswordInput.getText().toString().trim();
+    private void createUser(String name, String email, String phone_number, String password, String role) {
+        auth.signInAnonymously().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                String device_id = auth.getCurrentUser().getUid();
+                User user = new User(name, email, phone_number, password, "" , device_id);
 
-        if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(getContext(), "Please fill all required fields", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (!password.equals(confirmPassword)) {
-            Toast.makeText(getContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Get device ID
-        Context context = getContext();
-        String deviceId = "";
-        if (context != null) {
-            deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        }
-
-        // Use Users class from the current package
-        Users user = new Users(username, email, phone, password, role, deviceId);
-
-        db.collection("Users")
-                .add(user)
-                .addOnSuccessListener(documentReference -> {
-                    documentID = documentReference.getId();
-                    Toast.makeText(getContext(), "Sign-up successful!", Toast.LENGTH_SHORT).show();
-
-                    // Clear fields
-                    usernameInput.setText("");
-                    emailInput.setText("");
-                    phoneInput.setText("");
-                    passwordInput.setText("");
-                    confirmPasswordInput.setText("");
-
-                    // Navigate based on role using current package
-                    if (role.equalsIgnoreCase("Entrant")) {
-                        ((MainActivity) requireActivity()).replaceFragment(EventLottery.newInstance(email));
-                    } else if (role.equalsIgnoreCase("Organizer")) {
-                        ((MainActivity) requireActivity()).replaceFragment(new OrganizerDashboard());
-                    }
-                })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                db.collection("Users").document(device_id).set(user)
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(getContext(), "Sign up successful", Toast.LENGTH_SHORT).show();
+                            ((MainActivity) requireActivity()).replaceFragment(new FragmentRoleSelection());
+                        })
+                        .addOnFailureListener(e ->
+                                Toast.makeText(getContext(), "Sign up failed", Toast.LENGTH_SHORT).show());
+            }
+        });
     }
 }

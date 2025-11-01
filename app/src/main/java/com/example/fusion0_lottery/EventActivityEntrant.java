@@ -13,27 +13,32 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class EventActivityEntrant extends Fragment {
 
     private TextView eventNameText, eventDescriptionText, eventDateText, eventLocationText;
     private TextView registrationText, maxEntrantsText, eventPriceText;
     private Button joinWaitingListButton;
-    private String eventId, userEmail;
+    private String eventId;
     private boolean isInWaitingList;
     private boolean waitingListClosed;
 
     private FirebaseFirestore db;
+    private String currentUserId; // <-- Using UID now
 
     public EventActivityEntrant() {}
 
     public static EventActivityEntrant newInstance(
             String eventId,
-            String userEmail,
+            String currentUserId,   // <-- pass UID here
             String eventName,
             String eventDescription,
             String startDate,
@@ -48,7 +53,7 @@ public class EventActivityEntrant extends Fragment {
         EventActivityEntrant fragment = new EventActivityEntrant();
         Bundle args = new Bundle();
         args.putString("eventId", eventId);
-        args.putString("userEmail", userEmail);
+        args.putString("currentUserId", currentUserId); // <-- store UID
         args.putString("eventName", eventName);
         args.putString("eventDescription", eventDescription);
         args.putString("startDate", startDate);
@@ -80,14 +85,14 @@ public class EventActivityEntrant extends Fragment {
         maxEntrantsText = view.findViewById(R.id.eventEntrants);
         eventPriceText = view.findViewById(R.id.eventPrice);
         joinWaitingListButton = view.findViewById(R.id.buttonJoinWaitingList);
+        joinWaitingListButton.setVisibility(View.INVISIBLE);
 
         if (getArguments() != null) {
             eventId = getArguments().getString("eventId");
-            userEmail = getArguments().getString("userEmail");
-            isInWaitingList = getArguments().getBoolean("isInWaitingList", false);
+            currentUserId = getArguments().getString("currentUserId");
             waitingListClosed = getArguments().getBoolean("waitingListClosed", false);
 
-            // Display all fields with labels
+            // Display all fields
             eventNameText.setText("Event Name: " + getArguments().getString("eventName"));
             eventDescriptionText.setText("Description: " + getArguments().getString("eventDescription"));
             eventDateText.setText("Start Date: " + getArguments().getString("startDate"));
@@ -97,13 +102,40 @@ public class EventActivityEntrant extends Fragment {
             String regEnd = getArguments().getString("registrationEnd");
             registrationText.setText("Registration: " + regStart + " to " + regEnd);
 
-            long maxEntrants = getArguments().getLong("maxEntrants");
-            maxEntrantsText.setText("Max Entrants: " + maxEntrants);
+            maxEntrantsText.setText("Max Entrants: " + getArguments().getLong("maxEntrants"));
+            eventPriceText.setText("Price: $" + getArguments().getDouble("price"));
 
-            double price = getArguments().getDouble("price");
-            eventPriceText.setText("Price: $" + price);
+            // Fetch latest waiting list and remove deleted users before showing button
+            db.collection("Events").document(eventId).get()
+                    .addOnSuccessListener(snapshot -> {
+                        if (!snapshot.exists()) return;
 
-            joinWaitingListButton.setText(isInWaitingList ? "Leave Waiting List" : "Join Waiting List");
+                        ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
+                        if (waitingList == null) waitingList = new ArrayList<>();
+
+                        List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
+                        for (String uid : new ArrayList<>(waitingList)) {
+                            tasks.add(db.collection("Users").document(uid).get());
+                        }
+
+                        ArrayList<String> finalWaitingList = waitingList;
+                        com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
+                                .addOnSuccessListener(results -> {
+                                    ArrayList<String> cleanList = new ArrayList<>();
+                                    for (int i = 0; i < results.size(); i++) {
+                                        DocumentSnapshot userSnap = (DocumentSnapshot) results.get(i);
+                                        if (userSnap.exists()) cleanList.add(finalWaitingList.get(i));
+                                    }
+
+                                    // Update isInWaitingList
+                                    isInWaitingList = cleanList.contains(currentUserId);
+                                    joinWaitingListButton.setText(isInWaitingList ? "Leave Waiting List" : "Join Waiting List");
+
+                                    // Update Firestore with cleaned list
+                                    snapshot.getReference().update("waitingList", cleanList);
+                                    joinWaitingListButton.setVisibility(View.VISIBLE);
+                                });
+                    });
         }
 
         // Toolbar back arrow
@@ -140,21 +172,41 @@ public class EventActivityEntrant extends Fragment {
             ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
             if (waitingList == null) waitingList = new ArrayList<>();
 
-            if (isInWaitingList) {
-                waitingList.remove(userEmail);
-                isInWaitingList = false;
-                joinWaitingListButton.setText("Join Waiting List");
-                Toast.makeText(getContext(), "You left the waiting list", Toast.LENGTH_SHORT).show();
-            } else {
-                waitingList.add(userEmail);
-                isInWaitingList = true;
-                joinWaitingListButton.setText("Leave Waiting List");
-                Toast.makeText(getContext(), "You joined the waiting list", Toast.LENGTH_SHORT).show();
+            // Create a copy for mutation inside lambda
+            ArrayList<String> mutableWaitingList = new ArrayList<>(waitingList);
+
+            List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
+            for (String uid : new ArrayList<>(mutableWaitingList)) {
+                tasks.add(db.collection("Users").document(uid).get());
             }
 
-            eventRef.update("waitingList", waitingList)
-                    .addOnFailureListener(e ->
-                            Toast.makeText(getContext(), "Error updating waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
+                    .addOnSuccessListener(results -> {
+                        // Clean up deleted users
+                        Iterator<String> iter = mutableWaitingList.iterator();
+                        for (Object obj : results) {
+                            com.google.firebase.firestore.DocumentSnapshot userSnap = (com.google.firebase.firestore.DocumentSnapshot) obj;
+                            if (!userSnap.exists()) iter.remove();
+                        }
+
+                        // Add/remove current user
+                        if (isInWaitingList) {
+                            mutableWaitingList.remove(currentUserId);
+                            isInWaitingList = false;
+                            joinWaitingListButton.setText("Join Waiting List");
+                            Toast.makeText(getContext(), "You left the waiting list", Toast.LENGTH_SHORT).show();
+                        } else {
+                            if (!mutableWaitingList.contains(currentUserId)) mutableWaitingList.add(currentUserId);
+                            isInWaitingList = true;
+                            joinWaitingListButton.setText("Leave Waiting List");
+                            Toast.makeText(getContext(), "You joined the waiting list", Toast.LENGTH_SHORT).show();
+                        }
+
+                        // Update Firestore
+                        eventRef.update("waitingList", mutableWaitingList)
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(getContext(), "Error updating waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    });
         });
     }
 }

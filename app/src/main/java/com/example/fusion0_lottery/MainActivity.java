@@ -1,17 +1,16 @@
 package com.example.fusion0_lottery;
 
 import android.os.Bundle;
-import android.provider.Settings;
-import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
 
-import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.fusion0_lottery.EventLottery;
+
 
 public class MainActivity extends AppCompatActivity {
 
+    private FirebaseAuth auth;
     private FirebaseFirestore db;
 
     @Override
@@ -19,47 +18,54 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Check if user already exists in Firestore
-        checkIfUserExists();
+        if (savedInstanceState == null) {
+            if (auth.getCurrentUser() != null) {
+                // get device ID from current user in the Firestore database
+                String device_id = auth.getCurrentUser().getUid();
+                db.collection("Users").document(device_id).get()
+                        .addOnSuccessListener(documentSnapshot -> {
+                            // if user exists
+                            if (documentSnapshot.exists()) {
+                                // get the user role
+                                String role = documentSnapshot.getString("role");
+                                // if the user currently doesn't have a role (user is currently signing up)
+                                if (role == null || role.isEmpty()) {
+                                    // user is taken to the role selection screen
+                                    replaceFragment(new FragmentRoleSelection());
+                                }
+                                // if the user has a role and they are an "Entrant"
+                                else if (role.equalsIgnoreCase("Entrant")) {
+                                    // take them to the Entrant screen
+                                    replaceFragment(EventLottery.newInstance(auth.getCurrentUser().getEmail()));
+                                }
+
+                                // if the user has a role and they are an "Organizer"
+                                else if (role.equalsIgnoreCase("Organizer")) {
+                                    // take them to the Organizer screen
+                                    replaceFragment(new FragmentOrganizer());
+                                }
+                                else {
+                                    replaceFragment(new FragmentRoleSelection());
+                                }
+                            }
+                            // if they don't exist, then show them the signup screen
+                            else {
+                                replaceFragment(new FragmentSignUp());
+                            }
+                        });
+            }
+            else {
+                replaceFragment(new FragmentSignUp());
+            }
+        }
     }
 
-    private void checkIfUserExists() {
-        String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-
-        db.collection("Users")
-                .whereEqualTo("deviceId", deviceId)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!queryDocumentSnapshots.isEmpty()) {
-                        DocumentSnapshot userDoc = queryDocumentSnapshots.getDocuments().get(0);
-                        String userRole = userDoc.getString("userRole");
-                        String email = userDoc.getString("email");
-
-                        if ("Entrant".equalsIgnoreCase(userRole)) {
-                            // Navigate to Event Lottery directly
-                            replaceFragment(EventLottery.newInstance(email));
-                        } else if ("Organizer".equalsIgnoreCase(userRole)) {
-                            // Navigate to Organizer Dashboard
-                            replaceFragment(new OrganizerDashboard());
-                        }
-                    } else {
-                        // No user found — open Sign-Up fragment
-                        replaceFragment(new FragmentSignUp());
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error checking user: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    // fallback to signup
-                    replaceFragment(new FragmentSignUp());
-                });
-    }
-
-    public void replaceFragment(Fragment fragment) {
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.fragmentContainer, fragment)
+    public void replaceFragment(androidx.fragment.app.Fragment fragment) {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
                 .addToBackStack(null)
                 .commit();
     }
