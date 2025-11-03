@@ -39,17 +39,23 @@ public class UpdateProfileFragment extends Fragment {
 
         View root = inflater.inflate(R.layout.fragment_update_profile, container, false);
 
+        // ---- UI refs
         inputUsername = root.findViewById(R.id.inputUsername);
         inputEmail    = root.findViewById(R.id.inputEmail);
         inputPhone    = root.findViewById(R.id.inputPhone);
         btnUpdate     = root.findViewById(R.id.btnUpdate);
 
+        // ---- Toolbar back
         Toolbar toolbar = root.findViewById(R.id.toolbar);
-        // Use a different lambda param name to avoid clashing with "root"
-        toolbar.setNavigationOnClickListener(backView ->
-                requireActivity().getOnBackPressedDispatcher().onBackPressed()
-        );
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) {
+                    requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                }
+            });
+        }
 
+        // ---- Firebase
         auth = FirebaseAuth.getInstance();
         db   = FirebaseFirestore.getInstance();
 
@@ -58,26 +64,33 @@ public class UpdateProfileFragment extends Fragment {
             btnUpdate.setEnabled(false);
             return root;
         }
-
         uid = auth.getCurrentUser().getUid();
 
-        // Load existing profile info
+        // ---- Prefill fields
         final DocumentReference userRef = db.collection("Users").document(uid);
-        userRef.get().addOnSuccessListener(snap -> {
-            if (snap != null && snap.exists()) {
-                String username = snap.getString("username");
-                String email    = snap.getString("email");
-                String phone    = snap.getString("phone");
-                inputUsername.setText(username != null ? username : "");
-                inputEmail.setText(email != null ? email : "");
-                inputPhone.setText(phone != null ? phone : "");
-            }
-        }).addOnFailureListener(e ->
-                Toast.makeText(getContext(), "Failed to load profile: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-        );
+        userRef.get()
+                .addOnSuccessListener(snap -> {
+                    if (snap != null && snap.exists()) {
+                        String username = snap.getString("username");
+                        String email    = snap.getString("email");
+                        String phone    = snap.getString("phone");
+                        inputUsername.setText(username != null ? username : "");
+                        inputEmail.setText(email != null ? email : "");
+                        inputPhone.setText(phone != null ? phone : "");
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(),
+                                "Failed to load profile: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show()
+                );
 
-        // Update button click
-        btnUpdate.setOnClickListener(clickView -> updateProfile());
+        // ---- Update action
+        btnUpdate.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                updateProfile();
+            }
+        });
 
         return root;
     }
@@ -91,7 +104,7 @@ public class UpdateProfileFragment extends Fragment {
 
         btnUpdate.setEnabled(false);
 
-        Map<String, Object> updates = new HashMap<String, Object>();
+        Map<String, Object> updates = new HashMap<>();
         updates.put("username", username);
         updates.put("email", email);
         updates.put("phone", phone);
@@ -108,17 +121,12 @@ public class UpdateProfileFragment extends Fragment {
     }
 
     private boolean validate(String username, String email, String phone) {
-        if (TextUtils.isEmpty(username)) {
-            inputUsername.setError("Username required");
-            return false;
-        }
+        if (TextUtils.isEmpty(username)) { inputUsername.setError("Username required"); return false; }
         if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            inputEmail.setError("Valid email required");
-            return false;
+            inputEmail.setError("Valid email required"); return false;
         }
         if (!TextUtils.isEmpty(phone) && phone.length() < 3) {
-            inputPhone.setError("Phone seems too short");
-            return false;
+            inputPhone.setError("Phone seems too short"); return false;
         }
         return true;
     }
