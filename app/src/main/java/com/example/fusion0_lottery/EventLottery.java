@@ -45,6 +45,18 @@ public class EventLottery extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_event_lottery, container, false);
 
+        // dabi adding this for account update
+        Button accountBtn = view.findViewById(R.id.btnAccountSettings);
+        accountBtn.setOnClickListener(v -> {
+            // open UpdateProfileFragment on top of EventLottery
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, new UpdateProfileFragment())
+                    .addToBackStack("UpdateProfile")
+                    .commit();
+        });
+
+
         eventsContainer = view.findViewById(R.id.eventsContainer);
         buttonBack = view.findViewById(R.id.buttonBack);
 
