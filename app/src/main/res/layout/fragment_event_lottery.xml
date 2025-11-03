@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
@@ -8,17 +9,17 @@
     android:padding="16dp"
     tools:context=".EventLottery">
 
-    <!-- Toolbar with back arrow -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         android:navigationIcon="@drawable/ic_arrow_back"
-        android:title="Event Lottery"
-        android:titleTextColor="@android:color/white" />
+        app:title="Event Lottery"
+        app:titleTextColor="@android:color/white"
+        app:menu="@menu/event_lottery_menu" />
 
-    <!-- ScrollView so list of events can scroll -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -34,19 +35,10 @@
             android:showDividers="middle" />
     </ScrollView>
 
-    <!-- Bottom back button -->
     <Button
         android:id="@+id/buttonBack"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Back"
         android:layout_marginTop="8dp" />
-
-    <Button
-        android:id="@+id/btnAccountSettings"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Account Settings"
-        android:layout_marginTop="8dp" />
-
 </LinearLayout>

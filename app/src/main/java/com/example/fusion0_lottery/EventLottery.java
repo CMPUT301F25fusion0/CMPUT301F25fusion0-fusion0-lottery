@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,6 +29,9 @@ public class EventLottery extends Fragment {
     private FirebaseFirestore db;
     private String userEmail;
 
+    // single toolbar field so we don't redeclare it locally
+    private Toolbar toolbar;
+
     public EventLottery() {}
 
     public static EventLottery newInstance(String userEmail) {
@@ -45,24 +49,26 @@ public class EventLottery extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_event_lottery, container, false);
 
-        // dabi adding this for account update
-        Button accountBtn = view.findViewById(R.id.btnAccountSettings);
-        accountBtn.setOnClickListener(v -> {
-            // open UpdateProfileFragment on top of EventLottery
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragment_container, new UpdateProfileFragment())
-                    .addToBackStack("UpdateProfile")
-                    .commit();
+        toolbar = view.findViewById(R.id.toolbar);
+        toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
+
+        toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_account_settings) {
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, new UpdateProfileFragment())
+                        .addToBackStack("UpdateProfile")
+                        .commit();
+                return true;
+            }
+            return false;
         });
 
 
         eventsContainer = view.findViewById(R.id.eventsContainer);
         buttonBack = view.findViewById(R.id.buttonBack);
 
-        Toolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
-
+        // back button at bottom
         buttonBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
 
         db = FirebaseFirestore.getInstance();
@@ -162,7 +168,10 @@ public class EventLottery extends Fragment {
                                 boolean waitingListClosed = eventSnapshot.getBoolean("waitingListClosed") != null
                                         ? eventSnapshot.getBoolean("waitingListClosed") : false;
 
-                                String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                                String currentUserId = (FirebaseAuth.getInstance().getCurrentUser() != null)
+                                        ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                                        : "";
+
                                 getParentFragmentManager()
                                         .beginTransaction()
                                         .replace(
