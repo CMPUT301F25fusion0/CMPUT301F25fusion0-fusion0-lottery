@@ -1,5 +1,6 @@
 package com.example.fusion0_lottery;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Patterns;
@@ -45,14 +46,16 @@ public class UpdateProfileFragment extends Fragment {
         inputPhone    = root.findViewById(R.id.inputPhone);
         btnUpdate     = root.findViewById(R.id.btnUpdate);
 
-        // ---- Toolbar back
+        // ---- Toolbar back setup
         Toolbar toolbar = root.findViewById(R.id.toolbar);
         if (toolbar != null) {
-            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) {
-                    requireActivity().getOnBackPressedDispatcher().onBackPressed();
-                }
-            });
+            toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24);
+            if (toolbar.getNavigationIcon() != null) {
+                toolbar.getNavigationIcon().setTint(Color.WHITE);
+            }
+            toolbar.setContentInsetStartWithNavigation(0);
+            toolbar.setNavigationOnClickListener(v ->
+                    requireActivity().getSupportFragmentManager().popBackStack());
         }
 
         // ---- Firebase
@@ -86,11 +89,7 @@ public class UpdateProfileFragment extends Fragment {
                 );
 
         // ---- Update action
-        btnUpdate.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                updateProfile();
-            }
-        });
+        btnUpdate.setOnClickListener(v -> updateProfile());
 
         return root;
     }
@@ -121,12 +120,17 @@ public class UpdateProfileFragment extends Fragment {
     }
 
     private boolean validate(String username, String email, String phone) {
-        if (TextUtils.isEmpty(username)) { inputUsername.setError("Username required"); return false; }
+        if (TextUtils.isEmpty(username)) {
+            inputUsername.setError("Username required");
+            return false;
+        }
         if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            inputEmail.setError("Valid email required"); return false;
+            inputEmail.setError("Valid email required");
+            return false;
         }
         if (!TextUtils.isEmpty(phone) && phone.length() < 3) {
-            inputPhone.setError("Phone seems too short"); return false;
+            inputPhone.setError("Phone seems too short");
+            return false;
         }
         return true;
     }

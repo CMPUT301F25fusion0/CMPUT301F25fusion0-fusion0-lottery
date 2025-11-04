@@ -17,9 +17,10 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:navigationIcon="@android:drawable/ic_media_previous"
             android:title="Account Settings"
-            android:titleTextColor="@android:color/white" />
+            android:titleTextColor="@android:color/white"
+            app:navigationIcon="@drawable/ic_arrow_back_white_24"
+            app:navigationIconTint="@android:color/white" />
 
         <!-- Username -->
         <EditText
