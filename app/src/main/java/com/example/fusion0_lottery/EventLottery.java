@@ -155,7 +155,7 @@ public class EventLottery extends Fragment {
                                         .beginTransaction()
                                         .replace(
                                                 R.id.fragment_container,
-                                                EventActivityEntrant.newInstance(
+                                                EventFragmentEntrant.newInstance(
                                                         eventId,
                                                         currentUserId,
                                                         eventNameStr != null ? eventNameStr : "No Name",
