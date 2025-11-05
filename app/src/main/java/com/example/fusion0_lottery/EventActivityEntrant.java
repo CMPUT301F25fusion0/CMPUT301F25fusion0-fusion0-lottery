@@ -16,11 +16,14 @@ import androidx.fragment.app.Fragment;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class EventActivityEntrant extends Fragment {
 
@@ -70,7 +73,8 @@ public class EventActivityEntrant extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_event_activity_entrant, container, false);
@@ -110,7 +114,8 @@ public class EventActivityEntrant extends Fragment {
                     .addOnSuccessListener(snapshot -> {
                         if (!snapshot.exists()) return;
 
-                        ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
+                        ArrayList<String> waitingList =
+                                (ArrayList<String>) snapshot.get("waitingList");
                         if (waitingList == null) waitingList = new ArrayList<>();
 
                         List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
@@ -123,16 +128,24 @@ public class EventActivityEntrant extends Fragment {
                                 .addOnSuccessListener(results -> {
                                     ArrayList<String> cleanList = new ArrayList<>();
                                     for (int i = 0; i < results.size(); i++) {
-                                        DocumentSnapshot userSnap = (DocumentSnapshot) results.get(i);
-                                        if (userSnap.exists()) cleanList.add(finalWaitingList.get(i));
+                                        DocumentSnapshot userSnap =
+                                                (DocumentSnapshot) results.get(i);
+                                        if (userSnap.exists()) {
+                                            cleanList.add(finalWaitingList.get(i));
+                                        }
                                     }
 
-                                    // Update isInWaitingList
+                                    // Update isInWaitingList for this user
                                     isInWaitingList = cleanList.contains(currentUserId);
-                                    joinWaitingListButton.setText(isInWaitingList ? "Leave Waiting List" : "Join Waiting List");
+                                    joinWaitingListButton.setText(
+                                            isInWaitingList
+                                                    ? "Leave Waiting List"
+                                                    : "Join Waiting List"
+                                    );
 
-                                    // Update Firestore with cleaned list
+                                    // Push cleaned list back to Firestore
                                     snapshot.getReference().update("waitingList", cleanList);
+
                                     joinWaitingListButton.setVisibility(View.VISIBLE);
                                 });
                     });
@@ -149,7 +162,7 @@ public class EventActivityEntrant extends Fragment {
             }
         });
 
-        // Join/Leave waiting list
+        // Join/Leave waiting list button
         joinWaitingListButton.setOnClickListener(v -> toggleWaitingList());
 
         return view;
@@ -157,7 +170,16 @@ public class EventActivityEntrant extends Fragment {
 
     private void toggleWaitingList() {
         if (waitingListClosed) {
-            Toast.makeText(getContext(), "The waiting list is closed. You cannot join this event.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                    getContext(),
+                    "The waiting list is closed. You cannot join this event.",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        if (currentUserId == null) {
+            Toast.makeText(getContext(), "Not signed in.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -169,10 +191,11 @@ public class EventActivityEntrant extends Fragment {
                 return;
             }
 
-            ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
+            ArrayList<String> waitingList =
+                    (ArrayList<String>) snapshot.get("waitingList");
             if (waitingList == null) waitingList = new ArrayList<>();
 
-            // Create a copy for mutation inside lambda
+            // Copy for safe mutation inside callback
             ArrayList<String> mutableWaitingList = new ArrayList<>(waitingList);
 
             List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
@@ -182,30 +205,78 @@ public class EventActivityEntrant extends Fragment {
 
             com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
                     .addOnSuccessListener(results -> {
-                        // Clean up deleted users
+                        // 1. Clean up removed accounts
                         Iterator<String> iter = mutableWaitingList.iterator();
                         for (Object obj : results) {
-                            com.google.firebase.firestore.DocumentSnapshot userSnap = (com.google.firebase.firestore.DocumentSnapshot) obj;
-                            if (!userSnap.exists()) iter.remove();
+                            DocumentSnapshot userSnap = (DocumentSnapshot) obj;
+                            if (!userSnap.exists()) {
+                                iter.remove();
+                            }
                         }
 
-                        // Add/remove current user
+                        // 2. Decide if the user is joining or leaving
+                        boolean joining;
                         if (isInWaitingList) {
+                            // user is LEAVING
                             mutableWaitingList.remove(currentUserId);
+                            joining = false;
                             isInWaitingList = false;
                             joinWaitingListButton.setText("Join Waiting List");
-                            Toast.makeText(getContext(), "You left the waiting list", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(),
+                                    "You left the waiting list",
+                                    Toast.LENGTH_SHORT).show();
                         } else {
-                            if (!mutableWaitingList.contains(currentUserId)) mutableWaitingList.add(currentUserId);
+                            // user is JOINING
+                            if (!mutableWaitingList.contains(currentUserId)) {
+                                mutableWaitingList.add(currentUserId);
+                            }
+                            joining = true;
                             isInWaitingList = true;
                             joinWaitingListButton.setText("Leave Waiting List");
-                            Toast.makeText(getContext(), "You joined the waiting list", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(),
+                                    "You joined the waiting list",
+                                    Toast.LENGTH_SHORT).show();
                         }
 
-                        // Update Firestore
+                        // 3. Update the event's waiting list in Firestore
                         eventRef.update("waitingList", mutableWaitingList)
                                 .addOnFailureListener(e ->
-                                        Toast.makeText(getContext(), "Error updating waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                                        Toast.makeText(
+                                                getContext(),
+                                                "Error updating waiting list: " + e.getMessage(),
+                                                Toast.LENGTH_SHORT
+                                        ).show()
+                                );
+
+                        // 4. Update this user's Registrations subcollection for History
+                        DocumentReference regRef = db.collection("Users")
+                                .document(currentUserId)
+                                .collection("Registrations")
+                                .document(eventId);
+
+                        if (joining) {
+                            // Joined -> create or update a registration record
+                            Map<String, Object> reg = new HashMap<>();
+                            reg.put("eventId", eventId);
+                            reg.put("status", "Pending"); // will change later to Selected / Declined etc.
+                            reg.put("registeredAt", FieldValue.serverTimestamp());
+                            reg.put("eventName", snapshot.getString("eventName"));
+                            reg.put("startDate", snapshot.getString("startDate"));
+                            reg.put("location", snapshot.getString("location"));
+                            reg.put("description", snapshot.getString("description"));
+
+                            regRef.set(reg);
+                        } else {
+                            // Left -> keep it in history, but mark it Cancelled
+                            regRef.update("status", "Cancelled")
+                                    .addOnFailureListener(e ->
+                                            Toast.makeText(
+                                                    getContext(),
+                                                    "Error updating registration: " + e.getMessage(),
+                                                    Toast.LENGTH_SHORT
+                                            ).show()
+                                    );
+                        }
                     });
         });
     }

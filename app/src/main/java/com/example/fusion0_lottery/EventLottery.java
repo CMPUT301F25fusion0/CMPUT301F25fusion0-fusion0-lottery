@@ -47,18 +47,16 @@ public class EventLottery extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_event_lottery, container, false);
 
-        // --- Toolbar (purple banner at top)
+        // Toolbar
         toolbar = view.findViewById(R.id.toolbar);
         if (toolbar != null) {
             toolbar.setTitle("Event Lottery");
             toolbar.getMenu().clear();
             toolbar.inflateMenu(R.menu.event_lottery_menu);
 
-            // back arrow if shown
             toolbar.setNavigationOnClickListener(v ->
                     getParentFragmentManager().popBackStack());
 
-            // bell + gear
             toolbar.setOnMenuItemClickListener(item -> {
                 int id = item.getItemId();
                 if (id == R.id.action_notifications) {
@@ -75,20 +73,24 @@ public class EventLottery extends Fragment {
                             .addToBackStack("UpdateProfile")
                             .commit();
                     return true;
+                } else if (id == R.id.action_history) {
+                    requireActivity().getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.fragment_container, new HistoryFragment())
+                            .addToBackStack("History")
+                            .commit();
+                    return true;
                 }
                 return false;
             });
         }
 
-        // --- Views
         eventsContainer = view.findViewById(R.id.eventsContainer);
         buttonBack = view.findViewById(R.id.buttonBack);
         if (buttonBack != null) {
-            buttonBack.setOnClickListener(v ->
-                    getParentFragmentManager().popBackStack());
+            buttonBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
         }
 
-        // --- Firebase
         db = FirebaseFirestore.getInstance();
         if (getArguments() != null) {
             userEmail = getArguments().getString("userEmail");
