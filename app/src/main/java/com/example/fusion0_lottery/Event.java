@@ -1,5 +1,7 @@
 package com.example.fusion0_lottery;
 
+import java.util.ArrayList;
+
 /**
  * Event model class for storing event information in Firebase Firestore
  */
@@ -17,6 +19,7 @@ public class Event {
     private String registrationStart;
     private String registrationEnd;
     private String qrCodeUrl; // URL to the generated QR code
+    private ArrayList<User> registeredEntrants;
 
     // Empty constructor required for Firebase
     public Event() {
@@ -36,6 +39,7 @@ public class Event {
         this.registrationStart = registrationStart;
         this.registrationEnd = registrationEnd;
         this.maxEntrants = maxEntrants;
+        this.registeredEntrants = new ArrayList<>();
     }
 
     // Getters and Setters
@@ -141,5 +145,9 @@ public class Event {
 
     public void setQrCodeUrl(String qrCodeUrl) {
         this.qrCodeUrl = qrCodeUrl;
+    }
+
+    public ArrayList<User> getRegisteredEntrants() {
+        return registeredEntrants;
     }
 }

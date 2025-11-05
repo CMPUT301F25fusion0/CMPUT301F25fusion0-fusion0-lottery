@@ -26,12 +26,6 @@ import java.util.ArrayList;
  */
 public class FragmentOrganizer extends Fragment {
 
-    private Button createNewEvent;
-
-    //Firebase attributes
-    private FirebaseFirestore db;
-    private CollectionReference eventsRef;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -39,21 +33,17 @@ public class FragmentOrganizer extends Fragment {
 
         ListView eventsOrg = view.findViewById(R.id.eventsOrg);
 
-        // Dummy event
+
         ArrayList<Event> eventsArray = new ArrayList<>();
-        Event fortnite = new Event("fortnite",
-                "gaming event", "march",
-                "april", "6:07",
-                6.7, "Tilted Towers",
-                "feb", "march",
-                2);
+
 
         // Listview Adapter
         EventArrayAdapter eventsAdapter = new EventArrayAdapter(getContext(), eventsArray);
         eventsOrg.setAdapter(eventsAdapter);
 
-        db = FirebaseFirestore.getInstance();
-        eventsRef = db.collection("Events");
+        //Firebase attributes
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        CollectionReference eventsRef = db.collection("Events");
 
         // Adds events from firestore into listview
         eventsRef.addSnapshotListener((value, error) -> {
@@ -74,9 +64,8 @@ public class FragmentOrganizer extends Fragment {
                     String regEnd = snapshot.getString("registrationEnd");
                     Long maxEntrants = snapshot.getLong("maxEntrants");
                     if (maxEntrants == null) {
-                        maxEntrants = 9999999L;
+                        maxEntrants = -1L; // placeholder; EventArrayAdapter will display "No Limit" if -1
                     }
-
                     eventsAdapter.add(new Event(eventName, description,
                             startDate, endDate, time, price,
                             location, regStart, regEnd, maxEntrants.intValue()));
@@ -85,20 +74,12 @@ public class FragmentOrganizer extends Fragment {
             }
         });
 
-        createNewEvent = view.findViewById(R.id.createEventButton);
+        Button createNewEvent = view.findViewById(R.id.createEventButton);
 
         createNewEvent.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), EventCreationActivity.class);
             startActivity(intent);
         });
-
-
-        // Adds event to listview and database
-        eventsArray.add(fortnite);
-        eventsAdapter.notifyDataSetChanged();
-
-        DocumentReference eventsDocRef = eventsRef.document(fortnite.getEventName());
-        eventsDocRef.set(fortnite);
 
         return view;
     }
