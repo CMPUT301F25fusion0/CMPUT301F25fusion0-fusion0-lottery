@@ -59,5 +59,15 @@
             android:backgroundTint="?attr/colorPrimary"
             android:textColor="@android:color/white" />
 
+        <!-- Danger zone: Delete profile -->
+        <Button
+            android:id="@+id/btnDeleteProfile"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Delete Profile"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#D32F2F"
+            android:textColor="@android:color/white" />
+
     </LinearLayout>
 </ScrollView>
