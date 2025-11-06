@@ -46,7 +46,7 @@ public class HistoryFragment extends Fragment {
         }
 
         historyContainer = v.findViewById(R.id.historyContainer);
-        emptyView = v.findViewById(R.id.emptyHistoryMessage);
+        emptyView        = v.findViewById(R.id.emptyHistoryMessage);
 
         uid = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
@@ -80,28 +80,25 @@ public class HistoryFragment extends Fragment {
                         View row = LayoutInflater.from(getContext())
                                 .inflate(R.layout.row_history_item, historyContainer, false);
 
-                        TextView title = row.findViewById(R.id.historyTitle);
-                        TextView descView = row.findViewById(R.id.historyDescription);
-                        TextView meta = row.findViewById(R.id.historyMeta);
-                        TextView status = row.findViewById(R.id.historyStatus);
-                        TextView entrants = row.findViewById(R.id.historyEntrants);
+                        TextView title     = row.findViewById(R.id.historyTitle);
+                        TextView descView  = row.findViewById(R.id.historyDescription);
+                        TextView meta      = row.findViewById(R.id.historyMeta);
+                        TextView status    = row.findViewById(R.id.historyStatus);
+                        TextView entrants  = row.findViewById(R.id.historyEntrants);
 
-                        String name = doc.getString("eventName");
-                        String date = doc.getString("startDate");
-                        String loc = doc.getString("location");
-                        String stat = doc.getString("status");
-                        String desc = doc.getString("description");
+                        String name   = doc.getString("eventName");
+                        String date   = doc.getString("startDate");
+                        String loc    = doc.getString("location");
+                        String stat   = doc.getString("status");
+                        String desc   = doc.getString("description");
                         String eventId = doc.getString("eventId");
 
-                        // Set texts
                         title.setText(name != null ? name : "Untitled Event");
-                        if (descView != null)
-                            descView.setText(desc != null ? desc : "");
-
+                        if (descView != null) descView.setText(desc != null ? desc : "");
                         meta.setText(((date != null) ? date : "—") + " • " + ((loc != null) ? loc : "—"));
                         status.setText(stat != null ? stat : "Pending");
 
-                        // --- Fetch entrant count from Event doc ---
+                        // Show current entrants count from Event doc
                         if (eventId != null && entrants != null) {
                             db.collection("Events").document(eventId).get()
                                     .addOnSuccessListener(ev -> {
@@ -113,7 +110,7 @@ public class HistoryFragment extends Fragment {
                                     .addOnFailureListener(e -> entrants.setText("Entrants: —"));
                         }
 
-                        // --- Tap row → open EventActivityEntrant ---
+                        // Tap row → open the entrant detail screen
                         final String currentUid = FirebaseAuth.getInstance().getCurrentUser() != null
                                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                                 : "";
@@ -125,22 +122,22 @@ public class HistoryFragment extends Fragment {
                                     .beginTransaction()
                                     .replace(
                                             R.id.fragment_container,
-                                            EventActivityEntrant.newInstance(
+                                            EventFragmentEntrant.newInstance(
                                                     eventId,
                                                     currentUid,
                                                     (name != null ? name : "No Name"),
                                                     (desc != null ? desc : "No Description"),
                                                     (date != null ? date : "No Date"),
-                                                    (loc != null ? loc : "No Location"),
-                                                    false,
-                                                    "",
-                                                    "",
-                                                    0L,
-                                                    0.0,
-                                                    false
+                                                    (loc  != null ? loc  : "No Location"),
+                                                    false,   // isInWaitingList (recomputed inside)
+                                                    "",      // registrationStart (optional cache)
+                                                    "",      // registrationEnd   (optional cache)
+                                                    0L,      // maxEntrants       (optional cache)
+                                                    0.0,     // price             (optional cache)
+                                                    false    // waitingListClosed (optional cache)
                                             )
                                     )
-                                    .addToBackStack("EventActivityEntrant")
+                                    .addToBackStack("EventFragmentEntrant")
                                     .commit();
                         });
 

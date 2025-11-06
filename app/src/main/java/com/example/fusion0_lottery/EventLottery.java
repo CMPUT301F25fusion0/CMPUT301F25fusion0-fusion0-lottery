@@ -54,9 +54,11 @@ public class EventLottery extends Fragment {
             toolbar.getMenu().clear();
             toolbar.inflateMenu(R.menu.event_lottery_menu);
 
+            // back arrow
             toolbar.setNavigationOnClickListener(v ->
                     getParentFragmentManager().popBackStack());
 
+            // toolbar actions
             toolbar.setOnMenuItemClickListener(item -> {
                 int id = item.getItemId();
                 if (id == R.id.action_notifications) {
@@ -168,53 +170,7 @@ public class EventLottery extends Fragment {
                 db.collection("Events").document(eventId)
                         .get()
                         .addOnSuccessListener(eventSnapshot -> {
-<<<<<<< HEAD
                             if (!eventSnapshot.exists()) {
-=======
-                            if (eventSnapshot.exists()) {
-
-                                String eventNameStr = eventSnapshot.getString("eventName");
-                                String eventDescStr = eventSnapshot.getString("description");
-                                String eventStartDateStr = eventSnapshot.getString("startDate");
-                                String eventLocationStr = eventSnapshot.getString("location");
-
-                                String regStart = eventSnapshot.getString("registrationStart");
-                                String regEnd = eventSnapshot.getString("registrationEnd");
-
-                                Long maxEntrantsVal = eventSnapshot.getLong("maxEntrants");
-                                Double priceVal = eventSnapshot.getDouble("price");
-
-                                List<String> fullWaitlist = (List<String>) eventSnapshot.get("waitingList");
-                                boolean isOnWaitlist = fullWaitlist != null && fullWaitlist.contains(userEmail);
-
-                                boolean waitingListClosed = eventSnapshot.getBoolean("waitingListClosed") != null
-                                        ? eventSnapshot.getBoolean("waitingListClosed") : false;
-
-                                String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                                getParentFragmentManager()
-                                        .beginTransaction()
-                                        .replace(
-                                                R.id.fragment_container,
-                                                EventFragmentEntrant.newInstance(
-                                                        eventId,
-                                                        currentUserId,
-                                                        eventNameStr != null ? eventNameStr : "No Name",
-                                                        eventDescStr != null ? eventDescStr : "No Description",
-                                                        eventStartDateStr != null ? eventStartDateStr : "No Date",
-                                                        eventLocationStr != null ? eventLocationStr : "No Location",
-                                                        isOnWaitlist,
-                                                        regStart != null ? regStart : "",
-                                                        regEnd != null ? regEnd : "",
-                                                        maxEntrantsVal != null ? maxEntrantsVal : 0L,
-                                                        priceVal != null ? priceVal : 0.0,
-                                                        waitingListClosed
-                                                )
-                                        )
-                                        .addToBackStack(null)
-                                        .commit();
-
-                            } else {
->>>>>>> origin/main
                                 Toast.makeText(getContext(), "Event not found", Toast.LENGTH_SHORT).show();
                                 return;
                             }
@@ -229,13 +185,13 @@ public class EventLottery extends Fragment {
                             Double priceVal = eventSnapshot.getDouble("price");
 
                             @SuppressWarnings("unchecked")
-                            List<String> fullWaitlist =
-                                    (List<String>) eventSnapshot.get("waitingList");
-                            boolean isOnWaitlist = fullWaitlist != null && userEmail != null
+                            List<String> fullWaitlist = (List<String>) eventSnapshot.get("waitingList");
+                            boolean isOnWaitlist = fullWaitlist != null
+                                    && userEmail != null
                                     && fullWaitlist.contains(userEmail);
 
-                            boolean waitingListClosed = Boolean.TRUE.equals(
-                                    eventSnapshot.getBoolean("waitingListClosed"));
+                            boolean waitingListClosed =
+                                    Boolean.TRUE.equals(eventSnapshot.getBoolean("waitingListClosed"));
 
                             String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
                                     ? FirebaseAuth.getInstance().getCurrentUser().getUid()
@@ -245,7 +201,7 @@ public class EventLottery extends Fragment {
                                     .beginTransaction()
                                     .replace(
                                             R.id.fragment_container,
-                                            EventActivityEntrant.newInstance(
+                                            EventFragmentEntrant.newInstance(
                                                     eventId,
                                                     currentUserId,
                                                     eventNameStr != null ? eventNameStr : "No Name",

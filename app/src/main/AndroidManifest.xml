@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-<<<<<<< HEAD
     package="com.example.fusion0_lottery">
 
-    <!-- Needed for Android 13+ to show notifications -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-=======
-    package="com.example.fusion0_lottery" >
->>>>>>> origin/main
+    <!-- Android 13+ (API 33) runtime permission to post notifications -->
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        tools:targetApi="33" />
 
     <application
         android:allowBackup="true"
@@ -18,23 +16,22 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-<<<<<<< HEAD
         android:theme="@style/Theme.Fusion0_lottery">
 
-=======
-        android:theme="@style/Theme.Fusion0_lottery" >
+        <!-- Event creation screen -->
         <activity android:name=".EventCreationActivity" />
->>>>>>> origin/main
+
+        <!-- Launcher activity -->
         <activity
             android:name=".MainActivity"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- FCM Messaging service: this is the receiver for push messages -->
+        <!-- FCM Messaging service -->
         <service
             android:name=".AppMessagingService"
             android:exported="false">
