@@ -34,6 +34,21 @@
                 android:inputType="text"/>
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- interest -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/interestInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top"
+                android:hint="Interest Field *"
+                android:inputType="text"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- Description -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -49,19 +64,21 @@
                 android:gravity="top"/>
         </com.google.android.material.textfield.TextInputLayout>
 
+
         <!-- Start Date -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/startDateInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Start Date (YYYY-MM-DD) *"
-                android:inputType="date"
+                android:clickable="true"
                 android:focusable="false"
-                android:clickable="true"/>
+                android:hint="Start Date (YYYY-MM-DD) *"
+                android:inputType="date" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- End Date -->

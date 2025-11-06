@@ -42,6 +42,7 @@ public class FragmentOrganizer extends Fragment {
         // Dummy event
         ArrayList<Event> eventsArray = new ArrayList<>();
         Event fortnite = new Event("fortnite",
+                "gaming",
                 "gaming event", "march",
                 "april", "6:07",
                 6.7, "Tilted Towers",
@@ -64,6 +65,7 @@ public class FragmentOrganizer extends Fragment {
                 eventsAdapter.clear();
                 for (QueryDocumentSnapshot snapshot : value) {
                     String eventName = snapshot.getString("eventName");
+                    String interests = snapshot.getString("interests");
                     String description = snapshot.getString("description");
                     String startDate = snapshot.getString("startDate");
                     String endDate = snapshot.getString("endDate");
@@ -77,7 +79,7 @@ public class FragmentOrganizer extends Fragment {
                         maxEntrants = 9999999L;
                     }
 
-                    eventsAdapter.add(new Event(eventName, description,
+                    eventsAdapter.add(new Event(eventName, interests, description,
                             startDate, endDate, time, price,
                             location, regStart, regEnd, maxEntrants.intValue()));
                 }

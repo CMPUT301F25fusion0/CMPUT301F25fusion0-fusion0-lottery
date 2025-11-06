@@ -24,7 +24,7 @@ import java.util.List;
 
 public class EventActivityEntrant extends Fragment {
 
-    private TextView eventNameText, eventDescriptionText, eventDateText, eventLocationText;
+    private TextView eventNameText, eventInterestsText, eventDescriptionText, eventDateText, eventLocationText;
     private TextView registrationText, maxEntrantsText, eventPriceText;
     private Button joinWaitingListButton;
     private String eventId;
@@ -40,6 +40,7 @@ public class EventActivityEntrant extends Fragment {
             String eventId,
             String currentUserId,   // <-- pass UID here
             String eventName,
+            String eventInterests,
             String eventDescription,
             String startDate,
             String location,
@@ -55,6 +56,7 @@ public class EventActivityEntrant extends Fragment {
         args.putString("eventId", eventId);
         args.putString("currentUserId", currentUserId); // <-- store UID
         args.putString("eventName", eventName);
+        args.putString("interests", eventInterests);
         args.putString("eventDescription", eventDescription);
         args.putString("startDate", startDate);
         args.putString("eventLocation", location);
@@ -78,6 +80,7 @@ public class EventActivityEntrant extends Fragment {
 
         // Initialize views
         eventNameText = view.findViewById(R.id.eventName);
+        eventInterestsText = view.findViewById(R.id.interestInput);
         eventDescriptionText = view.findViewById(R.id.eventDescription);
         eventDateText = view.findViewById(R.id.eventDate);
         eventLocationText = view.findViewById(R.id.eventLocation);
@@ -94,6 +97,7 @@ public class EventActivityEntrant extends Fragment {
 
             // Display all fields
             eventNameText.setText("Event Name: " + getArguments().getString("eventName"));
+            eventInterestsText.setText("Interests" + getArguments().getString("eventInterests"));
             eventDescriptionText.setText("Description: " + getArguments().getString("eventDescription"));
             eventDateText.setText("Start Date: " + getArguments().getString("startDate"));
             eventLocationText.setText("Location: " + getArguments().getString("eventLocation"));

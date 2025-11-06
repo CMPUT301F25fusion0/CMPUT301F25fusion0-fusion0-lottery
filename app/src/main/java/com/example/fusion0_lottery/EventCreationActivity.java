@@ -45,6 +45,9 @@ public class EventCreationActivity extends AppCompatActivity {
     // UI Elements - all the input fields from the layout
     private TextInputEditText eventNameInput, descriptionInput, startDateInput, endDateInput;
     private TextInputEditText timeInput, priceInput, locationInput, maxEntrantsInput;
+
+    private TextInputEditText interestInput;
+
     private TextInputEditText registrationStartInput, registrationEndInput;
     private Button uploadPosterButton, createEventButton, cancelButton, generateQrButton;
     private ImageView posterImageView, qrCodeImageView;
@@ -83,6 +86,7 @@ public class EventCreationActivity extends AppCompatActivity {
      */
     private void initializeViews() {
         eventNameInput = findViewById(R.id.eventNameInput);
+        interestInput = findViewById(R.id.interestInput);
         descriptionInput = findViewById(R.id.descriptionInput);
         startDateInput = findViewById(R.id.startDateInput);
         endDateInput = findViewById(R.id.endDateInput);
@@ -217,6 +221,10 @@ public class EventCreationActivity extends AppCompatActivity {
             Toast.makeText(this, "Please enter description", Toast.LENGTH_SHORT).show();
             return false;
         }
+        if (interestInput.getText().toString().trim().isEmpty()) {
+            Toast.makeText(this, "Please enter interests", Toast.LENGTH_SHORT).show();
+            return false;
+        }
         if (startDateInput.getText().toString().trim().isEmpty()) {
             Toast.makeText(this, "Please select start date", Toast.LENGTH_SHORT).show();
             return false;
@@ -290,6 +298,7 @@ public class EventCreationActivity extends AppCompatActivity {
 
         // Get all the input values
         String eventName = eventNameInput.getText().toString().trim();
+        String interests = interestInput.getText().toString().trim();
         String description = descriptionInput.getText().toString().trim();
         String startDate = startDateInput.getText().toString().trim();
         String endDate = endDateInput.getText().toString().trim();
@@ -306,7 +315,7 @@ public class EventCreationActivity extends AppCompatActivity {
         }
 
         // Create Event object
-        Event event = new Event(eventName, description, startDate, endDate, time,
+        Event event = new Event(eventName, interests, description, startDate, endDate, time,
                 price, location, registrationStart, registrationEnd, maxEntrants);
 
         // If poster is selected, upload it first, then save event
