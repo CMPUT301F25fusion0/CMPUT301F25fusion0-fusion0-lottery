@@ -8,8 +8,10 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -41,6 +43,8 @@ public class EventFragmentOrganizer extends Fragment {
         TextView eventRegDate = view.findViewById(R.id.eventEndDate);
         TextView eventMaxEntrant = view.findViewById(R.id.eventEntrants);
         TextView eventPrice = view.findViewById(R.id.eventPrice);
+        ImageView qrCodeImage = view.findViewById(R.id.eventQrCode);
+        TextView qrCodeLabel = view.findViewById(R.id.qrCodeLabel);
 
         // Retrieve eventId
         String eventId = getArguments().getString("eventId");
@@ -70,6 +74,19 @@ public class EventFragmentOrganizer extends Fragment {
                     eventMaxEntrant.setText("Max Entrants: " + event.getMaxEntrants());
                 }
                 eventPrice.setText("Price: $" + event.getPrice());
+
+                // Load and display QR code if available
+                String qrCodeUrl = event.getQrCodeUrl();
+                if (qrCodeUrl != null && !qrCodeUrl.isEmpty()) {
+                    qrCodeLabel.setVisibility(View.VISIBLE);
+                    qrCodeImage.setVisibility(View.VISIBLE);
+                    Glide.with(EventFragmentOrganizer.this)
+                            .load(qrCodeUrl)
+                            .into(qrCodeImage);
+                } else {
+                    qrCodeLabel.setVisibility(View.GONE);
+                    qrCodeImage.setVisibility(View.GONE);
+                }
 
             }
 

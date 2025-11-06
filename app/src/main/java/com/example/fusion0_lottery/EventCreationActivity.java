@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -46,8 +47,9 @@ public class EventCreationActivity extends AppCompatActivity {
     private TextInputEditText eventNameInput, interestInput, descriptionInput, startDateInput, endDateInput;
     private TextInputEditText timeInput, priceInput, locationInput, maxEntrantsInput;
     private TextInputEditText registrationStartInput, registrationEndInput;
-    private Button uploadPosterButton, createEventButton, cancelButton, generateQrButton;
-    private ImageView posterImageView, qrCodeImageView;
+    private Button uploadPosterButton, createEventButton, cancelButton;
+    private CheckBox generateQrCheckbox;
+    private ImageView posterImageView;
 
     // Firebase instances
     private FirebaseFirestore db;
@@ -97,10 +99,9 @@ public class EventCreationActivity extends AppCompatActivity {
         uploadPosterButton = findViewById(R.id.uploadPosterButton);
         createEventButton = findViewById(R.id.createEventButton);
         cancelButton = findViewById(R.id.cancelButton);
-        generateQrButton = findViewById(R.id.generateQrButton);
+        generateQrCheckbox = findViewById(R.id.generateQrCheckbox);
 
         posterImageView = findViewById(R.id.posterImageView);
-        qrCodeImageView = findViewById(R.id.qrCodeImageView);
     }
 
     /**
@@ -130,9 +131,6 @@ public class EventCreationActivity extends AppCompatActivity {
 
         // Cancel button - just close the activity
         cancelButton.setOnClickListener(v -> finish());
-
-        // Generate QR code button
-        generateQrButton.setOnClickListener(v -> generateQRCode());
     }
 
     /**
@@ -364,8 +362,13 @@ public class EventCreationActivity extends AppCompatActivity {
 
                     Toast.makeText(this, "Event created successfully!", Toast.LENGTH_SHORT).show();
 
-                    // Close the activity and return to the previous screen
-                    finish();
+                    // Generate QR code if checkbox is checked
+                    if (generateQrCheckbox.isChecked()) {
+                        generateAndUploadQRCode();
+                    } else {
+                        // Close the activity and return to the previous screen
+                        finish();
+                    }
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error creating event: " + e.getMessage(),
@@ -374,38 +377,31 @@ public class EventCreationActivity extends AppCompatActivity {
     }
 
     /**
-     * Generate QR code for the event
+     * Generate and upload QR code for the event
      * The QR code contains the event ID that can be scanned to view event details
-     * Currently doesn't upload qr to firebase properly, and need to make it so that the qr code is
-     * embedded into the bottom of the event
      */
-    private void generateQRCode() {
+    private void generateAndUploadQRCode() {
         if (createdEventId == null) {
-            Toast.makeText(this, "Please create an event first", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Event ID not available", Toast.LENGTH_SHORT).show();
+            finish();
             return;
         }
 
         try {
             // The QR code will contain the event ID
-            // You can modify this to include a deep link or URL to your app
             String qrContent = "event://" + createdEventId;
 
             // Generate the QR code bitmap
             Bitmap qrBitmap = generateQRCodeBitmap(qrContent, 500, 500);
 
-            // Display the QR code
-            qrCodeImageView.setImageBitmap(qrBitmap);
-            qrCodeImageView.setVisibility(View.VISIBLE);
-
-            // Optionally, upload the QR code to Firebase Storage
+            // Upload the QR code to Firebase Storage
             uploadQRCodeToStorage(qrBitmap);
-
-            Toast.makeText(this, "QR Code generated!", Toast.LENGTH_SHORT).show();
 
         } catch (WriterException e) {
             Toast.makeText(this, "Error generating QR code: " + e.getMessage(),
                     Toast.LENGTH_SHORT).show();
             e.printStackTrace();
+            finish();
         }
     }
 
@@ -451,14 +447,22 @@ public class EventCreationActivity extends AppCompatActivity {
                         db.collection("Events").document(createdEventId)
                                 .update("qrCodeUrl", uri.toString())
                                 .addOnSuccessListener(aVoid -> {
-                                    Toast.makeText(this, "QR Code saved to cloud!",
+                                    Toast.makeText(this, "Event and QR Code created successfully!",
                                             Toast.LENGTH_SHORT).show();
+                                    // Close the activity after successful QR code upload
+                                    finish();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(this, "Event created but QR code update failed",
+                                            Toast.LENGTH_SHORT).show();
+                                    finish();
                                 });
                     });
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to upload QR code: " + e.getMessage(),
+                    Toast.makeText(this, "Event created but QR code upload failed",
                             Toast.LENGTH_SHORT).show();
+                    finish();
                 });
     }
 }

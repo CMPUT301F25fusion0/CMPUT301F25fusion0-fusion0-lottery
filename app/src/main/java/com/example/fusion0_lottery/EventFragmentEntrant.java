@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -25,8 +27,9 @@ import java.util.List;
 public class EventFragmentEntrant extends Fragment {
 
     private TextView eventNameText, eventDescriptionText, eventDateText, eventLocationText;
-    private TextView registrationText, maxEntrantsText, eventPriceText;
+    private TextView registrationText, maxEntrantsText, eventPriceText, qrCodeLabel;
     private Button joinWaitingListButton;
+    private ImageView qrCodeImage;
     private String eventId;
     private boolean isInWaitingList;
     private boolean waitingListClosed;
@@ -85,6 +88,8 @@ public class EventFragmentEntrant extends Fragment {
         maxEntrantsText = view.findViewById(R.id.eventEntrants);
         eventPriceText = view.findViewById(R.id.eventPrice);
         joinWaitingListButton = view.findViewById(R.id.buttonJoinWaitingList);
+        qrCodeImage = view.findViewById(R.id.eventQrCode);
+        qrCodeLabel = view.findViewById(R.id.qrCodeLabel);
         joinWaitingListButton.setVisibility(View.INVISIBLE);
 
         if (getArguments() != null) {
@@ -112,6 +117,19 @@ public class EventFragmentEntrant extends Fragment {
 
                         ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
                         if (waitingList == null) waitingList = new ArrayList<>();
+
+                        // Load and display QR code if available
+                        String qrCodeUrl = snapshot.getString("qrCodeUrl");
+                        if (qrCodeUrl != null && !qrCodeUrl.isEmpty()) {
+                            qrCodeLabel.setVisibility(View.VISIBLE);
+                            qrCodeImage.setVisibility(View.VISIBLE);
+                            Glide.with(EventFragmentEntrant.this)
+                                    .load(qrCodeUrl)
+                                    .into(qrCodeImage);
+                        } else {
+                            qrCodeLabel.setVisibility(View.GONE);
+                            qrCodeImage.setVisibility(View.GONE);
+                        }
 
                         List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
                         for (String uid : new ArrayList<>(waitingList)) {
