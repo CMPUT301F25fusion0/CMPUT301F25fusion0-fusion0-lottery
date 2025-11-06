@@ -370,6 +370,8 @@ public class EventCreationActivity extends AppCompatActivity {
     /**
      * Generate QR code for the event
      * The QR code contains the event ID that can be scanned to view event details
+     * Currently doesn't upload qr to firebase properly, and need to make it so that the qr code is
+     * embedded into the bottom of the event
      */
     private void generateQRCode() {
         if (createdEventId == null) {
