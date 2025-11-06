@@ -18,7 +18,84 @@
         android:title="Event Lottery"
         android:titleTextColor="@android:color/white" />
 
-    <!-- ScrollView so list of events can scroll -->
+    <!-- Filter Section -->
+    <LinearLayout
+        android:id="@+id/filterSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#f0f0f0"
+        android:padding="12dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Filter Events"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp" />
+
+        <!-- Interest Spinner -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Interest"
+            android:textSize="16sp"
+            android:layout_marginTop="4dp"
+            android:paddingBottom="4dp" />
+
+        <Spinner
+            android:id="@+id/spinnerInterest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/interests_array"
+            android:prompt="@string/select_interest" />
+
+        <!-- Availability Filter -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Availability"
+            android:textSize="16sp"
+            android:layout_marginTop="12dp"
+            android:paddingBottom="4dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <Button
+                android:id="@+id/buttonStartDate"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Select Start Date" />
+
+            <Button
+                android:id="@+id/buttonEndDate"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Select End Date"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <!-- Apply Filter Button -->
+        <Button
+            android:id="@+id/buttonApplyFilters"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Apply Filters"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="?attr/colorPrimary"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+    <!-- Scrollable list of events -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
