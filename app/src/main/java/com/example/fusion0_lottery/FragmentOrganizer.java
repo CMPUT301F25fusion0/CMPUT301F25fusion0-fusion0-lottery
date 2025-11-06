@@ -61,6 +61,7 @@ public class FragmentOrganizer extends Fragment {
                 for (QueryDocumentSnapshot snapshot : value) {
                     String eventId = snapshot.getId();
                     String eventName = snapshot.getString("eventName");
+                    String interests = snapshot.getString("interests");
                     String description = snapshot.getString("description");
                     String startDate = snapshot.getString("startDate");
                     String endDate = snapshot.getString("endDate");
@@ -73,7 +74,7 @@ public class FragmentOrganizer extends Fragment {
                     if (maxEntrants == null) {
                         maxEntrants = -1L; // placeholder; "No Limit" if -1
                     }
-                    Event event = new Event(eventName, description,
+                    Event event = new Event(eventName, interests, description,
                             startDate, endDate, time, price,
                             location, regStart, regEnd, maxEntrants.intValue());
                     event.setEventId(eventId);
