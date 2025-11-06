@@ -1,5 +1,6 @@
 package com.example.fusion0_lottery;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,6 +28,8 @@ public class EventLottery extends Fragment {
     private Button buttonBack;
     private FirebaseFirestore db;
     private String userEmail;
+    private Button scan_qr;
+    private static final int QR_SCAN_REQUEST_CODE = 100;
 
     public EventLottery() {}
 
@@ -48,6 +51,8 @@ public class EventLottery extends Fragment {
         eventsContainer = view.findViewById(R.id.eventsContainer);
         buttonBack = view.findViewById(R.id.buttonBack);
 
+        scan_qr = view.findViewById(R.id.scan_qr);
+
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
 
@@ -58,10 +63,86 @@ public class EventLottery extends Fragment {
         if (getArguments() != null) {
             userEmail = getArguments().getString("userEmail");
         }
+        scan_qr.setOnClickListener(v ->{
+            Intent intent = new Intent(getActivity(), QRScannerActivity.class);
+            startActivityForResult(intent, QR_SCAN_REQUEST_CODE);
+        });
+
 
         loadEvents();
         return view;
     }
+
+    @Override
+    public void onActivityResult(int request_code, int result_code, Intent data){
+        super.onActivityResult(request_code,result_code,data);
+
+        if (request_code == QR_SCAN_REQUEST_CODE){
+            if (result_code == getActivity().RESULT_OK && data != null){
+                String event_id = data.getStringExtra("EVENT_ID");
+                if (event_id != null && !event_id.isEmpty()){
+                    event_details(event_id);
+                }
+            } else{
+                Toast.makeText(getContext(), "QR scan cancelled", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void event_details(String eventId) {
+        db.collection("Events").document(eventId)
+                .get()
+                .addOnSuccessListener(eventSnapshot -> {
+                    if (eventSnapshot.exists()) {
+
+                        String eventNameStr = eventSnapshot.getString("eventName");
+                        String eventDescStr = eventSnapshot.getString("description");
+                        String eventStartDateStr = eventSnapshot.getString("startDate");
+                        String eventLocationStr = eventSnapshot.getString("location");
+
+                        String regStart = eventSnapshot.getString("registrationStart");
+                        String regEnd = eventSnapshot.getString("registrationEnd");
+
+                        Long maxEntrantsVal = eventSnapshot.getLong("maxEntrants");
+                        Double priceVal = eventSnapshot.getDouble("price");
+
+                        List<String> fullWaitlist = (List<String>) eventSnapshot.get("waitingList");
+                        boolean isOnWaitlist = fullWaitlist != null && fullWaitlist.contains(userEmail);
+
+                        boolean waitingListClosed = eventSnapshot.getBoolean("waitingListClosed") != null
+                                ? eventSnapshot.getBoolean("waitingListClosed") : false;
+
+                        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                        getParentFragmentManager()
+                                .beginTransaction()
+                                .replace(
+                                        R.id.fragment_container,
+                                        EventActivityEntrant.newInstance(
+                                                eventId,
+                                                currentUserId,
+                                                eventNameStr != null ? eventNameStr : "No Name",
+                                                eventDescStr != null ? eventDescStr : "No Description",
+                                                eventStartDateStr != null ? eventStartDateStr : "No Date",
+                                                eventLocationStr != null ? eventLocationStr : "No Location",
+                                                isOnWaitlist,
+                                                regStart != null ? regStart : "",
+                                                regEnd != null ? regEnd : "",
+                                                maxEntrantsVal != null ? maxEntrantsVal : 0L,
+                                                priceVal != null ? priceVal : 0.0,
+                                                waitingListClosed
+                                        )
+                                )
+                                .addToBackStack(null)
+                                .commit();
+
+                    } else {
+                        Toast.makeText(getContext(), "Event not found", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
 
     private void loadEvents() {
         db.collection("Events")
@@ -126,59 +207,9 @@ public class EventLottery extends Fragment {
             viewDetailsBtn.setText("View Details");
             viewDetailsBtn.setBackgroundColor(getResources().getColor(android.R.color.holo_purple));
             viewDetailsBtn.setTextColor(getResources().getColor(android.R.color.white));
-
+            
             viewDetailsBtn.setOnClickListener(v -> {
-                db.collection("Events").document(eventId)
-                        .get()
-                        .addOnSuccessListener(eventSnapshot -> {
-                            if (eventSnapshot.exists()) {
-
-                                String eventNameStr = eventSnapshot.getString("eventName");
-                                String eventDescStr = eventSnapshot.getString("description");
-                                String eventStartDateStr = eventSnapshot.getString("startDate");
-                                String eventLocationStr = eventSnapshot.getString("location");
-
-                                String regStart = eventSnapshot.getString("registrationStart");
-                                String regEnd = eventSnapshot.getString("registrationEnd");
-
-                                Long maxEntrantsVal = eventSnapshot.getLong("maxEntrants");
-                                Double priceVal = eventSnapshot.getDouble("price");
-
-                                List<String> fullWaitlist = (List<String>) eventSnapshot.get("waitingList");
-                                boolean isOnWaitlist = fullWaitlist != null && fullWaitlist.contains(userEmail);
-
-                                boolean waitingListClosed = eventSnapshot.getBoolean("waitingListClosed") != null
-                                        ? eventSnapshot.getBoolean("waitingListClosed") : false;
-
-                                String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                                getParentFragmentManager()
-                                        .beginTransaction()
-                                        .replace(
-                                                R.id.fragment_container,
-                                                EventActivityEntrant.newInstance(
-                                                        eventId,
-                                                        currentUserId,
-                                                        eventNameStr != null ? eventNameStr : "No Name",
-                                                        eventDescStr != null ? eventDescStr : "No Description",
-                                                        eventStartDateStr != null ? eventStartDateStr : "No Date",
-                                                        eventLocationStr != null ? eventLocationStr : "No Location",
-                                                        isOnWaitlist,
-                                                        regStart != null ? regStart : "",
-                                                        regEnd != null ? regEnd : "",
-                                                        maxEntrantsVal != null ? maxEntrantsVal : 0L,
-                                                        priceVal != null ? priceVal : 0.0,
-                                                        waitingListClosed
-                                                )
-                                        )
-                                        .addToBackStack(null)
-                                        .commit();
-
-                            } else {
-                                Toast.makeText(getContext(), "Event not found", Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .addOnFailureListener(e ->
-                                Toast.makeText(getContext(), "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+               event_details(eventId);
             });
 
             card.addView(nameText);
@@ -190,4 +221,5 @@ public class EventLottery extends Fragment {
             eventsContainer.addView(card);
         }
     }
+
 }
