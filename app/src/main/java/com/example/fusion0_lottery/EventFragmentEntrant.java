@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
-public class EventActivityEntrant extends Fragment {
+public class EventFragmentEntrant extends Fragment {
 
     private TextView eventNameText, eventDescriptionText, eventDateText, eventLocationText;
     private TextView registrationText, maxEntrantsText, eventPriceText;
@@ -37,9 +37,9 @@ public class EventActivityEntrant extends Fragment {
     private FirebaseFirestore db;
     private String currentUserId; // <-- Using UID now
 
-    public EventActivityEntrant() {}
+    public EventFragmentEntrant() {}
 
-    public static EventActivityEntrant newInstance(
+    public static EventFragmentEntrant newInstance(
             String eventId,
             String currentUserId,   // <-- pass UID here
             String eventName,
@@ -53,7 +53,7 @@ public class EventActivityEntrant extends Fragment {
             Double price,
             boolean waitingListClosed
     ) {
-        EventActivityEntrant fragment = new EventActivityEntrant();
+        EventFragmentEntrant fragment = new EventFragmentEntrant();
         Bundle args = new Bundle();
         args.putString("eventId", eventId);
         args.putString("currentUserId", currentUserId); // <-- store UID
