@@ -126,6 +126,8 @@
                 android:visibility="gone"
                 android:contentDescription="Event QR Code"/>
 
+
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.fusion0_lottery">
+
+    <application android:theme="@style/Theme.Fusion0_lottery">
+        <activity
+            android:name="androidx.fragment.app.testing.EmptyFragmentActivity"
+            android:exported="true" />
+    </application>
+
+</manifest>
