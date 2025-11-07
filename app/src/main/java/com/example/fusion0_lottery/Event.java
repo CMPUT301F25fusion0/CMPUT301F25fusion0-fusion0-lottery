@@ -6,6 +6,7 @@ package com.example.fusion0_lottery;
 public class Event {
     private String eventId;
     private String eventName;
+    private String interests;
     private String description;
     private String startDate;
     private String endDate;
@@ -27,11 +28,12 @@ public class Event {
     }
 
     // Constructor for creating new events
-    public Event(String eventName, String description, String startDate, String endDate,
+    public Event(String eventName, String interests, String description, String startDate, String endDate,
                  String time, double price, String location, String registrationStart,
                  String registrationEnd, Integer maxEntrants, Integer waitingListCount,
                  Integer userSelectedCount, Integer userEnrolledCount) {
         this.eventName = eventName;
+        this.interests = interests;
         this.description = description;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -61,6 +63,14 @@ public class Event {
 
     public void setEventName(String eventName) {
         this.eventName = eventName;
+    }
+
+    public String getInterests() {
+        return interests;
+    }
+
+    public void setInterests(String interests) {
+        this.interests = interests;
     }
 
     public String getDescription() {

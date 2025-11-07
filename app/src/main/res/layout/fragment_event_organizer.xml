@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    android:orientation="vertical"
+    tools:context=".EventFragmentOrganizer">
 
+    <!-- Toolbar Header -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/green_700"
         android:elevation="4dp"
-        android:fitsSystemWindows="true"
         android:titleTextColor="@android:color/white"
         android:paddingTop="8dp"/>
 
@@ -20,12 +23,11 @@
         android:layout_height="match_parent"
         android:padding="24dp">
 
+        <!-- Single direct child for ScrollView -->
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-
-
 
             <TextView
                 android:id="@+id/eventName"
@@ -34,13 +36,6 @@
                 android:text="Event Name"
                 android:textSize="24sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
-
-            <TextView
-                android:id="@+id/event"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Event Description"
                 android:layout_marginBottom="8dp"/>
 
             <TextView
@@ -92,15 +87,6 @@
                 android:text="Price: "
                 android:layout_marginBottom="16dp"/>
 
-            <Button
-                android:id="@+id/buttonJoinWaitingList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Join Waiting List"
-                android:textSize="18sp"
-                android:backgroundTint="@color/purple_500"
-                android:textColor="@android:color/white"/>
-
             <!-- QR Code Display -->
             <TextView
                 android:layout_width="match_parent"
@@ -108,7 +94,7 @@
                 android:text="Event QR Code:"
                 android:textStyle="bold"
                 android:textSize="16sp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
                 android:id="@+id/qrCodeLabel"
                 android:visibility="gone"/>

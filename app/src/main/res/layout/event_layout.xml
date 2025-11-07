@@ -17,43 +17,32 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/status"
+        android:id="@+id/eventInterests"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:text="Status:"
-        android:textSize="20sp"
+        android:text="Interests: "
+        android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/eventName" />
 
     <TextView
-        android:id="@+id/waitingList"
+        android:id="@+id/status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:text="Waiting List: "
+        android:text="Status: "
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/status" />
+        app:layout_constraintTop_toBottomOf="@+id/eventInterests" />
 
     <TextView
         android:id="@+id/drawDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:text="Draw Date:"
+        android:text="Draw Date: "
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/waitingList" />
-
-    <Button
-        android:id="@+id/manageButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Manage"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp" />
-
+        app:layout_constraintTop_toBottomOf="@+id/status" />
 </androidx.constraintlayout.widget.ConstraintLayout>
