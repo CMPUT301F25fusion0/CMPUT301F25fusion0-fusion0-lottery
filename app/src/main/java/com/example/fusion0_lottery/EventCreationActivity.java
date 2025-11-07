@@ -317,7 +317,7 @@ public class EventCreationActivity extends AppCompatActivity {
             maxEntrants = Integer.parseInt(maxEntrantsInput.getText().toString().trim());
         }
         // Create Event object
-        Event event = new Event(eventName, description, startDate, endDate, time,
+        Event event = new Event(eventName, interests, description, startDate, endDate, time,
                 price, location, registrationStart, registrationEnd, maxEntrants, 0, 0, 0);
 
         // First save event to Firestore
