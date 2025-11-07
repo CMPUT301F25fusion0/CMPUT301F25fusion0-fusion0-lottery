@@ -66,17 +66,17 @@ public class FragmentOrganizer extends Fragment {
                     String startDate = snapshot.getString("startDate");
                     String endDate = snapshot.getString("endDate");
                     String time = snapshot.getString("time");
-                    Double price = snapshot.getDouble("price");
+                    Double priceDouble = snapshot.getDouble("price");
+                    double price = (priceDouble != null) ? priceDouble : 0.0;
                     String location = snapshot.getString("location");
                     String regStart = snapshot.getString("registrationStart");
                     String regEnd = snapshot.getString("registrationEnd");
-                    Long maxEntrants = snapshot.getLong("maxEntrants");
-                    if (maxEntrants == null) {
-                        maxEntrants = -1L; // placeholder; "No Limit" if -1
-                    }
+                    Long maxEntrantsLong = snapshot.getLong("maxEntrants");
+                    Integer maxEntrants = (maxEntrantsLong != null) ? maxEntrantsLong.intValue() : null;
+
                     Event event = new Event(eventName, interests, description,
                             startDate, endDate, time, price,
-                            location, regStart, regEnd, maxEntrants.intValue());
+                            location, regStart, regEnd, maxEntrants);
                     event.setEventId(eventId);
                     eventsAdapter.add(event);
                 }

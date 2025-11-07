@@ -24,10 +24,11 @@ public class Event {
     }
 
     // Constructor for creating new events
-    public Event(String eventName, String description, String startDate, String endDate,
+    public Event(String eventName, String interests, String description, String startDate, String endDate,
                  String time, double price, String location, String registrationStart,
                  String registrationEnd, Integer maxEntrants) {
         this.eventName = eventName;
+        this.interests = interests;
         this.description = description;
         this.startDate = startDate;
         this.endDate = endDate;
