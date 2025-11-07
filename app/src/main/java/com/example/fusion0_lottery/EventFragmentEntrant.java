@@ -1,5 +1,6 @@
 package com.example.fusion0_lottery;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,10 +18,17 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Calendar;
 
 public class EventFragmentEntrant extends Fragment {
 
@@ -32,13 +40,13 @@ public class EventFragmentEntrant extends Fragment {
     private boolean waitingListClosed;
 
     private FirebaseFirestore db;
-    private String currentUserId; // <-- Using UID now
+    private String currentUserId;
 
     public EventFragmentEntrant() {}
 
     public static EventFragmentEntrant newInstance(
             String eventId,
-            String currentUserId,   // <-- pass UID here
+            String currentUserId,
             String eventName,
             String eventDescription,
             String startDate,
@@ -53,7 +61,7 @@ public class EventFragmentEntrant extends Fragment {
         EventFragmentEntrant fragment = new EventFragmentEntrant();
         Bundle args = new Bundle();
         args.putString("eventId", eventId);
-        args.putString("currentUserId", currentUserId); // <-- store UID
+        args.putString("currentUserId", currentUserId);
         args.putString("eventName", eventName);
         args.putString("eventDescription", eventDescription);
         args.putString("startDate", startDate);
@@ -92,7 +100,6 @@ public class EventFragmentEntrant extends Fragment {
             currentUserId = getArguments().getString("currentUserId");
             waitingListClosed = getArguments().getBoolean("waitingListClosed", false);
 
-            // Display all fields
             eventNameText.setText("Event Name: " + getArguments().getString("eventName"));
             eventDescriptionText.setText("Description: " + getArguments().getString("eventDescription"));
             eventDateText.setText("Start Date: " + getArguments().getString("startDate"));
@@ -105,7 +112,6 @@ public class EventFragmentEntrant extends Fragment {
             maxEntrantsText.setText("Max Entrants: " + getArguments().getLong("maxEntrants"));
             eventPriceText.setText("Price: $" + getArguments().getDouble("price"));
 
-            // Fetch latest waiting list and remove deleted users before showing button
             db.collection("Events").document(eventId).get()
                     .addOnSuccessListener(snapshot -> {
                         if (!snapshot.exists()) return;
@@ -124,21 +130,19 @@ public class EventFragmentEntrant extends Fragment {
                                     ArrayList<String> cleanList = new ArrayList<>();
                                     for (int i = 0; i < results.size(); i++) {
                                         DocumentSnapshot userSnap = (DocumentSnapshot) results.get(i);
-                                        if (userSnap.exists()) cleanList.add(finalWaitingList.get(i));
+                                        if (userSnap.exists())
+                                            cleanList.add(finalWaitingList.get(i));
                                     }
 
-                                    // Update isInWaitingList
                                     isInWaitingList = cleanList.contains(currentUserId);
                                     joinWaitingListButton.setText(isInWaitingList ? "Leave Waiting List" : "Join Waiting List");
 
-                                    // Update Firestore with cleaned list
                                     snapshot.getReference().update("waitingList", cleanList);
                                     joinWaitingListButton.setVisibility(View.VISIBLE);
                                 });
                     });
         }
 
-        // Toolbar back arrow
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setTitle("Event Details");
         toolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
@@ -149,18 +153,12 @@ public class EventFragmentEntrant extends Fragment {
             }
         });
 
-        // Join/Leave waiting list
         joinWaitingListButton.setOnClickListener(v -> toggleWaitingList());
 
         return view;
     }
 
     private void toggleWaitingList() {
-        if (waitingListClosed) {
-            Toast.makeText(getContext(), "The waiting list is closed. You cannot join this event.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         DocumentReference eventRef = db.collection("Events").document(eventId);
 
         eventRef.get().addOnSuccessListener(snapshot -> {
@@ -169,44 +167,78 @@ public class EventFragmentEntrant extends Fragment {
                 return;
             }
 
-            ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
+            List<String> waitingList = (List<String>) snapshot.get("waitingList");
             if (waitingList == null) waitingList = new ArrayList<>();
 
-            // Create a copy for mutation inside lambda
-            ArrayList<String> mutableWaitingList = new ArrayList<>(waitingList);
+            Long maxEntrants = snapshot.getLong("maxEntrants");
+            String registrationEndStr = snapshot.getString("registrationEnd");
 
-            List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
-            for (String uid : new ArrayList<>(mutableWaitingList)) {
-                tasks.add(db.collection("Users").document(uid).get());
+            // Check if registration period ended (inclusive)
+            boolean isClosedByDate = false;
+            if (registrationEndStr != null) {
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                    Date regEnd = sdf.parse(registrationEndStr);
+
+                    if (regEnd != null) {
+                        Calendar cal = Calendar.getInstance();
+                        cal.setTime(regEnd);
+                        cal.add(Calendar.DATE, 1); // add 1 day to include the last day
+                        Date regEndInclusive = cal.getTime();
+                        Date today = new Date();
+
+                        if (today.after(regEndInclusive)) isClosedByDate = true;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
-            com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
-                    .addOnSuccessListener(results -> {
-                        // Clean up deleted users
-                        Iterator<String> iter = mutableWaitingList.iterator();
-                        for (Object obj : results) {
-                            com.google.firebase.firestore.DocumentSnapshot userSnap = (com.google.firebase.firestore.DocumentSnapshot) obj;
-                            if (!userSnap.exists()) iter.remove();
-                        }
+            boolean isFull = maxEntrants != null && waitingList.size() >= maxEntrants;
 
-                        // Add/remove current user
-                        if (isInWaitingList) {
-                            mutableWaitingList.remove(currentUserId);
-                            isInWaitingList = false;
-                            joinWaitingListButton.setText("Join Waiting List");
-                            Toast.makeText(getContext(), "You left the waiting list", Toast.LENGTH_SHORT).show();
-                        } else {
-                            if (!mutableWaitingList.contains(currentUserId)) mutableWaitingList.add(currentUserId);
-                            isInWaitingList = true;
-                            joinWaitingListButton.setText("Leave Waiting List");
-                            Toast.makeText(getContext(), "You joined the waiting list", Toast.LENGTH_SHORT).show();
-                        }
+            if (isClosedByDate || isFull) {
+                String msg = isClosedByDate ?
+                        "The waiting list is closed because registration has ended." :
+                        "The waiting list is full. You cannot join this event.";
+                Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-                        // Update Firestore
-                        eventRef.update("waitingList", mutableWaitingList)
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(getContext(), "Error updating waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-                    });
+            if (waitingList.contains(currentUserId)) {
+                waitingList.remove(currentUserId);
+                isInWaitingList = false;
+                Toast.makeText(getContext(), "You left the waiting list", Toast.LENGTH_SHORT).show();
+            } else {
+                waitingList.add(currentUserId);
+                isInWaitingList = true;
+                Toast.makeText(getContext(), "You joined the waiting list", Toast.LENGTH_SHORT).show();
+            }
+            joinWaitingListButton.setText(isInWaitingList ? "Leave Waiting List" : "Join Waiting List");
+
+            eventRef.update("waitingList", waitingList,
+                            "waitingListCount", waitingList.size())
+                    .addOnFailureListener(e ->
+                            Toast.makeText(getContext(), "Error updating waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         });
+    }
+
+    private Bitmap generateQRCode(String eventId) throws WriterException {
+        String qrContent = "event://" + eventId;
+        int size = 500;
+
+        BitMatrix bitMatrix = new MultiFormatWriter().encode(
+                qrContent,
+                BarcodeFormat.QR_CODE,
+                size,
+                size
+        );
+
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565);
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                bitmap.setPixel(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
+            }
+        }
+        return bitmap;
     }
 }

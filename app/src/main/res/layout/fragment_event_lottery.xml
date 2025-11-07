@@ -93,6 +93,14 @@
             android:layout_marginTop="12dp"
             android:backgroundTint="?attr/colorPrimary"
             android:textColor="@android:color/white" />
+        <!-- Clear Filters Button -->
+        <Button
+            android:id="@+id/buttonClearFilters"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Clear Filters"
+            android:layout_marginTop="8dp" />
+
     </LinearLayout>
 
     <!-- Scrollable list of events -->

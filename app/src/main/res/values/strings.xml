@@ -22,6 +22,7 @@
         <item>Technology</item>
         <item>Art</item>
         <item>Gaming</item>
+        <item>Computers</item>
     </string-array>
 
     <string name="select_interest">Select Interest</string>

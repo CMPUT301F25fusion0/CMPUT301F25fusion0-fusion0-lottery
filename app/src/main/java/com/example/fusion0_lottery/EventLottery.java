@@ -22,20 +22,22 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.ArrayList;
+
 
 public class EventLottery extends Fragment {
 
     private LinearLayout eventsContainer;
-    private Button buttonBack, buttonApplyFilters, buttonStartDate, buttonEndDate;
+    private Button buttonBack, buttonApplyFilters, buttonStartDate, buttonEndDate, buttonClearFilters;
     private Spinner spinnerInterest;
     private FirebaseFirestore db;
     private String userEmail;
+
 
     private String selectedInterest = "All";
     private String selectedStartDate = null;
@@ -60,13 +62,16 @@ public class EventLottery extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_event_lottery, container, false);
 
-        // UI setup
         eventsContainer = view.findViewById(R.id.eventsContainer);
         buttonBack = view.findViewById(R.id.buttonBack);
         spinnerInterest = view.findViewById(R.id.spinnerInterest);
         buttonApplyFilters = view.findViewById(R.id.buttonApplyFilters);
         buttonStartDate = view.findViewById(R.id.buttonStartDate);
         buttonEndDate = view.findViewById(R.id.buttonEndDate);
+        Button buttonClearFilters = view.findViewById(R.id.buttonClearFilters);
+
+        buttonClearFilters.setOnClickListener(v -> clearFilters());
+
 
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
@@ -74,7 +79,6 @@ public class EventLottery extends Fragment {
 
         db = FirebaseFirestore.getInstance();
 
-        // Retrieve saved arguments (filter states)
         if (getArguments() != null) {
             userEmail = getArguments().getString("userEmail");
             selectedInterest = getArguments().getString("selectedInterest", "All");
@@ -90,30 +94,23 @@ public class EventLottery extends Fragment {
         );
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerInterest.setAdapter(adapter);
-
-        // Restore spinner selection
         if (selectedInterest != null) {
             int position = adapter.getPosition(selectedInterest);
             if (position >= 0) spinnerInterest.setSelection(position);
         }
 
-        // Restore date button text
-        if (selectedStartDate != null)
-            buttonStartDate.setText("Start: " + selectedStartDate);
-        if (selectedEndDate != null)
-            buttonEndDate.setText("End: " + selectedEndDate);
+        if (selectedStartDate != null) buttonStartDate.setText("Start: " + selectedStartDate);
+        if (selectedEndDate != null) buttonEndDate.setText("End: " + selectedEndDate);
 
-        // Date pickers
         buttonStartDate.setOnClickListener(v -> showDatePicker(true));
         buttonEndDate.setOnClickListener(v -> showDatePicker(false));
 
-        // Apply filters
         buttonApplyFilters.setOnClickListener(v -> {
             selectedInterest = spinnerInterest.getSelectedItem().toString();
             applyFilters();
         });
 
-        // Auto-load: if filters exist, apply them; else load all
+        // Load events automatically
         if (!selectedInterest.equals("All") || selectedStartDate != null || selectedEndDate != null) {
             applyFilters();
         } else {
@@ -121,18 +118,6 @@ public class EventLottery extends Fragment {
         }
 
         return view;
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        // Save filter state when leaving fragment
-        Bundle args = getArguments();
-        if (args != null) {
-            args.putString("selectedInterest", selectedInterest);
-            args.putString("selectedStartDate", selectedStartDate);
-            args.putString("selectedEndDate", selectedEndDate);
-        }
     }
 
     private void showDatePicker(boolean isStartDate) {
@@ -159,12 +144,17 @@ public class EventLottery extends Fragment {
         db.collection("Events")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    Log.d("EventLottery", "Fetched " + queryDocumentSnapshots.size() + " events.");
                     if (queryDocumentSnapshots.isEmpty()) {
                         Toast.makeText(getContext(), "No events found.", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    displayEvents(queryDocumentSnapshots.getDocuments());
+
+                    List<DocumentSnapshot> joinableEvents = new ArrayList<>();
+                    for (DocumentSnapshot eventDoc : queryDocumentSnapshots.getDocuments()) {
+                        if (canJoinWaitingList(eventDoc)) joinableEvents.add(eventDoc);
+                    }
+
+                    displayEvents(joinableEvents);
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Error loading events: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -181,41 +171,91 @@ public class EventLottery extends Fragment {
                         return;
                     }
 
-                    List<DocumentSnapshot> filteredEvents = queryDocumentSnapshots.getDocuments();
+                    List<DocumentSnapshot> filteredEvents = new ArrayList<>();
 
-                    // Interest filter
-                    if (!selectedInterest.equals("All")) {
-                        filteredEvents.removeIf(event ->
-                                event.get("interest") == null ||
-                                        !selectedInterest.equalsIgnoreCase(event.getString("interest"))
-                        );
-                    }
-
-                    // Availability filter
-                    if (selectedStartDate != null && selectedEndDate != null) {
-                        try {
-                            Date startFilter = dateFormat.parse(selectedStartDate);
-                            Date endFilter = dateFormat.parse(selectedEndDate);
-
-                            filteredEvents.removeIf(event -> {
-                                try {
-                                    Date eventStart = dateFormat.parse(event.getString("startDate"));
-                                    Date eventEnd = dateFormat.parse(event.getString("endDate"));
-                                    // Remove events that fall completely outside user's availability
-                                    return eventStart.after(endFilter) || eventEnd.before(startFilter);
-                                } catch (Exception e) {
-                                    return true;
-                                }
-                            });
-                        } catch (ParseException e) {
-                            Toast.makeText(getContext(), "Invalid date filter", Toast.LENGTH_SHORT).show();
+                    for (DocumentSnapshot event : queryDocumentSnapshots.getDocuments()) {
+                        // Interest filter
+                        if (!selectedInterest.equals("All")) {
+                            String eventInterest = event.getString("interests");
+                            if (eventInterest == null || !selectedInterest.equalsIgnoreCase(eventInterest.trim())) continue;
                         }
+
+                        // Availability filter (optional)
+                        if (selectedStartDate != null || selectedEndDate != null) {
+                            try {
+                                Date filterStart = selectedStartDate != null ? dateFormat.parse(selectedStartDate) : null;
+                                Date filterEnd = selectedEndDate != null ? dateFormat.parse(selectedEndDate) : null;
+                                Date eventStart = dateFormat.parse(event.getString("startDate"));
+                                Date eventEnd = dateFormat.parse(event.getString("endDate"));
+
+                                if ((filterStart != null && eventEnd.before(filterStart)) ||
+                                        (filterEnd != null && eventStart.after(filterEnd))) {
+                                    continue; // event outside filter range
+                                }
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                continue;
+                            }
+                        }
+
+                        // Can join waiting list
+                        if (!canJoinWaitingList(event)) continue;
+
+                        filteredEvents.add(event);
                     }
 
                     displayEvents(filteredEvents);
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(getContext(), "Error filtering events: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private void clearFilters() {
+        // Reset filter variables
+        selectedInterest = "All";
+        selectedStartDate = null;
+        selectedEndDate = null;
+
+        // Reset UI elements
+        spinnerInterest.setSelection(0); // "All" position
+        buttonStartDate.setText("Start: All");
+        buttonEndDate.setText("End: All");
+
+        // Reload all events
+        loadEvents();
+    }
+
+
+    private boolean canJoinWaitingList(DocumentSnapshot eventDoc) {
+        try {
+            // Registration end inclusive
+            String regEndStr = eventDoc.getString("registrationEnd");
+            if (regEndStr != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                Date regEnd = sdf.parse(regEndStr);
+
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(regEnd);
+                cal.add(Calendar.DATE, 1); // include last day
+                Date regEndInclusive = cal.getTime();
+
+                Date today = new Date();
+                if (today.after(regEndInclusive)) return false;
+            }
+
+            // Waiting list full
+            Long maxEntrants = eventDoc.getLong("maxEntrants");
+            List<String> waitingList = (List<String>) eventDoc.get("waitingList");
+            int waitlistCount = waitingList != null ? waitingList.size() : 0;
+            if (maxEntrants != null && maxEntrants > 0 && waitlistCount >= maxEntrants) return false;
+
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private void displayEvents(List<DocumentSnapshot> events) {
@@ -266,60 +306,28 @@ public class EventLottery extends Fragment {
             viewDetailsBtn.setTextColor(getResources().getColor(android.R.color.white));
 
             viewDetailsBtn.setOnClickListener(v -> {
-                db.collection("Events").document(eventId)
-                        .get()
-                        .addOnSuccessListener(eventSnapshot -> {
-                            if (eventSnapshot.exists()) {
-                                String eventNameStr = eventSnapshot.getString("eventName");
-                                String eventDescStr = eventSnapshot.getString("description");
-                                String eventStartDateStr = eventSnapshot.getString("startDate");
-                                String eventLocationStr = eventSnapshot.getString("location");
-                                String regStart = eventSnapshot.getString("registrationStart");
-                                String regEnd = eventSnapshot.getString("registrationEnd");
-                                Long maxEntrantsVal = eventSnapshot.getLong("maxEntrants");
-                                Double priceVal = eventSnapshot.getDouble("price");
-                                List<String> fullWaitlist = (List<String>) eventSnapshot.get("waitingList");
-                                boolean isOnWaitlist = fullWaitlist != null && fullWaitlist.contains(userEmail);
-                                boolean waitingListClosed = eventSnapshot.getBoolean("waitingListClosed") != null
-                                        ? eventSnapshot.getBoolean("waitingListClosed") : false;
-                                String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                String currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-                                // Pass along filter state too so it stays when we come back
-                                Bundle args = getArguments();
-                                if (args != null) {
-                                    args.putString("selectedInterest", selectedInterest);
-                                    args.putString("selectedStartDate", selectedStartDate);
-                                    args.putString("selectedEndDate", selectedEndDate);
-                                }
+                EventFragmentEntrant fragment = EventFragmentEntrant.newInstance(
+                        eventId,
+                        currentUserId,
+                        eventDoc.getString("eventName"),
+                        eventDoc.getString("description"),
+                        eventDoc.getString("startDate"),
+                        eventDoc.getString("location"),
+                        false,
+                        eventDoc.getString("registrationStart"),
+                        eventDoc.getString("registrationEnd"),
+                        eventDoc.getLong("maxEntrants"),
+                        eventDoc.getDouble("price"),
+                        false
+                );
 
-                                getParentFragmentManager()
-                                        .beginTransaction()
-                                        .replace(
-                                                R.id.fragment_container,
-                                                EventFragmentEntrant.newInstance(
-                                                        eventId,
-                                                        currentUserId,
-                                                        eventNameStr != null ? eventNameStr : "No Name",
-                                                        eventDescStr != null ? eventDescStr : "No Description",
-                                                        eventStartDateStr != null ? eventStartDateStr : "No Date",
-                                                        eventLocationStr != null ? eventLocationStr : "No Location",
-                                                        isOnWaitlist,
-                                                        regStart != null ? regStart : "",
-                                                        regEnd != null ? regEnd : "",
-                                                        maxEntrantsVal != null ? maxEntrantsVal : 0L,
-                                                        priceVal != null ? priceVal : 0.0,
-                                                        waitingListClosed
-                                                )
-                                        )
-                                        .addToBackStack(null)
-                                        .commit();
-
-                            } else {
-                                Toast.makeText(getContext(), "Event not found", Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .addOnFailureListener(e ->
-                                Toast.makeText(getContext(), "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                getParentFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, fragment)
+                        .addToBackStack(null)
+                        .commit();
             });
 
             card.addView(nameText);
