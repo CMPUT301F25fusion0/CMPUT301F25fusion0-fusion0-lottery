@@ -37,7 +37,7 @@ public class EventArrayAdapter extends ArrayAdapter<Event> {
     }
 
     @NonNull
-    public View getView(int position, View convertView, @NonNull ViewGroup parent){
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         View view = convertView;
         if (view == null) {
             view = LayoutInflater.from(context).inflate(R.layout.event_layout, parent, false);
@@ -52,27 +52,38 @@ public class EventArrayAdapter extends ArrayAdapter<Event> {
         eventName.setText(event.getEventName());
         eventInterests.setText("Interests: " + event.getInterests());
 
-
+        // ---- New: safe handling for registrationEnd ----
+        String regEndStr = event.getRegistrationEnd();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        try {
-            Date today = sdf.parse(sdf.format(new Date()));
-            Date eventRegEnd = sdf.parse(event.getRegistrationEnd());
-            assert today != null;
-            if (today.before(eventRegEnd)) {
-                eventStatus.setText("Status: Open");
-            }
-            else {
+
+        if (regEndStr == null || regEndStr.trim().isEmpty()) {
+            // No registration end date -> treat as closed + no draw date
+            eventStatus.setText("Status: Closed");
+            eventDrawDate.setText("Draw Date: TBA");
+        } else {
+            try {
+                // Strip time from "today" and compare by date only
+                Date today = sdf.parse(sdf.format(new Date()));      // e.g. "2025-11-07"
+                Date eventRegEnd = sdf.parse(regEndStr);
+
+                if (today != null && eventRegEnd != null && !today.after(eventRegEnd)) {
+                    // today <= eventRegEnd  -> Open
+                    eventStatus.setText("Status: Open");
+                } else {
+                    // today > eventRegEnd   -> Closed
+                    eventStatus.setText("Status: Closed");
+                }
+
+                eventDrawDate.setText("Draw Date: " + regEndStr);
+            } catch (ParseException e) {
+                // If the stored date is malformed, don’t crash the app
+                e.printStackTrace();
                 eventStatus.setText("Status: Closed");
+                eventDrawDate.setText("Draw Date: Invalid");
             }
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
         }
-
-        eventDrawDate.setText("Draw Date: " + event.getRegistrationEnd());
-
-
-
 
         return view;
     }
+
 }

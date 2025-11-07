@@ -14,25 +14,17 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
 
 import java.io.ByteArrayOutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 
@@ -275,17 +267,31 @@ public class EventCreationActivity extends AppCompatActivity {
     /**
      * Check if date2 is after date1
      */
+    /**
+     * Check if date2 is after date1.
+     * Handles null or empty strings gracefully.
+     */
     private boolean validateDateOrder(String date1, String date2) {
+        // If either date string is null or empty, we can't validate.
+        // We return 'true' to let the empty-check validation handle the user message.
+        if (date1 == null || date1.trim().isEmpty() || date2 == null || date2.trim().isEmpty()) {
+            return true; // Let the required field validator catch this
+        }
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         try {
             Date startDate = sdf.parse(date1);
             Date endDate = sdf.parse(date2);
+            // Important: Use !endDate.before(startDate) to allow same-day events.
+            // If End Date must strictly be AFTER Start Date, use endDate.after(startDate)
             return endDate.after(startDate);
         } catch (ParseException e) {
+            // This can happen if the date format is wrong, but our DatePicker prevents this.
             e.printStackTrace();
             return false;
         }
     }
+
 
     /**
      * Create the event and save it to Firebase
