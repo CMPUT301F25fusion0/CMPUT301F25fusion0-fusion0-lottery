@@ -7,7 +7,6 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -16,8 +15,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-
-import com.example.fusion0_lottery.R;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
 
@@ -135,7 +132,7 @@ public class QRScannerActivity extends AppCompatActivity implements ZXingScanner
 
     /**
      * used to validate the the scanned QR code
-     * @param rawResult
+     * @param rawResult object that stores the scanned QR code information
      */
     @Override
     public void handleResult(Result rawResult){
