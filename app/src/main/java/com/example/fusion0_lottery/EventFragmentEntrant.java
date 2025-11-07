@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,8 +48,9 @@ import java.util.Calendar;
 public class EventFragmentEntrant extends Fragment {
 
     private TextView eventNameText, eventDescriptionText, eventDateText, eventLocationText;
-    private TextView registrationText, maxEntrantsText, eventPriceText;
+    private TextView registrationText, maxEntrantsText, eventPriceText, qrCodeLabel;
     private Button joinWaitingListButton;
+    private ImageView qrCodeImage;
     private String eventId;
     private boolean isInWaitingList;
     private boolean waitingListClosed;
@@ -135,6 +137,8 @@ public class EventFragmentEntrant extends Fragment {
         maxEntrantsText = view.findViewById(R.id.eventEntrants);
         eventPriceText = view.findViewById(R.id.eventPrice);
         joinWaitingListButton = view.findViewById(R.id.buttonJoinWaitingList);
+        qrCodeImage = view.findViewById(R.id.eventQrCode);
+        qrCodeLabel = view.findViewById(R.id.qrCodeLabel);
         joinWaitingListButton.setVisibility(View.INVISIBLE);
 
         if (getArguments() != null) {
@@ -160,6 +164,25 @@ public class EventFragmentEntrant extends Fragment {
 
                         ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
                         if (waitingList == null) waitingList = new ArrayList<>();
+
+                        // Generate and display QR code if enabled
+                        Boolean hasQrCode = snapshot.getBoolean("hasQrCode");
+                        String eventIdForQr = snapshot.getString("eventId");
+
+                        if (hasQrCode != null && hasQrCode && eventIdForQr != null) {
+                            try {
+                                Bitmap qrBitmap = generateQRCode(eventIdForQr);
+                                qrCodeLabel.setVisibility(View.VISIBLE);
+                                qrCodeImage.setVisibility(View.VISIBLE);
+                                qrCodeImage.setImageBitmap(qrBitmap);
+                            } catch (WriterException e) {
+                                qrCodeLabel.setVisibility(View.GONE);
+                                qrCodeImage.setVisibility(View.GONE);
+                            }
+                        } else {
+                            qrCodeLabel.setVisibility(View.GONE);
+                            qrCodeImage.setVisibility(View.GONE);
+                        }
 
                         // Authored by: Edeson Bizerril,
                         // Stack Overflow, https://stackoverflow.com/questions/65566970/how-to-cast-an-instance-of-querydocumentsnapshots-into-a-list-flutter-firestore

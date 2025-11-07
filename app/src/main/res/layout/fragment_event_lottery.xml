@@ -118,6 +118,12 @@
             android:divider="?android:attr/dividerVertical"
             android:showDividers="middle" />
     </ScrollView>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📷 SCAN QR Code"
+        android:id="@+id/scan_qr"
+        android:layout_gravity="center"/>
 
     <!-- Bottom back button -->
     <Button

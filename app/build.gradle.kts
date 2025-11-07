@@ -45,8 +45,8 @@ dependencies {
     implementation("com.google.zxing:core:3.5.2")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("androidx.fragment:fragment-ktx:1.6.1")
+    implementation("me.dm7.barcodescanner:zxing:1.9")
 
-    // Unit Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:5.3.1")
 
