@@ -32,6 +32,9 @@ android {
 }
 
 dependencies {
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.0.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.0.1")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -50,4 +53,7 @@ dependencies {
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 
     implementation("me.dm7.barcodescanner:zxing:1.9")
+}
+tasks.withType<Test>{
+    useJUnitPlatform()
 }
