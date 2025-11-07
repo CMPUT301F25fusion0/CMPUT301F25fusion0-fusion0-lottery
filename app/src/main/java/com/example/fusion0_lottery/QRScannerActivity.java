@@ -94,13 +94,13 @@ public class QRScannerActivity extends AppCompatActivity implements ZXingScanner
         setContentView(mainLayout);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-               == PackageManager.PERMISSION_GRANTED) {
+                == PackageManager.PERMISSION_GRANTED) {
             startCamera();
         } else {
             requestCameraPermission.launch(Manifest.permission.CAMERA);
         }
 
-  }
+    }
     private void startCamera() {
         mScannerView.setResultHandler(this);
         mScannerView.startCamera();
@@ -140,16 +140,16 @@ public class QRScannerActivity extends AppCompatActivity implements ZXingScanner
         BarcodeFormat format = rawResult.getBarcodeFormat();
 
         if(result != null && !result.isEmpty() && format.equals(BarcodeFormat.QR_CODE)){
-                Intent result_intent = new Intent();
-                result_intent.putExtra("EVENT_ID", result);
-                setResult(RESULT_OK, result_intent);
+            Intent result_intent = new Intent();
+            result_intent.putExtra("EVENT_ID", result);
+            setResult(RESULT_OK, result_intent);
 
-                if(mScannerView != null){
-                    mScannerView.stopCamera();
-                }
-                finish();
-                Toast.makeText(this,"Valid QR code\n"+ result, Toast.LENGTH_SHORT).show();
-            } else{
+            if(mScannerView != null){
+                mScannerView.stopCamera();
+            }
+            finish();
+            Toast.makeText(this,"Valid QR code\n"+ result, Toast.LENGTH_SHORT).show();
+        } else{
             Toast.makeText(this, "Invalid QR code", Toast.LENGTH_SHORT).show();
             if (mScannerView != null) {
                 mScannerView.resumeCameraPreview(this);

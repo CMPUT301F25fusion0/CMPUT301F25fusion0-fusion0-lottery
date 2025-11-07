@@ -10,6 +10,8 @@ constraintlayout = "2.2.1"
 firebaseStorage = "22.0.1"
 navigationFragment = "2.9.5"
 navigationUi = "2.9.5"
+fragmentTesting = "1.8.9"
+espressoIntents = "3.7.0"
 junitJupiter = "5.8.1"
 
 [libraries]
@@ -24,6 +26,8 @@ firebase-storage = { group = "com.google.firebase", name = "firebase-storage", v
 navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
 navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "navigationUi" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
+fragment-testing = { group = "androidx.fragment", name = "fragment-testing", version.ref = "fragmentTesting" }
+espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espressoIntents" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
