@@ -73,6 +73,8 @@ dependencies {
     implementation("me.dm7.barcodescanner:zxing:1.9")
 
     // Tests
+    testImplementation("org.robolectric:robolectric:4.12.1")
+    testImplementation("androidx.test:core:1.5.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation(libs.junit.jupiter)
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

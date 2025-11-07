@@ -142,8 +142,8 @@ public class FragmentEditEvent extends Fragment {
 
 
     // testing inputs
-    void testingEdit(EditText title, EditText desc, EditText start, EditText end,
-                       EditText time, EditText location, EditText price, EditText max, EditText interests) {
+    void testingEdit(EditText title1, EditText text, EditText editText, EditText title, EditText desc, EditText start, EditText end,
+                     EditText time, EditText location, EditText price, EditText max, EditText interests) {
         this.titleInput = title;
         this.eventDescriptionInput = desc;
         this.startDateInput = start;
