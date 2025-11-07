@@ -37,6 +37,16 @@ Request runtime permissions code from Android Developers documentation
 Source: https://developer.android.com/training/permissions/requesting#java
 License: Apache 2.0
  */
+/**
+ * purpose:
+ *  This activity allows users to scan QR code within the app and
+ *  allow them to navigate the event detail screen.
+ *  design pattern:
+ *  uses ZXing library for QR code scanning
+ *  outstanding issues:
+ *  no outstanding issues for now
+ *
+ */
 
 
 public class QRScannerActivity extends AppCompatActivity implements ZXingScannerView.ResultHandler {
@@ -100,7 +110,9 @@ public class QRScannerActivity extends AppCompatActivity implements ZXingScanner
         mScannerView.setAutoFocus(true);
     }
 
-
+    /**
+     * used to resume the camera when the user initiates the QR code scanner
+     */
     @Override
     public void onResume(){
         super.onResume();
@@ -109,6 +121,10 @@ public class QRScannerActivity extends AppCompatActivity implements ZXingScanner
             mScannerView.startCamera();
         }
     }
+
+    /**
+     * used to stop camera when QR code is scanned or canceled
+     */
     @Override
     public void onPause(){
         super.onPause();
@@ -116,6 +132,11 @@ public class QRScannerActivity extends AppCompatActivity implements ZXingScanner
             mScannerView.stopCamera();
         }
     }
+
+    /**
+     * used to validate the the scanned QR code
+     * @param rawResult
+     */
     @Override
     public void handleResult(Result rawResult){
         String result = rawResult.getText();
