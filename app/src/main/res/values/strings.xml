@@ -14,4 +14,16 @@
     <string name="role_selection_entrant">Entrant</string>
     <string name="role_selection_organizer">Organizer</string>
     <string name="select_your_role">Select Your Role</string>
+    <!-- Interests for filtering -->
+    <string-array name="interests_array">
+        <item>All</item>
+        <item>Sports</item>
+        <item>Music</item>
+        <item>Technology</item>
+        <item>Art</item>
+        <item>Gaming</item>
+        <item>Computers</item>
+    </string-array>
+
+    <string name="select_interest">Select Interest</string>
 </resources>

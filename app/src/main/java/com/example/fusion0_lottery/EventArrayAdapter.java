@@ -9,7 +9,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.example.fusion0_lottery.R;
 
 
 import java.text.ParseException;
@@ -46,10 +45,12 @@ public class EventArrayAdapter extends ArrayAdapter<Event> {
 
         Event event = events.get(position);
         TextView eventName = view.findViewById(R.id.eventName);
+        TextView eventInterests = view.findViewById(R.id.eventInterests);
         TextView eventStatus = view.findViewById(R.id.status);
         TextView eventDrawDate = view.findViewById(R.id.drawDate);
 
         eventName.setText(event.getEventName());
+        eventInterests.setText("Interests: " + event.getInterests());
 
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());

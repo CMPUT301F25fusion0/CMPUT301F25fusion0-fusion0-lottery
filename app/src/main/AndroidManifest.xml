@@ -3,10 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.fusion0_lottery">
 
-    <!-- Android 13+ (API 33) runtime permission to post notifications -->
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Android 13+ runtime permission for notifications -->
     <uses-permission
         android:name="android.permission.POST_NOTIFICATIONS"
         tools:targetApi="33" />
+
+    <!-- Require camera for QR scanning -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
 
     <application
         android:allowBackup="true"
@@ -18,10 +25,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Fusion0_lottery">
 
-        <!-- Event creation screen -->
-        <activity android:name=".EventCreationActivity" />
+        <!-- QR scanner (internal activity; no intent-filter, so exported can be false) -->
+        <activity
+            android:name=".QRScannerActivity"
+            android:exported="false" />
 
-        <!-- Launcher activity -->
+        <!-- Event creation screen -->
+        <activity
+            android:name=".EventCreationActivity"
+            android:exported="false" />
+
+        <!-- Launcher -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -31,7 +45,7 @@
             </intent-filter>
         </activity>
 
-        <!-- FCM Messaging service -->
+        <!-- FCM messaging service -->
         <service
             android:name=".AppMessagingService"
             android:exported="false">

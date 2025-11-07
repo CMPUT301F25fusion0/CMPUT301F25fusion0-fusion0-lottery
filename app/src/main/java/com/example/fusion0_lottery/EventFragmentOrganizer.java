@@ -1,5 +1,6 @@
 package com.example.fusion0_lottery;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 
 import androidx.appcompat.widget.Toolbar;
@@ -8,12 +9,17 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
 
 /**
  * Displays the event details for Organizers
@@ -35,12 +41,15 @@ public class EventFragmentOrganizer extends Fragment {
 
         // Views Setup
         TextView eventName = view.findViewById(R.id.eventName);
+        TextView eventInterests = view.findViewById(R.id.eventInterests);
         TextView eventDesc = view.findViewById(R.id.eventDescription);
         TextView eventDate = view.findViewById(R.id.eventDate);
         TextView eventLoc = view.findViewById(R.id.eventLocation);
         TextView eventRegDate = view.findViewById(R.id.eventEndDate);
         TextView eventMaxEntrant = view.findViewById(R.id.eventEntrants);
         TextView eventPrice = view.findViewById(R.id.eventPrice);
+        ImageView qrCodeImage = view.findViewById(R.id.eventQrCode);
+        TextView qrCodeLabel = view.findViewById(R.id.qrCodeLabel);
 
         // Retrieve eventId
         String eventId = getArguments().getString("eventId");
@@ -56,6 +65,7 @@ public class EventFragmentOrganizer extends Fragment {
 
                 eventName.setText("Event Name: " + event.getEventName());
                 eventDesc.setText("Description: " + event.getDescription());
+                eventInterests.setText("Interests: " + event.getInterests());
                 eventDate.setText("Start Date: " + event.getStartDate());
                 eventLoc.setText("Location: " + event.getLocation());
 
@@ -70,6 +80,25 @@ public class EventFragmentOrganizer extends Fragment {
                     eventMaxEntrant.setText("Max Entrants: " + event.getMaxEntrants());
                 }
                 eventPrice.setText("Price: $" + event.getPrice());
+
+                // Generate and display QR code if enabled
+                Boolean hasQrCode = documentSnapshot.getBoolean("hasQrCode");
+                String eventId = event.getEventId();
+
+                if (hasQrCode != null && hasQrCode && eventId != null) {
+                    try {
+                        Bitmap qrBitmap = generateQRCode(eventId);
+                        qrCodeLabel.setVisibility(View.VISIBLE);
+                        qrCodeImage.setVisibility(View.VISIBLE);
+                        qrCodeImage.setImageBitmap(qrBitmap);
+                    } catch (WriterException e) {
+                        qrCodeLabel.setVisibility(View.GONE);
+                        qrCodeImage.setVisibility(View.GONE);
+                    }
+                } else {
+                    qrCodeLabel.setVisibility(View.GONE);
+                    qrCodeImage.setVisibility(View.GONE);
+                }
 
             }
 
@@ -87,5 +116,28 @@ public class EventFragmentOrganizer extends Fragment {
         });
 
         return view;
+    }
+
+    /**
+     * Generate QR code bitmap from event ID
+     */
+    private Bitmap generateQRCode(String eventId) throws WriterException {
+        String qrContent = "event://" + eventId;
+        int size = 500;
+
+        BitMatrix bitMatrix = new MultiFormatWriter().encode(
+                qrContent,
+                BarcodeFormat.QR_CODE,
+                size,
+                size
+        );
+
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565);
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                bitmap.setPixel(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
+            }
+        }
+        return bitmap;
     }
 }

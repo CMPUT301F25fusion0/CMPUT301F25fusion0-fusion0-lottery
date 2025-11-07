@@ -1,10 +1,12 @@
 package com.example.fusion0_lottery;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,17 +22,33 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Locale;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Calendar;
 
+/**
+ * EventFragmentEntrant
+ *
+ * Entrant-facing event details. Lets a user join/leave the waiting list, shows QR when available,
+ * keeps a per-user history doc (Users/{uid}/Registrations/{eventId}) and cleans up stale users
+ * from the Event.waitingList.
+ */
 public class EventFragmentEntrant extends Fragment {
 
     private TextView eventNameText, eventDescriptionText, eventDateText, eventLocationText;
-    private TextView registrationText, maxEntrantsText, eventPriceText;
+    private TextView registrationText, maxEntrantsText, eventPriceText, qrCodeLabel;
+    private ImageView qrCodeImage;
     private Button joinWaitingListButton;
 
     private String eventId;
@@ -87,7 +105,7 @@ public class EventFragmentEntrant extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         db = FirebaseFirestore.getInstance();
 
-        // UI refs
+        // UI
         eventNameText         = view.findViewById(R.id.eventName);
         eventDescriptionText  = view.findViewById(R.id.eventDescription);
         eventDateText         = view.findViewById(R.id.eventDate);
@@ -96,6 +114,8 @@ public class EventFragmentEntrant extends Fragment {
         maxEntrantsText       = view.findViewById(R.id.eventEntrants);
         eventPriceText        = view.findViewById(R.id.eventPrice);
         joinWaitingListButton = view.findViewById(R.id.buttonJoinWaitingList);
+        qrCodeImage           = view.findViewById(R.id.eventQrCode);
+        qrCodeLabel           = view.findViewById(R.id.qrCodeLabel);
         joinWaitingListButton.setVisibility(View.INVISIBLE);
 
         // Toolbar
@@ -111,14 +131,13 @@ public class EventFragmentEntrant extends Fragment {
             });
         }
 
-        // Arguments
+        // Args
         if (getArguments() != null) {
             eventId           = getArguments().getString("eventId");
             currentUserId     = getArguments().getString("currentUserId");
             waitingListClosed = getArguments().getBoolean("waitingListClosed", false);
             isInWaitingList   = getArguments().getBoolean("isInWaitingList", false);
 
-            // Show cached fields right away
             eventNameText.setText("Event Name: " + getArguments().getString("eventName"));
             eventDescriptionText.setText("Description: " + getArguments().getString("eventDescription"));
             eventDateText.setText("Start Date: " + getArguments().getString("startDate"));
@@ -130,7 +149,7 @@ public class EventFragmentEntrant extends Fragment {
             eventPriceText.setText("Price: $" + getArguments().getDouble("price"));
         }
 
-        // Refresh from Firestore to ensure state is current & clean waitingList of deleted users
+        // Refresh from Firestore (QR + clean list + button state)
         if (eventId != null) {
             db.collection("Events").document(eventId).get()
                     .addOnSuccessListener(snapshot -> {
@@ -139,6 +158,25 @@ public class EventFragmentEntrant extends Fragment {
                             return;
                         }
 
+                        // Show QR if enabled
+                        Boolean hasQrCode = snapshot.getBoolean("hasQrCode");
+                        String eventIdForQr = snapshot.getString("eventId");
+                        if (hasQrCode != null && hasQrCode && eventIdForQr != null) {
+                            try {
+                                Bitmap qrBitmap = generateQRCode(eventIdForQr);
+                                qrCodeLabel.setVisibility(View.VISIBLE);
+                                qrCodeImage.setVisibility(View.VISIBLE);
+                                qrCodeImage.setImageBitmap(qrBitmap);
+                            } catch (WriterException e) {
+                                qrCodeLabel.setVisibility(View.GONE);
+                                qrCodeImage.setVisibility(View.GONE);
+                            }
+                        } else {
+                            qrCodeLabel.setVisibility(View.GONE);
+                            qrCodeImage.setVisibility(View.GONE);
+                        }
+
+                        // Clean waitingList of deleted users
                         @SuppressWarnings("unchecked")
                         ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
                         if (waitingList == null) waitingList = new ArrayList<>();
@@ -161,7 +199,8 @@ public class EventFragmentEntrant extends Fragment {
                                     joinWaitingListButton.setText(
                                             isInWaitingList ? "Leave Waiting List" : "Join Waiting List");
 
-                                    snapshot.getReference().update("waitingList", cleanList);
+                                    snapshot.getReference().update("waitingList", cleanList,
+                                            "waitingListCount", cleanList.size());
                                     joinWaitingListButton.setVisibility(View.VISIBLE);
                                 });
                     });
@@ -172,7 +211,8 @@ public class EventFragmentEntrant extends Fragment {
 
     private void toggleWaitingList() {
         if (waitingListClosed) {
-            Toast.makeText(getContext(), "The waiting list is closed. You cannot join this event.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(),
+                    "The waiting list is closed. You cannot join this event.", Toast.LENGTH_SHORT).show();
             return;
         }
         if (currentUserId == null || eventId == null) {
@@ -192,47 +232,73 @@ public class EventFragmentEntrant extends Fragment {
             ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
             if (waitingList == null) waitingList = new ArrayList<>();
 
-            ArrayList<String> mutableWaitingList = new ArrayList<>(waitingList);
+            Long maxEntrants = snapshot.getLong("maxEntrants");
+            String registrationEndStr = snapshot.getString("registrationEnd");
 
+            // Registration closed by date (inclusive of the end day)
+            boolean isClosedByDate = false;
+            if (registrationEndStr != null) {
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                    Date regEnd = sdf.parse(registrationEndStr);
+                    if (regEnd != null) {
+                        Calendar cal = Calendar.getInstance();
+                        cal.setTime(regEnd);
+                        cal.add(Calendar.DATE, 1);
+                        Date regEndInclusive = cal.getTime();
+                        Date today = new Date();
+                        if (today.after(regEndInclusive)) isClosedByDate = true;
+                    }
+                } catch (Exception ignored) {}
+            }
+
+            boolean isFull = maxEntrants != null && waitingList.size() >= maxEntrants;
+            if (!isInWaitingList && (isClosedByDate || isFull)) {
+                String msg = isClosedByDate
+                        ? "The waiting list is closed because registration has ended."
+                        : "The waiting list is full. You cannot join this event.";
+                Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Remove deleted users before toggling (safety)
             List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
-            for (String uid : new ArrayList<>(mutableWaitingList)) {
+            for (String uid : new ArrayList<>(waitingList)) {
                 tasks.add(db.collection("Users").document(uid).get());
             }
 
             Tasks.whenAllSuccess(tasks)
                     .addOnSuccessListener(results -> {
-                        // remove deleted users
-                        Iterator<String> iter = mutableWaitingList.iterator();
+                        Iterator<String> iter = waitingList.iterator();
                         for (Object obj : results) {
                             DocumentSnapshot userSnap = (DocumentSnapshot) obj;
-                            if (!userSnap.exists()) iter.remove();
+                            if (!userSnap.exists() && iter.hasNext()) iter.next();
                         }
 
                         boolean joining;
                         if (isInWaitingList) {
-                            mutableWaitingList.remove(currentUserId);
+                            waitingList.remove(currentUserId);
                             joining = false;
                             isInWaitingList = false;
                             joinWaitingListButton.setText("Join Waiting List");
                             Toast.makeText(getContext(), "You left the waiting list", Toast.LENGTH_SHORT).show();
                         } else {
-                            if (!mutableWaitingList.contains(currentUserId)) {
-                                mutableWaitingList.add(currentUserId);
-                            }
+                            if (!waitingList.contains(currentUserId)) waitingList.add(currentUserId);
                             joining = true;
                             isInWaitingList = true;
                             joinWaitingListButton.setText("Leave Waiting List");
                             Toast.makeText(getContext(), "You joined the waiting list", Toast.LENGTH_SHORT).show();
                         }
 
-                        // update event doc list
-                        eventRef.update("waitingList", mutableWaitingList)
+                        // Update event doc
+                        eventRef.update("waitingList", waitingList,
+                                        "waitingListCount", waitingList.size())
                                 .addOnFailureListener(e ->
                                         Toast.makeText(getContext(),
                                                 "Error updating waiting list: " + e.getMessage(),
                                                 Toast.LENGTH_SHORT).show());
 
-                        // mirror into History
+                        // Mirror into per-user History (keep cancelled instead of deleting)
                         DocumentReference regRef = db.collection("Users")
                                 .document(currentUserId)
                                 .collection("Registrations")
@@ -241,16 +307,14 @@ public class EventFragmentEntrant extends Fragment {
                         if (joining) {
                             Map<String, Object> reg = new HashMap<>();
                             reg.put("eventId", eventId);
-                            reg.put("status", "Pending"); // organizer flow will update later
+                            reg.put("status", "Pending"); // organizer updates later
                             reg.put("registeredAt", FieldValue.serverTimestamp());
                             reg.put("eventName", snapshot.getString("eventName"));
                             reg.put("startDate", snapshot.getString("startDate"));
                             reg.put("location", snapshot.getString("location"));
                             reg.put("description", snapshot.getString("description"));
-
                             regRef.set(reg, SetOptions.merge());
                         } else {
-                            // KEEP history: mark as Cancelled instead of deleting
                             Map<String, Object> updates = new HashMap<>();
                             updates.put("eventId", eventId);
                             updates.put("status", "Cancelled");
@@ -259,5 +323,22 @@ public class EventFragmentEntrant extends Fragment {
                         }
                     });
         });
+    }
+
+    // --- QR helper ---
+    private Bitmap generateQRCode(String eventId) throws WriterException {
+        String content = "event://" + eventId;
+        int size = 500;
+
+        BitMatrix bitMatrix = new MultiFormatWriter().encode(
+                content, BarcodeFormat.QR_CODE, size, size);
+
+        Bitmap bmp = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565);
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                bmp.setPixel(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
+            }
+        }
+        return bmp;
     }
 }

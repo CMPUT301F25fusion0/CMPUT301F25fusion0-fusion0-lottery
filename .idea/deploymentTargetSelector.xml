@@ -5,6 +5,7 @@
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
 <<<<<<< HEAD
+<<<<<<< HEAD
         <DropdownSelection timestamp="2025-11-05T22:15:44.943244700Z">
           <Target type="DEFAULT_BOOT">
             <handle>
@@ -15,10 +16,25 @@
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\mineo\.android\avd\Small_Phone.avd" />
 >>>>>>> origin/main
+=======
+        <DropdownSelection timestamp="2025-11-06T00:43:11.890212Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/tnxuyen/.android/avd/Pixel_9a.avd" />
+>>>>>>> 0accf01ea67edc80ecd153808dcd29462abb96b5
             </handle>
           </Target>
         </DropdownSelection>
         <DialogSelection />
+      </SelectionState>
+      <SelectionState runConfigName="EventLotteryFragmentTest">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="testDatePickersOpen()">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="testApplyAndClearFiltersButtons()">
+        <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
   </component>
