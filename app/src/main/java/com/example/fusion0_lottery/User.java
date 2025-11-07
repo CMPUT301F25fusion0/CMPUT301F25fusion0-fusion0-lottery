@@ -10,8 +10,6 @@ public class User {
     public String name;
     private String email;
     private String phone_number;
-//
-//    private String password;
 
     private String device_id;
     private String role;
@@ -27,7 +25,6 @@ public class User {
         this.name = name;
         this.email = email;
         this.phone_number = phone_number;
-//        this.password = password;
         this.role = role;
         this.device_id = device_id;
     }
@@ -55,15 +52,6 @@ public class User {
     public void setPhone_number(String phone_number) {
         this.phone_number = phone_number;
     }
-
-//    public String getPassword() {
-//        return password;
-//    }
-
-//    public void setPassword(String password) {
-//        this.password = password;
-//    }
-
 
     public String getRole() {
         return role;

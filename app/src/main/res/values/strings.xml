@@ -1,13 +1,31 @@
 <resources>
     <string name="app_name">fusion0_lottery</string>
     <string name="sign_up">Sign up</string>
-    <string name="name_hint">Username</string>
+    <string name="name_hint">Name</string>
     <string name="email_hint">Email</string>
     <string name="phone_hint">Phone (Optional)</string>
-    <string name="scanner_error_message">Error scanning QR code</string>
-    <string name="select_your_role">Select Your Role</string>
+    <string name="enter_password_hint">Enter Password</string>
+    <string name="confirm_password_hint">Confirm Password</string>
+    <string name="already_member_message">Already Member?</string>
+    <string name="login_text">Login</string>
+    <string name="sign_up_text">Sign up</string>
+    <string name="role_entrant_organizer_hint">Role (Entrant / Organizer)</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="role_selection_entrant">Entrant</string>
     <string name="role_selection_organizer">Organizer</string>
+    <string name="select_your_role">Select Your Role</string>
+    <!-- Interests for filtering -->
+    <string-array name="interests_array">
+        <item>All</item>
+        <item>Sports</item>
+        <item>Music</item>
+        <item>Technology</item>
+        <item>Art</item>
+        <item>Gaming</item>
+        <item>Computers</item>
+    </string-array>
+
+    <string name="select_interest">Select Interest</string>
 
     <string name="event_details">
     Registration Opens: %1$s\n

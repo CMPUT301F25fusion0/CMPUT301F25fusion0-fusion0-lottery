@@ -17,7 +17,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class FragmentSignUp extends Fragment {
 
-    private EditText nameInput, emailInput, phoneInput, passwordInput, confirmPasswordInput;
+    private EditText nameInput, emailInput, phoneInput;
     private Button signupButton;
     private FirebaseAuth auth;
     private FirebaseFirestore db;
@@ -26,6 +26,7 @@ public class FragmentSignUp extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.activity_sign_up, container, false);
 
         auth = FirebaseAuth.getInstance();
@@ -34,45 +35,42 @@ public class FragmentSignUp extends Fragment {
         nameInput = view.findViewById(R.id.nameInput);
         emailInput = view.findViewById(R.id.emailInput);
         phoneInput = view.findViewById(R.id.phoneInput);
-//        passwordInput = view.findViewById(R.id.passwordInput);
-//        confirmPasswordInput = view.findViewById(R.id.confirmPasswordInput);
         signupButton = view.findViewById(R.id.signupButton);
 
         signupButton.setOnClickListener(v -> {
-            String name = nameInput.getText().toString();
-            String email = emailInput.getText().toString();
-//            String password = passwordInput.getText().toString();
-//            String confirmPassword = confirmPasswordInput.getText().toString();
-            String phone_number = phoneInput.getText().toString();
+            String name = nameInput.getText().toString().trim();
+            String email = emailInput.getText().toString().trim();
+            String phone = phoneInput.getText().toString().trim(); // optional
 
-            if (name.isEmpty() || email.isEmpty() ) {
-                Toast.makeText(getContext(), "All fields not filled", Toast.LENGTH_SHORT).show();
+            // Validate only required fields: name and email
+            if (name.isEmpty() || email.isEmpty()) {
+                Toast.makeText(getContext(), "Please fill name and email", Toast.LENGTH_SHORT).show();
+                return;
             }
 
-//            else if (!password.equals(confirmPassword)) {
-//                Toast.makeText(getContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
-//            }
-            else {
-                createUser(name, email, phone_number, "");
-            }
+            createUser(name, email, phone);
         });
 
         return view;
     }
 
-    private void createUser(String name, String email, String phone_number, String role) {
+    private void createUser(String name, String email, String phone) {
+        // Sign in anonymously to get a device ID
         auth.signInAnonymously().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                String device_id = auth.getCurrentUser().getUid();
-                User user = new User(name, email, phone_number, "" , device_id);
+            if (task.isSuccessful() && auth.getCurrentUser() != null) {
+                String deviceId = auth.getCurrentUser().getUid();
 
-                db.collection("Users").document(device_id).set(user)
+                User user = new User(name, email, phone, "", deviceId); // Role can be set later
+
+                db.collection("Users").document(deviceId).set(user)
                         .addOnSuccessListener(aVoid -> {
                             Toast.makeText(getContext(), "Sign up successful", Toast.LENGTH_SHORT).show();
                             ((MainActivity) requireActivity()).replaceFragment(new FragmentRoleSelection());
                         })
                         .addOnFailureListener(e ->
-                                Toast.makeText(getContext(), "Sign up failed", Toast.LENGTH_SHORT).show());
+                                Toast.makeText(getContext(), "Sign up failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            } else {
+                Toast.makeText(getContext(), "Authentication failed", Toast.LENGTH_SHORT).show();
             }
         });
     }
