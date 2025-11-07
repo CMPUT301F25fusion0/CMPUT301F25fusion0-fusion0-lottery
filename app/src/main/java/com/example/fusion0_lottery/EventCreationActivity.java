@@ -308,7 +308,6 @@ public class EventCreationActivity extends AppCompatActivity {
         if (!maxEntrantsInput.getText().toString().trim().isEmpty()) {
             maxEntrants = Integer.parseInt(maxEntrantsInput.getText().toString().trim());
         }
-
         // Create Event object
         Event event = new Event(eventName, interests, description, startDate, endDate, time,
                 price, location, registrationStart, registrationEnd, maxEntrants);
