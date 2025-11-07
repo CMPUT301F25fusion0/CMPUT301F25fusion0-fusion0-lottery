@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -43,14 +44,15 @@ import java.util.Locale;
 public class EventCreationActivity extends AppCompatActivity {
 
     // UI Elements - all the input fields from the layout
-    private TextInputEditText eventNameInput, descriptionInput, startDateInput, endDateInput;
+    private TextInputEditText eventNameInput, interestInput, descriptionInput, startDateInput, endDateInput;
     private TextInputEditText timeInput, priceInput, locationInput, maxEntrantsInput;
 
     private TextInputEditText interestInput;
 
     private TextInputEditText registrationStartInput, registrationEndInput;
-    private Button uploadPosterButton, createEventButton, cancelButton, generateQrButton;
-    private ImageView posterImageView, qrCodeImageView;
+    private Button uploadPosterButton, createEventButton, cancelButton;
+    private CheckBox generateQrCheckbox;
+    private ImageView posterImageView;
 
     // Firebase instances
     private FirebaseFirestore db;
@@ -100,10 +102,9 @@ public class EventCreationActivity extends AppCompatActivity {
         uploadPosterButton = findViewById(R.id.uploadPosterButton);
         createEventButton = findViewById(R.id.createEventButton);
         cancelButton = findViewById(R.id.cancelButton);
-        generateQrButton = findViewById(R.id.generateQrButton);
+        generateQrCheckbox = findViewById(R.id.generateQrCheckbox);
 
         posterImageView = findViewById(R.id.posterImageView);
-        qrCodeImageView = findViewById(R.id.qrCodeImageView);
     }
 
     /**
@@ -133,9 +134,6 @@ public class EventCreationActivity extends AppCompatActivity {
 
         // Cancel button - just close the activity
         cancelButton.setOnClickListener(v -> finish());
-
-        // Generate QR code button
-        generateQrButton.setOnClickListener(v -> generateQRCode());
     }
 
     /**
@@ -215,6 +213,10 @@ public class EventCreationActivity extends AppCompatActivity {
         // Check if required fields are empty
         if (eventNameInput.getText().toString().trim().isEmpty()) {
             Toast.makeText(this, "Please enter event name", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (interestInput.getText().toString().trim().isEmpty()) {
+            Toast.makeText(this, "Please enter interests", Toast.LENGTH_SHORT).show();
             return false;
         }
         if (descriptionInput.getText().toString().trim().isEmpty()) {
@@ -362,103 +364,15 @@ public class EventCreationActivity extends AppCompatActivity {
                     // Store the document ID
                     createdEventId = documentReference.getId();
 
-                    // Update the event with its ID
-                    documentReference.update("eventId", createdEventId);
+                    // Update the event with its ID and QR code enabled flag
+                    documentReference.update("eventId", createdEventId,
+                            "hasQrCode", generateQrCheckbox.isChecked());
 
                     Toast.makeText(this, "Event created successfully!", Toast.LENGTH_SHORT).show();
-
-                    // Close the activity and return to the previous screen
                     finish();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error creating event: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
-                });
-    }
-
-    /**
-     * Generate QR code for the event
-     * The QR code contains the event ID that can be scanned to view event details
-     */
-    private void generateQRCode() {
-        if (createdEventId == null) {
-            Toast.makeText(this, "Please create an event first", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try {
-            // The QR code will contain the event ID
-            // You can modify this to include a deep link or URL to your app
-            String qrContent = "event://" + createdEventId;
-
-            // Generate the QR code bitmap
-            Bitmap qrBitmap = generateQRCodeBitmap(qrContent, 500, 500);
-
-            // Display the QR code
-            qrCodeImageView.setImageBitmap(qrBitmap);
-            qrCodeImageView.setVisibility(View.VISIBLE);
-
-            // Optionally, upload the QR code to Firebase Storage
-            uploadQRCodeToStorage(qrBitmap);
-
-            Toast.makeText(this, "QR Code generated!", Toast.LENGTH_SHORT).show();
-
-        } catch (WriterException e) {
-            Toast.makeText(this, "Error generating QR code: " + e.getMessage(),
-                    Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Generate a QR code bitmap from a string
-     */
-    private Bitmap generateQRCodeBitmap(String content, int width, int height) throws WriterException {
-        BitMatrix bitMatrix = new MultiFormatWriter().encode(
-                content,
-                BarcodeFormat.QR_CODE,
-                width,
-                height
-        );
-
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                bitmap.setPixel(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
-            }
-        }
-        return bitmap;
-    }
-
-    /**
-     * Upload QR code image to Firebase Storage and update the event
-     */
-    private void uploadQRCodeToStorage(Bitmap qrBitmap) {
-        // Convert bitmap to byte array
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        qrBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        byte[] data = baos.toByteArray();
-
-        // Create a unique filename for the QR code
-        String fileName = "qr_codes/" + createdEventId + ".png";
-        StorageReference qrRef = storageRef.child(fileName);
-
-        // Upload the QR code
-        qrRef.putBytes(data)
-                .addOnSuccessListener(taskSnapshot -> {
-                    // Get the download URL
-                    qrRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        // Update the event with the QR code URL
-                        db.collection("Events").document(createdEventId)
-                                .update("qrCodeUrl", uri.toString())
-                                .addOnSuccessListener(aVoid -> {
-                                    Toast.makeText(this, "QR Code saved to cloud!",
-                                            Toast.LENGTH_SHORT).show();
-                                });
-                    });
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to upload QR code: " + e.getMessage(),
                             Toast.LENGTH_SHORT).show();
                 });
     }

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:padding="16dp"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginTop="12dp"
+    android:elevation="2dp">
+
+    <TextView
+        android:id="@+id/historyTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Event title"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black" />
+
+    <!-- NEW: Description -->
+    <TextView
+        android:id="@+id/historyDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Description…"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp"
+        android:maxLines="3"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/historyMeta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="2025-11-05 • Location"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:id="@+id/historyStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pending"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp" />
+
+    <!-- Add this TextView -->
+    <TextView
+        android:id="@+id/historyEntrants"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Entrants: —"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp" />
+
+</LinearLayout>
