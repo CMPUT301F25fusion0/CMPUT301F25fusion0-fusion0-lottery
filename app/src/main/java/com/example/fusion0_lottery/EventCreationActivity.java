@@ -47,8 +47,6 @@ public class EventCreationActivity extends AppCompatActivity {
     private TextInputEditText eventNameInput, interestInput, descriptionInput, startDateInput, endDateInput;
     private TextInputEditText timeInput, priceInput, locationInput, maxEntrantsInput;
 
-    private TextInputEditText interestInput;
-
     private TextInputEditText registrationStartInput, registrationEndInput;
     private Button uploadPosterButton, createEventButton, cancelButton;
     private CheckBox generateQrCheckbox;
