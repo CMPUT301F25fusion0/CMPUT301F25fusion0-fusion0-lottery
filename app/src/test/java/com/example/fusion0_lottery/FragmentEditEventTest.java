@@ -31,7 +31,7 @@ public class FragmentEditEventTest {
         fragment.testingEdit(title, desc, startDate, endDate, time, location, price, max, interests);
     }
 
-
+    // testing edit
     @Test
     public void testEdit() {
         Editable titleEditable = mock(Editable.class),
@@ -77,6 +77,7 @@ public class FragmentEditEventTest {
     }
 
 
+    // testing no inputs
     @Test
     public void testEmptyInput() {
         Editable titleEditable = mock(Editable.class),
