@@ -135,6 +135,7 @@ public class EventLottery extends Fragment {
 
                                 String eventNameStr = eventSnapshot.getString("eventName");
                                 String eventDescStr = eventSnapshot.getString("description");
+                                String eventInterests = eventSnapshot.getString("interests");
                                 String eventStartDateStr = eventSnapshot.getString("startDate");
                                 String eventLocationStr = eventSnapshot.getString("location");
 
@@ -160,6 +161,7 @@ public class EventLottery extends Fragment {
                                                         currentUserId,
                                                         eventNameStr != null ? eventNameStr : "No Name",
                                                         eventDescStr != null ? eventDescStr : "No Description",
+                                                        eventInterests != null ? eventInterests : "None",
                                                         eventStartDateStr != null ? eventStartDateStr : "No Date",
                                                         eventLocationStr != null ? eventLocationStr : "No Location",
                                                         isOnWaitlist,

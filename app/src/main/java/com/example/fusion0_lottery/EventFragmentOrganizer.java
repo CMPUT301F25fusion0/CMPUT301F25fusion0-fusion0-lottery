@@ -41,6 +41,7 @@ public class EventFragmentOrganizer extends Fragment {
 
         // Views Setup
         TextView eventName = view.findViewById(R.id.eventName);
+        TextView eventInterests = view.findViewById(R.id.eventInterests);
         TextView eventDesc = view.findViewById(R.id.eventDescription);
         TextView eventDate = view.findViewById(R.id.eventDate);
         TextView eventLoc = view.findViewById(R.id.eventLocation);
@@ -64,6 +65,7 @@ public class EventFragmentOrganizer extends Fragment {
 
                 eventName.setText("Event Name: " + event.getEventName());
                 eventDesc.setText("Description: " + event.getDescription());
+                eventInterests.setText("Interests: " + event.getInterests());
                 eventDate.setText("Start Date: " + event.getStartDate());
                 eventLoc.setText("Location: " + event.getLocation());
 
