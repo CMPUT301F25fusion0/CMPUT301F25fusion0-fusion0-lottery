@@ -36,21 +36,17 @@ import java.util.ArrayList;
  * Fragment that displays events available to users in the lottery system.
  * Users can filter events by interest and date, view details, and join/leave waiting lists.
  * Also supports QR code scanning for quick event access.
- *
- * Loads event data from Firestore and displays it as cards in a scrollable list.
- *
- * Outstanding issues:
- * - Large event lists could be optimized with RecyclerView instead of LinearLayout.
- * - Error handling for Firestore network issues can be improved.
  */
 public class EventLottery extends Fragment {
 
     private LinearLayout eventsContainer;
-    private Button buttonBack, buttonApplyFilters, buttonStartDate, buttonEndDate, buttonClearFilters;
+    private Button buttonBack, buttonApplyFilters, buttonStartDate, buttonEndDate, buttonClearFilters, scan_qr;
     private Spinner spinnerInterest;
+    private Toolbar toolbar;
+
     private FirebaseFirestore db;
     private String userEmail;
-    private Button scan_qr;
+
     private static final int QR_SCAN_REQUEST_CODE = 100;
 
     private String selectedInterest = "All";
@@ -61,12 +57,6 @@ public class EventLottery extends Fragment {
 
     public EventLottery() {}
 
-    /**
-     * Create a new EventLottery fragment for a given user.
-     *
-     * @param userEmail email of the current user
-     * @return a new EventLottery fragment
-     */
     public static EventLottery newInstance(String userEmail) {
         EventLottery fragment = new EventLottery();
         Bundle args = new Bundle();
@@ -75,16 +65,6 @@ public class EventLottery extends Fragment {
         return fragment;
     }
 
-    /**
-     * Inflates the fragment layout, initializes UI components, sets up
-     * buttons, spinner, and date pickers, and loads events from Firestore.
-     * Filters are applied automatically if previously selected.
-     *
-     * @param inflater LayoutInflater used to inflate the fragment view
-     * @param container Parent view that the fragment's UI should attach to
-     * @param savedInstanceState Bundle containing saved state (if any)
-     * @return The root view of the fragment
-     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -147,31 +127,24 @@ public class EventLottery extends Fragment {
         if (toolbar != null) {
             toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
         }
-        buttonClearFilters.setOnClickListener(v -> clearFilters());
-
-        Toolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
-
-        buttonBack.setOnClickListener(v -> {
-            ((MainActivity) requireActivity()).replaceFragment(new FragmentRoleSelection());
-        });
 
         db = FirebaseFirestore.getInstance();
-
         if (getArguments() != null) {
-            userEmail = getArguments().getString("userEmail");
+            userEmail        = getArguments().getString("userEmail");
             selectedInterest = getArguments().getString("selectedInterest", "All");
-            selectedStartDate = getArguments().getString("selectedStartDate", null);
-            selectedEndDate = getArguments().getString("selectedEndDate", null);
+            selectedStartDate= getArguments().getString("selectedStartDate", null);
+            selectedEndDate  = getArguments().getString("selectedEndDate", null);
         }
 
-        // QR Scan button → opens scanner activity
-        scan_qr.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), QRScannerActivity.class);
-            startActivityForResult(intent, QR_SCAN_REQUEST_CODE);
-        });
+        // QR scan
+        if (scan_qr != null) {
+            scan_qr.setOnClickListener(v -> {
+                Intent intent = new Intent(getActivity(), QRScannerActivity.class);
+                startActivityForResult(intent, QR_SCAN_REQUEST_CODE);
+            });
+        }
 
-        // Spinner setup
+        // Spinner
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 getContext(),
                 R.array.interests_array,
@@ -184,6 +157,7 @@ public class EventLottery extends Fragment {
             if (position >= 0) spinnerInterest.setSelection(position);
         }
 
+        // Pre-fill date buttons
         if (selectedStartDate != null) buttonStartDate.setText("Start: " + selectedStartDate);
         if (selectedEndDate != null)   buttonEndDate.setText("End: " + selectedEndDate);
 
@@ -207,10 +181,6 @@ public class EventLottery extends Fragment {
         return view;
     }
 
-    /**
-     * Handles result from QR scanner activity.
-     * If a valid event ID is returned, navigates to that event's detail page.
-     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -227,31 +197,25 @@ public class EventLottery extends Fragment {
         }
     }
 
-    /**
-     * Loads event details from Firestore and navigates to EventFragmentEntrant.
-     *
-     * @param eventId Firestore ID of the event to display
-     */
+    /** Load details and navigate to entrant fragment. */
     private void eventDetails(String eventId) {
         db.collection("Events").document(eventId)
                 .get()
                 .addOnSuccessListener(eventSnapshot -> {
                     if (eventSnapshot.exists()) {
-                        String eventName = eventSnapshot.getString("eventName");
+                        String eventName   = eventSnapshot.getString("eventName");
                         String description = eventSnapshot.getString("description");
-                        String interests = eventSnapshot.getString("interests");
-                        String startDate = eventSnapshot.getString("startDate");
-                        String location = eventSnapshot.getString("location");
-                        String regStart = eventSnapshot.getString("registrationStart");
-                        String regEnd = eventSnapshot.getString("registrationEnd");
-                        Long maxEntrants = eventSnapshot.getLong("maxEntrants");
-                        Double price = eventSnapshot.getDouble("price");
+                        String startDate   = eventSnapshot.getString("startDate");
+                        String location    = eventSnapshot.getString("location");
+                        String regStart    = eventSnapshot.getString("registrationStart");
+                        String regEnd      = eventSnapshot.getString("registrationEnd");
+                        Long   maxEntrants = eventSnapshot.getLong("maxEntrants");
+                        Double price       = eventSnapshot.getDouble("price");
 
                         List<String> waitingList = (List<String>) eventSnapshot.get("waitingList");
                         boolean isOnWaitlist = waitingList != null && userEmail != null && waitingList.contains(userEmail);
 
-                        boolean waitingListClosed = eventSnapshot.getBoolean("waitingListClosed") != null
-                                ? eventSnapshot.getBoolean("waitingListClosed") : false;
+                        boolean waitingListClosed = Boolean.TRUE.equals(eventSnapshot.getBoolean("waitingListClosed"));
 
                         String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
                                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
@@ -286,21 +250,13 @@ public class EventLottery extends Fragment {
                         Toast.makeText(getContext(), "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-/**
-     * Opens a date picker dialog to select a start or end date for filtering.
-     *
-     * @param isStartDate true if selecting start date, false for end date
-     */
+    /** Date picker for filters. */
     private void showDatePicker(boolean isStartDate) {
         final Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
+        int year  = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        int day   = calendar.get(Calendar.DAY_OF_MONTH);
 
-        // Authored by: Hussien Fahmy,
-        // Stack Overflow, https://stackoverflow.com/questions/66331026/datepickerdialog-in-android
-        // Taken by: Bhoomi Bhoomi
-        // Taken on: 2025‑11‑07
         DatePickerDialog dialog = new DatePickerDialog(getContext(),
                 (view, year1, month1, dayOfMonth) -> {
                     String pickedDate = String.format(Locale.US, "%04d-%02d-%02d", year1, month1 + 1, dayOfMonth);
@@ -315,9 +271,7 @@ public class EventLottery extends Fragment {
         dialog.show();
     }
 
-    /**
-     * Loads all events from Firestore and displays the ones the user can join.
-     */
+    /** Load all events (then show them). */
     private void loadEvents() {
         db.collection("Events")
                 .get()
@@ -327,17 +281,12 @@ public class EventLottery extends Fragment {
                         Toast.makeText(getContext(), "No events found.", Toast.LENGTH_SHORT).show();
                         return;
                     }
-
-                    // Authored by: Edeson Bizerril,
-                    // Stack Overflow, https://stackoverflow.com/questions/65566970/how-to-cast-an-instance-of-querydocumentsnapshots-into-a-list-flutter-firestore
-                    // Taken by: Bhoomi Bhoomi
-                    // Taken on: 2025-11-07
-                    List<DocumentSnapshot> joinableEvents = new ArrayList<>();
-                    for (DocumentSnapshot eventDoc : queryDocumentSnapshots.getDocuments()) {
-                        if (canJoinWaitingList(eventDoc)) joinableEvents.add(eventDoc);
+                    // Only show events the user can still join
+                    List<DocumentSnapshot> joinable = new ArrayList<>();
+                    for (DocumentSnapshot doc : q.getDocuments()) {
+                        if (canJoinWaitingList(doc)) joinable.add(doc);
                     }
-
-                    displayEvents(joinableEvents);
+                    displayEvents(joinable);
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Error loading events: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -345,9 +294,7 @@ public class EventLottery extends Fragment {
                 });
     }
 
-    /**
-     * Filters events by selected interest and dates, then displays them.
-     */
+    /** Apply interest/date filters and show. */
     private void applyFilters() {
         db.collection("Events")
                 .get()
@@ -371,22 +318,20 @@ public class EventLottery extends Fragment {
                         if (selectedStartDate != null || selectedEndDate != null) {
                             try {
                                 Date filterStart = selectedStartDate != null ? dateFormat.parse(selectedStartDate) : null;
-                                Date filterEnd = selectedEndDate != null ? dateFormat.parse(selectedEndDate) : null;
-                                Date eventStart = dateFormat.parse(event.getString("startDate"));
-                                Date eventEnd = dateFormat.parse(event.getString("endDate"));
+                                Date filterEnd   = selectedEndDate   != null ? dateFormat.parse(selectedEndDate)   : null;
+                                Date eventStart  = dateFormat.parse(event.getString("startDate"));
+                                Date eventEnd    = dateFormat.parse(event.getString("endDate"));
 
                                 if ((filterStart != null && eventEnd.before(filterStart)) ||
-                                        (filterEnd != null && eventStart.after(filterEnd))) {
-                                    continue; // event outside filter range
+                                        (filterEnd   != null && eventStart.after(filterEnd))) {
+                                    continue;
                                 }
-
                             } catch (Exception e) {
                                 e.printStackTrace();
                                 continue;
                             }
                         }
 
-                        // Can join waiting list
                         if (!canJoinWaitingList(event)) continue;
 
                         filteredEvents.add(event);
@@ -398,30 +343,20 @@ public class EventLottery extends Fragment {
                         Toast.makeText(getContext(), "Error filtering events: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    /**
-     * Resets all filters and reloads all events.
-     */
+    /** Reset filters and reload. */
     private void clearFilters() {
-        // Reset filter variables
         selectedInterest = "All";
         selectedStartDate = null;
         selectedEndDate = null;
 
-        // Reset UI elements
-        spinnerInterest.setSelection(0); // "All" position
+        spinnerInterest.setSelection(0);
         buttonStartDate.setText("Start: All");
         buttonEndDate.setText("End: All");
 
-        // Reload all events
         loadEvents();
     }
 
-    /**
-     * Checks whether a user can join the waiting list for the given event.
-     *
-     * @param eventDoc Firestore document for the event
-     * @return true if the user can join, false otherwise
-     */
+    /** Can user still join? date + cap check. */
     private boolean canJoinWaitingList(DocumentSnapshot eventDoc) {
         try {
             // registration end inclusive
@@ -432,46 +367,35 @@ public class EventLottery extends Fragment {
 
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(regEnd);
-                cal.add(Calendar.DATE, 1); // include last day
+                cal.add(Calendar.DATE, 1);
                 Date regEndInclusive = cal.getTime();
 
                 if (new Date().after(regEndInclusive)) return false;
             }
 
-            // Waiting list full
+            // full?
             Long maxEntrants = eventDoc.getLong("maxEntrants");
             List<String> waitingList = (List<String>) eventDoc.get("waitingList");
             int waitlistCount = waitingList != null ? waitingList.size() : 0;
-            if (maxEntrants != null && maxEntrants > 0 && waitlistCount >= maxEntrants)
-                return false;
+            if (maxEntrants != null && maxEntrants > 0 && waitlistCount >= maxEntrants) return false;
 
             return true;
-
-            // Authored by: Venkat,
-            // Stack Overflow, https://stackoverflow.com/questions/2560368/what-is-the-use-of-printstacktrace-method-in-java
-            // Taken by: Bhoomi Bhoomi
-            // Taken on: 2025‑11‑07
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    /**
-     * Displays the list of events in the UI.
-     *
-     * @param events List of Firestore event documents to display
-     */
+    /** Render simple cards, each opens details screen. */
     private void displayEvents(List<DocumentSnapshot> events) {
-        // Safety checks: fragment must be attached and container must exist
         if (!isAdded() || getContext() == null || eventsContainer == null) return;
 
         eventsContainer.removeAllViews();
 
         for (DocumentSnapshot eventDoc : events) {
-            String eventName = eventDoc.getString("eventName");
+            String eventName      = eventDoc.getString("eventName");
             String eventStartDate = eventDoc.getString("startDate");
-            String eventLocation = eventDoc.getString("location");
+            String eventLocation  = eventDoc.getString("location");
             List<String> waitingList = (List<String>) eventDoc.get("waitingList");
             int waitlistCount = waitingList != null ? waitingList.size() : 0;
             String eventId = eventDoc.getId();
@@ -569,79 +493,22 @@ public class EventLottery extends Fragment {
                                         Toast.LENGTH_SHORT).show());
             });
 
-            // Add views to card
             card.addView(nameText);
             card.addView(dateText);
             card.addView(locationText);
             card.addView(waitlistText);
             card.addView(viewDetailsBtn);
 
-            // Add card to container
             eventsContainer.addView(card);
         }
     }
 
-    /**
-     * Returns whether the user can join the waiting list for testing purposes.
-     *
-     * @param eventDoc Firestore document representing the event
-     * @return true if the user can join, false otherwise
-     */
-    boolean canJoinWaitingListForTest(DocumentSnapshot eventDoc) {
-        return canJoinWaitingList(eventDoc);
-    }
-
-    /**
-     * Returns the currently selected interest for testing purposes.
-     *
-     * @return selected interest string
-     */
-    String getSelectedInterestForTest() {
-        return selectedInterest;
-    }
-
-    /**
-     * Returns the currently selected start date for testing purposes.
-     *
-     * @return selected start date in yyyy-MM-dd format, or null
-     */
-    String getSelectedStartDateForTest() {
-        return selectedStartDate;
-    }
-
-    /**
-     * Returns the currently selected end date for testing purposes.
-     *
-     * @return selected end date in yyyy-MM-dd format, or null
-     */
-    String getSelectedEndDateForTest() {
-        return selectedEndDate;
-    }
-
-    /**
-     * Sets the selected interest for testing purposes.
-     *
-     * @param interest interest to set
-     */
-    void setSelectedInterestForTest(String interest) {
-        this.selectedInterest = interest;
-    }
-
-    /**
-     * Sets the selected start date for testing purposes.
-     *
-     * @param startDate start date in yyyy-MM-dd format
-     */
-    void setSelectedStartDateForTest(String startDate) {
-        this.selectedStartDate = startDate;
-    }
-
-    /**
-     * Sets the selected end date for testing purposes.
-     *
-     * @param endDate end date in yyyy-MM-dd format
-     */
-    void setSelectedEndDateForTest(String endDate) {
-        this.selectedEndDate = endDate;
-    }
+    // Test helpers
+    boolean canJoinWaitingListForTest(DocumentSnapshot eventDoc) { return canJoinWaitingList(eventDoc); }
+    String getSelectedInterestForTest() { return selectedInterest; }
+    String getSelectedStartDateForTest() { return selectedStartDate; }
+    String getSelectedEndDateForTest() { return selectedEndDate; }
+    void setSelectedInterestForTest(String interest) { this.selectedInterest = interest; }
+    void setSelectedStartDateForTest(String startDate) { this.selectedStartDate = startDate; }
+    void setSelectedEndDateForTest(String endDate) { this.selectedEndDate = endDate; }
 }
