@@ -10,13 +10,21 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 
 /**
  * An array adapter helper class
- * Code was heavily taken inspiration from Lab 5 CityArrayAdapters
- * NOT FINISHED
+ * Code for setting EventArrayAdapter was heavily taken inspiration from Lab 5 CityArrayAdapters
+ * Code for lines 52 - 59 was taken inspiration from GeeksForGeeks,
+ * https://www.geeksforgeeks.org/java/compare-dates-in-java/, Last Updated July 11 2025,
+ * Accessed Nov 4 2025
  */
 public class EventArrayAdapter extends ArrayAdapter<Event> {
     private ArrayList<Event> events;
@@ -37,8 +45,33 @@ public class EventArrayAdapter extends ArrayAdapter<Event> {
 
         Event event = events.get(position);
         TextView eventName = view.findViewById(R.id.eventName);
+        TextView eventInterests = view.findViewById(R.id.eventInterests);
+        TextView eventStatus = view.findViewById(R.id.status);
+        TextView eventDrawDate = view.findViewById(R.id.drawDate);
 
         eventName.setText(event.getEventName());
+        eventInterests.setText("Interests: " + event.getInterests());
+
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        try {
+            Date today = sdf.parse(sdf.format(new Date()));
+            Date eventRegEnd = sdf.parse(event.getRegistrationEnd());
+            assert today != null;
+            if (today.before(eventRegEnd)) {
+                eventStatus.setText("Status: Open");
+            }
+            else {
+                eventStatus.setText("Status: Closed");
+            }
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+
+        eventDrawDate.setText("Draw Date: " + event.getRegistrationEnd());
+
+
+
 
         return view;
     }

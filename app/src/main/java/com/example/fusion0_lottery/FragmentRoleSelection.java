@@ -31,36 +31,24 @@ public class FragmentRoleSelection extends Fragment {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        entrantBtn.setOnClickListener(v -> {
-            // go to Entrant dashboard
-            updateUserRole("Entrant");
-            // ((MainActivity) requireActivity()).replaceFragment(new FragmentEntrant());
-        });
-
-        organizerBtn.setOnClickListener(v -> {
-            // go to Organizer dashboard
-            updateUserRole("Organizer");
-            ((MainActivity) requireActivity()).replaceFragment(new FragmentOrganizer());
-        });
+        entrantBtn.setOnClickListener(v -> updateUserRole("Entrant"));
+        organizerBtn.setOnClickListener(v -> updateUserRole("Organizer"));
 
         return view;
     }
 
     private void updateUserRole(String role) {
-        String device_id = auth.getCurrentUser().getUid();
-        db.collection("Users").document(device_id).update("role", role)
+        String uid = auth.getCurrentUser().getUid();
+
+        db.collection("Users").document(uid).update("role", role)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(getContext(), "Role set to " + role, Toast.LENGTH_SHORT).show();
 
                     if (role.equals("Entrant")) {
-                        // ((MainActivity) requireActivity()).replaceFragment(new FragmentEntrant());
-                        return;
-                    }
-                    else if (role.equals("Organizer")) {
+                        // Navigate to EventLottery screen
+                        ((MainActivity) requireActivity()).replaceFragment(new EventLottery());
+                    } else if (role.equals("Organizer")) {
                         ((MainActivity) requireActivity()).replaceFragment(new FragmentOrganizer());
-                    }
-                    else {
-                        return;
                     }
                 })
                 .addOnFailureListener(e ->

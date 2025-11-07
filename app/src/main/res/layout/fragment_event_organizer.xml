@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".EventFragmentOrganizer">
+
+    <!-- Toolbar Header -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/green_700"
+        android:elevation="4dp"
+        android:titleTextColor="@android:color/white"
+        android:paddingTop="8dp"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="24dp">
+
+        <!-- Single direct child for ScrollView -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/eventName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Event Name"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/eventDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Event Description"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/eventInterests"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Interests: "
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/eventDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Starts: "
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/eventLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Location: "
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/eventEndDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Registration: "
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/eventEntrants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Max Entrants: "
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:id="@+id/eventPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Price: "
+                android:layout_marginBottom="16dp"/>
+
+            <!-- QR Code Display -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Event QR Code:"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:id="@+id/qrCodeLabel"
+                android:visibility="gone"/>
+
+            <ImageView
+                android:id="@+id/eventQrCode"
+                android:layout_width="250dp"
+                android:layout_height="250dp"
+                android:layout_gravity="center"
+                android:scaleType="fitCenter"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                android:contentDescription="Event QR Code"/>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
