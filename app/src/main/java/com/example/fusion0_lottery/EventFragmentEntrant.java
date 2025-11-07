@@ -1,10 +1,12 @@
 package com.example.fusion0_lottery;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,6 +19,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -24,9 +30,10 @@ import java.util.List;
 
 public class EventFragmentEntrant extends Fragment {
 
-    private TextView eventNameText, eventDescriptionText, eventDateText, eventLocationText;
-    private TextView registrationText, maxEntrantsText, eventPriceText;
+    private TextView eventNameText, eventDescriptionText, eventInterestsText, eventDateText, eventLocationText;
+    private TextView registrationText, maxEntrantsText, eventPriceText, qrCodeLabel;
     private Button joinWaitingListButton;
+    private ImageView qrCodeImage;
     private String eventId;
     private boolean isInWaitingList;
     private boolean waitingListClosed;
@@ -41,6 +48,7 @@ public class EventFragmentEntrant extends Fragment {
             String currentUserId,   // <-- pass UID here
             String eventName,
             String eventDescription,
+            String interests,
             String startDate,
             String location,
             boolean isInWaitingList,
@@ -56,6 +64,7 @@ public class EventFragmentEntrant extends Fragment {
         args.putString("currentUserId", currentUserId); // <-- store UID
         args.putString("eventName", eventName);
         args.putString("eventDescription", eventDescription);
+        args.putString("interests", interests);
         args.putString("startDate", startDate);
         args.putString("eventLocation", location);
         args.putBoolean("isInWaitingList", isInWaitingList);
@@ -79,12 +88,15 @@ public class EventFragmentEntrant extends Fragment {
         // Initialize views
         eventNameText = view.findViewById(R.id.eventName);
         eventDescriptionText = view.findViewById(R.id.eventDescription);
+        eventInterestsText = view.findViewById(R.id.eventInterests);
         eventDateText = view.findViewById(R.id.eventDate);
         eventLocationText = view.findViewById(R.id.eventLocation);
         registrationText = view.findViewById(R.id.eventEndDate);
         maxEntrantsText = view.findViewById(R.id.eventEntrants);
         eventPriceText = view.findViewById(R.id.eventPrice);
         joinWaitingListButton = view.findViewById(R.id.buttonJoinWaitingList);
+        qrCodeImage = view.findViewById(R.id.eventQrCode);
+        qrCodeLabel = view.findViewById(R.id.qrCodeLabel);
         joinWaitingListButton.setVisibility(View.INVISIBLE);
 
         if (getArguments() != null) {
@@ -95,6 +107,7 @@ public class EventFragmentEntrant extends Fragment {
             // Display all fields
             eventNameText.setText("Event Name: " + getArguments().getString("eventName"));
             eventDescriptionText.setText("Description: " + getArguments().getString("eventDescription"));
+            eventInterestsText.setText("Interests: " + getArguments().getString("interests"));
             eventDateText.setText("Start Date: " + getArguments().getString("startDate"));
             eventLocationText.setText("Location: " + getArguments().getString("eventLocation"));
 
@@ -112,6 +125,25 @@ public class EventFragmentEntrant extends Fragment {
 
                         ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
                         if (waitingList == null) waitingList = new ArrayList<>();
+
+                        // Generate and display QR code if enabled
+                        Boolean hasQrCode = snapshot.getBoolean("hasQrCode");
+                        String eventIdForQr = snapshot.getString("eventId");
+
+                        if (hasQrCode != null && hasQrCode && eventIdForQr != null) {
+                            try {
+                                Bitmap qrBitmap = generateQRCode(eventIdForQr);
+                                qrCodeLabel.setVisibility(View.VISIBLE);
+                                qrCodeImage.setVisibility(View.VISIBLE);
+                                qrCodeImage.setImageBitmap(qrBitmap);
+                            } catch (WriterException e) {
+                                qrCodeLabel.setVisibility(View.GONE);
+                                qrCodeImage.setVisibility(View.GONE);
+                            }
+                        } else {
+                            qrCodeLabel.setVisibility(View.GONE);
+                            qrCodeImage.setVisibility(View.GONE);
+                        }
 
                         List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
                         for (String uid : new ArrayList<>(waitingList)) {
@@ -208,5 +240,28 @@ public class EventFragmentEntrant extends Fragment {
                                         Toast.makeText(getContext(), "Error updating waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                     });
         });
+    }
+
+    /**
+     * Generate QR code bitmap from event ID
+     */
+    private Bitmap generateQRCode(String eventId) throws WriterException {
+        String qrContent = "event://" + eventId;
+        int size = 500;
+
+        BitMatrix bitMatrix = new MultiFormatWriter().encode(
+                qrContent,
+                BarcodeFormat.QR_CODE,
+                size,
+                size
+        );
+
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565);
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                bitmap.setPixel(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
+            }
+        }
+        return bitmap;
     }
 }

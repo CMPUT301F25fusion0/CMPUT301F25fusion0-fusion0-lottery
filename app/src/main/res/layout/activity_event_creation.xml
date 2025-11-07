@@ -34,6 +34,19 @@
                 android:inputType="text"/>
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Interests -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/interestInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Interests *"
+                android:inputType="text"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- Description -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -183,12 +196,22 @@
             android:layout_marginBottom="12dp"
             android:contentDescription="Event Poster Preview"/>
 
+        <!-- QR Code Generation Checkbox -->
+        <CheckBox
+            android:id="@+id/generateQrCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Generate QR Code for this event"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:checked="true"/>
+
         <!-- Button Container -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="8dp">
 
             <!-- Cancel Button -->
             <Button
@@ -209,25 +232,6 @@
                 android:text="Create Event"
                 android:layout_marginStart="8dp"/>
         </LinearLayout>
-
-        <!-- Generate QR Code Button (shown after event is created) -->
-        <Button
-            android:id="@+id/generateQrButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Generate QR Code"
-            android:layout_marginTop="16dp"
-            android:visibility="gone"/>
-
-        <!-- QR Code Display -->
-        <ImageView
-            android:id="@+id/qrCodeImageView"
-            android:layout_width="250dp"
-            android:layout_height="250dp"
-            android:layout_gravity="center"
-            android:layout_marginTop="16dp"
-            android:visibility="gone"
-            android:contentDescription="Event QR Code"/>
 
     </LinearLayout>
 </ScrollView>
