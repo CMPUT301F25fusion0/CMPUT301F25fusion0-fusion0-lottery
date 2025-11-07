@@ -30,6 +30,20 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Calendar;
 
+/**
+ * EventFragmentEntrant.java
+ *
+ * Fragment that displays detailed information about a single event for a user.
+ * Users can view the event details, registration dates, price, and join or leave the waiting list for the event.
+ *
+ * This fragment also handles:
+ * - Checking whether the event waiting list is full or closed
+ * - Updating the waiting list in Firestore
+ * - Generating QR codes for events
+ *
+ * Outstanding issues / considerations:
+ * - Firestore operations lack advanced error recovery or retry logic.
+ */
 public class EventFragmentEntrant extends Fragment {
 
     private TextView eventNameText, eventDescriptionText, eventDateText, eventLocationText;
@@ -42,8 +56,28 @@ public class EventFragmentEntrant extends Fragment {
     private FirebaseFirestore db;
     private String currentUserId;
 
+    /**
+     * Default constructor.
+     */
     public EventFragmentEntrant() {}
 
+    /**
+     * Factory method to create a new instance of EventFragmentEntrant.
+     *
+     * @param eventId The Firestore document ID for the event.
+     * @param currentUserId ID of the currently logged-in user.
+     * @param eventName Name of the event.
+     * @param eventDescription Description of the event.
+     * @param startDate Start date of the event (yyyy-MM-dd).
+     * @param location Event location.
+     * @param isInWaitingList Whether the user is already in the waiting list.
+     * @param registrationStart Start date of registration.
+     * @param registrationEnd End date of registration.
+     * @param maxEntrants Maximum number of entrants allowed.
+     * @param price Event price.
+     * @param waitingListClosed True if waiting list is closed.
+     * @return A new instance of EventFragmentEntrant.
+     */
     public static EventFragmentEntrant newInstance(
             String eventId,
             String currentUserId,
@@ -76,6 +110,14 @@ public class EventFragmentEntrant extends Fragment {
         return fragment;
     }
 
+    /**
+     * Inflates the fragment layout and initializes UI components.
+     *
+     * @param inflater LayoutInflater used to inflate the fragment view.
+     * @param container Parent view that the fragment's UI should attach to.
+     * @param savedInstanceState Bundle containing saved state (if any).
+     * @return The root view of the fragment.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -119,6 +161,10 @@ public class EventFragmentEntrant extends Fragment {
                         ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
                         if (waitingList == null) waitingList = new ArrayList<>();
 
+                        // Authored by: Edeson Bizerril,
+                        // Stack Overflow, https://stackoverflow.com/questions/65566970/how-to-cast-an-instance-of-querydocumentsnapshots-into-a-list-flutter-firestore
+                        // Taken by: Bhoomi Bhoomi
+                        // Taken on: 2025-11-07
                         List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
                         for (String uid : new ArrayList<>(waitingList)) {
                             tasks.add(db.collection("Users").document(uid).get());
@@ -158,6 +204,11 @@ public class EventFragmentEntrant extends Fragment {
         return view;
     }
 
+    /**
+     * Toggles the user's membership in the event's waiting list.
+     * Adds the user if not present, removes if already present.
+     * Updates Firestore and UI accordingly.
+     */
     private void toggleWaitingList() {
         DocumentReference eventRef = db.collection("Events").document(eventId);
 
@@ -176,10 +227,18 @@ public class EventFragmentEntrant extends Fragment {
             // Check if registration period ended (inclusive)
             boolean isClosedByDate = false;
             if (registrationEndStr != null) {
+                // Authored by: Quinteger,
+                // Stack Overflow, https://stackoverflow.com/questions/55588323/safe-simpledateformat-parsing
+                // Taken by: Bhoomi Bhoomi
+                // Taken on: 2025-11-07
                 try {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
                     Date regEnd = sdf.parse(registrationEndStr);
 
+                    // Authored by: Katherine,
+                    // Stack Overflow, https://stackoverflow.com/questions/30434334/gregoriancalendar-outputs-the-date-is-java-util-gregoriancalendartime-11415564
+                    // Taken by: Bhoomi Bhoomi
+                    // Taken on: 2025-11-07
                     if (regEnd != null) {
                         Calendar cal = Calendar.getInstance();
                         cal.setTime(regEnd);
@@ -222,6 +281,12 @@ public class EventFragmentEntrant extends Fragment {
         });
     }
 
+    /**
+     * Generates a QR code bitmap for the event.
+     *
+     * @param eventId Firestore document ID of the event.
+     * @return Bitmap representing the QR code.
+     */
     private Bitmap generateQRCode(String eventId) throws WriterException {
         String qrContent = "event://" + eventId;
         int size = 500;

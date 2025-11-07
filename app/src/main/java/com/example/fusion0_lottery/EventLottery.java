@@ -29,7 +29,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ArrayList;
 
-
+/**
+ * EventLottery.java
+ *
+ * Fragment that displays events available to users in the lottery system.
+ * Users can filter events by interest and date, view details, and join/leave waiting lists.
+ *
+ * Loads event data from Firestore and displays it as cards in a scrollable list.
+ *
+ * Outstanding issues:
+ * - Large event lists could be optimized with RecyclerView instead of LinearLayout.
+ * - Error handling for Firestore network issues can be improved.
+ */
 public class EventLottery extends Fragment {
 
     private LinearLayout eventsContainer;
@@ -38,15 +49,21 @@ public class EventLottery extends Fragment {
     private FirebaseFirestore db;
     private String userEmail;
 
-
     private String selectedInterest = "All";
     private String selectedStartDate = null;
     private String selectedEndDate = null;
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
-    public EventLottery() {}
+    public EventLottery() {
+    }
 
+    /**
+     * Create a new EventLottery fragment for a given user.
+     *
+     * @param userEmail email of the current user
+     * @return a new EventLottery fragment
+     */
     public static EventLottery newInstance(String userEmail) {
         EventLottery fragment = new EventLottery();
         Bundle args = new Bundle();
@@ -54,6 +71,17 @@ public class EventLottery extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
+
+    /**
+     * Inflates the fragment layout, initializes UI components, sets up
+     * buttons, spinner, and date pickers, and loads events from Firestore.
+     * Filters are applied automatically if previously selected.
+     *
+     * @param inflater LayoutInflater used to inflate the fragment view
+     * @param container Parent view that the fragment's UI should attach to
+     * @param savedInstanceState Bundle containing saved state (if any)
+     * @return The root view of the fragment
+     */
 
     @Nullable
     @Override
@@ -86,6 +114,10 @@ public class EventLottery extends Fragment {
             selectedEndDate = getArguments().getString("selectedEndDate", null);
         }
 
+        // Authored by: M-Wajeeh
+        // Stack Overflow, https://stackoverflow.com/questions/17981184/arrayadapter-createfromresource-issue
+        // Taken by: Bhoomi Bhoomi
+        // Taken on: 2025-11-07
         // Spinner setup
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 getContext(),
@@ -120,12 +152,21 @@ public class EventLottery extends Fragment {
         return view;
     }
 
+    /**
+     * Opens a date picker dialog to select a start or end date for filtering.
+     *
+     * @param isStartDate true if selecting start date, false for end date
+     */
     private void showDatePicker(boolean isStartDate) {
         final Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
         int day = calendar.get(Calendar.DAY_OF_MONTH);
 
+        // Authored by: Hussien Fahmy,
+        // Stack Overflow, https://stackoverflow.com/questions/66331026/datepickerdialog-in-android
+        // Taken by: Bhoomi Bhoomi
+        // Taken on: 2025‑11‑07
         DatePickerDialog dialog = new DatePickerDialog(getContext(),
                 (view, year1, month1, dayOfMonth) -> {
                     String pickedDate = String.format(Locale.US, "%04d-%02d-%02d", year1, month1 + 1, dayOfMonth);
@@ -140,6 +181,9 @@ public class EventLottery extends Fragment {
         dialog.show();
     }
 
+    /**
+     * Loads all events from Firestore and displays the ones the user can join.
+     */
     private void loadEvents() {
         db.collection("Events")
                 .get()
@@ -149,6 +193,10 @@ public class EventLottery extends Fragment {
                         return;
                     }
 
+                    // Authored by: Edeson Bizerril,
+                    // Stack Overflow, https://stackoverflow.com/questions/65566970/how-to-cast-an-instance-of-querydocumentsnapshots-into-a-list-flutter-firestore
+                    // Taken by: Bhoomi Bhoomi
+                    // Taken on: 2025-11-07
                     List<DocumentSnapshot> joinableEvents = new ArrayList<>();
                     for (DocumentSnapshot eventDoc : queryDocumentSnapshots.getDocuments()) {
                         if (canJoinWaitingList(eventDoc)) joinableEvents.add(eventDoc);
@@ -162,6 +210,9 @@ public class EventLottery extends Fragment {
                 });
     }
 
+    /**
+     * Filters events by selected interest and dates, then displays them.
+     */
     private void applyFilters() {
         db.collection("Events")
                 .get()
@@ -177,7 +228,8 @@ public class EventLottery extends Fragment {
                         // Interest filter
                         if (!selectedInterest.equals("All")) {
                             String eventInterest = event.getString("interests");
-                            if (eventInterest == null || !selectedInterest.equalsIgnoreCase(eventInterest.trim())) continue;
+                            if (eventInterest == null || !selectedInterest.equalsIgnoreCase(eventInterest.trim()))
+                                continue;
                         }
 
                         // Availability filter (optional)
@@ -211,6 +263,9 @@ public class EventLottery extends Fragment {
                         Toast.makeText(getContext(), "Error filtering events: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Resets all filters and reloads all events.
+     */
     private void clearFilters() {
         // Reset filter variables
         selectedInterest = "All";
@@ -226,7 +281,12 @@ public class EventLottery extends Fragment {
         loadEvents();
     }
 
-
+    /**
+     * Checks whether a user can join the waiting list for the given event.
+     *
+     * @param eventDoc Firestore document for the event
+     * @return true if the user can join, false otherwise
+     */
     private boolean canJoinWaitingList(DocumentSnapshot eventDoc) {
         try {
             // Registration end inclusive
@@ -248,18 +308,30 @@ public class EventLottery extends Fragment {
             Long maxEntrants = eventDoc.getLong("maxEntrants");
             List<String> waitingList = (List<String>) eventDoc.get("waitingList");
             int waitlistCount = waitingList != null ? waitingList.size() : 0;
-            if (maxEntrants != null && maxEntrants > 0 && waitlistCount >= maxEntrants) return false;
+            if (maxEntrants != null && maxEntrants > 0 && waitlistCount >= maxEntrants)
+                return false;
 
             return true;
 
+            // Authored by: Venkat,
+            // Stack Overflow, https://stackoverflow.com/questions/2560368/what-is-the-use-of-printstacktrace-method-in-java
+            // Taken by: Bhoomi Bhoomi
+            // Taken on: 2025‑11‑07
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
 
+    /**
+     * Displays the list of events in the UI.
+     *
+     * @param events List of Firestore event documents to display
+     */
     private void displayEvents(List<DocumentSnapshot> events) {
-        if (eventsContainer == null) return;
+        // Safety checks: fragment must be attached and container must exist
+        if (!isAdded() || getContext() == null || eventsContainer == null) return;
+
         eventsContainer.removeAllViews();
 
         for (DocumentSnapshot eventDoc : events) {
@@ -282,6 +354,7 @@ public class EventLottery extends Fragment {
             cardParams.setMargins(0, 0, 0, 24);
             card.setLayoutParams(cardParams);
 
+            // TextViews
             TextView nameText = new TextView(getContext());
             nameText.setText("Event: " + eventName);
             nameText.setTextSize(20f);
@@ -300,13 +373,16 @@ public class EventLottery extends Fragment {
             waitlistText.setText("Current Waitlist: " + waitlistCount);
             waitlistText.setPadding(0, 0, 0, 16);
 
+            // Button
             Button viewDetailsBtn = new Button(getContext());
             viewDetailsBtn.setText("View Details");
             viewDetailsBtn.setBackgroundColor(getResources().getColor(android.R.color.holo_purple));
             viewDetailsBtn.setTextColor(getResources().getColor(android.R.color.white));
 
             viewDetailsBtn.setOnClickListener(v -> {
-                String currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
+                // Prevent NullPointerException if user not logged in
+                String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                        FirebaseAuth.getInstance().getCurrentUser().getUid() : "testUser";
 
                 EventFragmentEntrant fragment = EventFragmentEntrant.newInstance(
                         eventId,
@@ -323,20 +399,88 @@ public class EventLottery extends Fragment {
                         false
                 );
 
-                getParentFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_container, fragment)
-                        .addToBackStack(null)
-                        .commit();
+                if (getParentFragmentManager() != null) {
+                    getParentFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.fragment_container, fragment)
+                            .addToBackStack(null)
+                            .commit();
+                }
             });
 
+            // Add views to card
             card.addView(nameText);
             card.addView(dateText);
             card.addView(locationText);
             card.addView(waitlistText);
             card.addView(viewDetailsBtn);
 
+            // Add card to container
             eventsContainer.addView(card);
         }
+    }
+
+    /**
+     * Returns whether the user can join the waiting list for testing purposes.
+     *
+     * @param eventDoc Firestore document representing the event
+     * @return true if the user can join, false otherwise
+     */
+    boolean canJoinWaitingListForTest(DocumentSnapshot eventDoc) {
+        return canJoinWaitingList(eventDoc);
+    }
+
+    /**
+     * Returns the currently selected interest for testing purposes.
+     *
+     * @return selected interest string
+     */
+    String getSelectedInterestForTest() {
+        return selectedInterest;
+    }
+
+    /**
+     * Returns the currently selected start date for testing purposes.
+     *
+     * @return selected start date in yyyy-MM-dd format, or null
+     */
+    String getSelectedStartDateForTest() {
+        return selectedStartDate;
+    }
+
+    /**
+     * Returns the currently selected end date for testing purposes.
+     *
+     * @return selected end date in yyyy-MM-dd format, or null
+     */
+    String getSelectedEndDateForTest() {
+        return selectedEndDate;
+    }
+
+    /**
+     * Sets the selected interest for testing purposes.
+     *
+     * @param interest interest to set
+     */
+    void setSelectedInterestForTest(String interest) {
+        this.selectedInterest = interest;
+    }
+
+    /**
+     * Sets the selected start date for testing purposes.
+     *
+     * @param startDate start date in yyyy-MM-dd format
+     */
+    void setSelectedStartDateForTest(String startDate) {
+        this.selectedStartDate = startDate;
+    }
+
+    /**
+     * Sets the selected end date for testing purposes.
+     *
+     * @param endDate end date in yyyy-MM-dd format
+     */
+    void setSelectedEndDateForTest(String endDate) {
+        this.selectedEndDate = endDate;
     }
 }
