@@ -14,4 +14,33 @@
     <string name="role_selection_entrant">Entrant</string>
     <string name="role_selection_organizer">Organizer</string>
     <string name="select_your_role">Select Your Role</string>
+
+    <string name="event_details">
+    Registration Opens: %1$s\n
+    Registration Closes: %2$s\n
+    Capacity: %3$d spots\n
+    Waiting List: %4$d\n
+    Selected: %5$d\n
+    Enrolled: %6$d\n
+    Date: %7$s at %8$s\n
+    Price: $%9$.2f\n
+    </string>
+
+    <string-array name="sort_options">
+        <item>Sort by Name</item>
+        <item>Sort by Date</item>
+    </string-array>
+
+    <string name="google_maps_key">YOUR_GOOGLE_MAPS_API_KEY</string>
+    <string name="event_details_stuff">
+        Registration Opens: \n
+        Registration Closes: \n
+        Capacity: \n
+        Waiting List: \
+        nSelected: \n
+        Enrolled: \n
+        Date: \n
+        Price:
+    </string>
+
 </resources>

@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -18,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.zxing.BarcodeFormat;
@@ -29,6 +31,7 @@ import java.io.ByteArrayOutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 
@@ -307,40 +310,64 @@ public class EventCreationActivity extends AppCompatActivity {
 
         // Create Event object
         Event event = new Event(eventName, description, startDate, endDate, time,
-                price, location, registrationStart, registrationEnd, maxEntrants);
+                price, location, registrationStart, registrationEnd, maxEntrants, 0, 0, 0);
 
-        // If poster is selected, upload it first, then save event
-        if (posterImageUri != null) {
-            uploadPosterAndSaveEvent(event);
-        } else {
-            // No poster, just save the event
-            saveEventToFirestore(event);
-        }
+        // First save event to Firestore
+        db.collection("Events")
+                // add the event to Events section in Firestore
+                .add(event)
+                // when successfully added:
+                .addOnSuccessListener(documentReference -> {
+                    // create the event ID
+                    createdEventId = documentReference.getId();
+                    documentReference.update("eventId", createdEventId);
+
+                    if (posterImageUri != null) {
+                        // upload the poster first then save the event
+                        uploadPosterAndSaveEvent(posterImageUri);
+                    }
+                    else {
+                        // if the poster DNE, save the event without it
+                        Toast.makeText(this, "Event created successfully!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error creating event: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     /**
      * Upload poster image to Firebase Storage, then save event to Firestore
+     * Convert image to Base64 then upload to Firestore
+     * References:
+     *     https://stackoverflow.com/questions/65210522/how-to-get-bitmap-from-imageuri-in-api-level-30
+     *     https://stackoverflow.com/questions/4830711/how-can-i-convert-an-image-into-a-base64-string
+     *     https://stackoverflow.com/questions/9224056/android-bitmap-to-base64-string
      */
-    private void uploadPosterAndSaveEvent(Event event) {
-        // Create a unique filename for the poster
-        String fileName = "event_posters/" + System.currentTimeMillis() + ".jpg";
-        StorageReference posterRef = storageRef.child(fileName);
+    private void uploadPosterAndSaveEvent(Uri posterUri) {
+        try {
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), posterUri);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 80, baos);
+            byte[] image = baos.toByteArray();
 
-        // Upload the image
-        posterRef.putFile(posterImageUri)
-                .addOnSuccessListener(taskSnapshot -> {
-                    // Get the download URL
-                    posterRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        // Set the poster URL in the event
-                        event.setPosterUrl(uri.toString());
-                        // Now save the event to Firestore
-                        saveEventToFirestore(event);
+            String encodedImage = Base64.encodeToString(image, Base64.DEFAULT);
+
+            db.collection("Events").document(createdEventId)
+                    .update("posterImage", encodedImage)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Poster uploaded successfully!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error uploading poster: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to upload poster: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
-                });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error processing poster image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**

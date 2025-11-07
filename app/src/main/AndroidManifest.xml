@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package = "com.example.fusion0_lottery">
 
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -12,6 +15,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Fusion0_lottery">
+
+        <activity android:name=".EventCreationActivity" />
+
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

@@ -18,6 +18,10 @@ public class Event {
     private String registrationEnd;
     private String qrCodeUrl; // URL to the generated QR code
 
+    private Integer waitingListCount;
+    private Integer userSelectedCount;
+    private Integer userEnrolledCount;
+
     // Empty constructor required for Firebase
     public Event() {
     }
@@ -25,7 +29,8 @@ public class Event {
     // Constructor for creating new events
     public Event(String eventName, String description, String startDate, String endDate,
                  String time, double price, String location, String registrationStart,
-                 String registrationEnd, Integer maxEntrants) {
+                 String registrationEnd, Integer maxEntrants, Integer waitingListCount,
+                 Integer userSelectedCount, Integer userEnrolledCount) {
         this.eventName = eventName;
         this.description = description;
         this.startDate = startDate;
@@ -36,6 +41,9 @@ public class Event {
         this.registrationStart = registrationStart;
         this.registrationEnd = registrationEnd;
         this.maxEntrants = maxEntrants;
+        this.waitingListCount = waitingListCount;
+        this.userSelectedCount = userSelectedCount;
+        this.userEnrolledCount = userEnrolledCount;
     }
 
     // Getters and Setters
@@ -142,4 +150,29 @@ public class Event {
     public void setQrCodeUrl(String qrCodeUrl) {
         this.qrCodeUrl = qrCodeUrl;
     }
+
+    public Integer getWaitingListCount() {
+        return waitingListCount;
+    }
+
+    public void setWaitingListCount(Integer waitingListCount) {
+        this.waitingListCount = waitingListCount;
+    }
+
+    public Integer getUserSelectedCount() {
+        return userSelectedCount;
+    }
+
+    public void setUserSelectedCount(Integer userSelectedCount) {
+        this.userSelectedCount = userSelectedCount;
+    }
+
+    public Integer getUserEnrolledCount() {
+        return userEnrolledCount;
+    }
+
+    public void setUserEnrolledCount(Integer userEnrolledCount) {
+        this.userEnrolledCount = userEnrolledCount;
+    }
+
 }
