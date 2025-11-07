@@ -4,7 +4,6 @@ import static org.mockito.Mockito.*;
 
 import android.widget.EditText;
 
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -15,63 +14,81 @@ public class FragmentEditEventTest {
 
     private FragmentEditEvent fragment;
     private FirebaseFirestore mockDb;
-    private CollectionReference mockCollection;
-    private DocumentReference mockDoc;
-
-    private EditText titleInput, descInput, startInput, endInput, timeInput, priceInput, maxEntrantsInput;
+    private DocumentReference mockDocRef;
 
     @Before
     public void setUp() {
         fragment = new FragmentEditEvent();
-
-        // Mock Firestore and references
         mockDb = mock(FirebaseFirestore.class);
-        mockCollection = mock(CollectionReference.class);
-        mockDoc = mock(DocumentReference.class);
+        mockDocRef = mock(DocumentReference.class);
 
-        when(mockDb.collection("Events")).thenReturn(mockCollection);
-        when(mockCollection.document(anyString())).thenReturn(mockDoc);
+        // mock Firestore chain: db.collection("Events").document(eventId)
+        when(mockDb.collection("Events")).thenReturn(mock(com.google.firebase.firestore.CollectionReference.class, RETURNS_DEEP_STUBS));
+        when(mockDb.collection("Events").document(anyString())).thenReturn(mockDocRef);
 
-        // Inject Firestore mock and fake event ID
+        // inject the mock db
         fragment.db = mockDb;
-        fragment.eventId = "testEventId";
-
-        // Mock EditTexts (you’re not testing UI behavior, just the update call)
-        titleInput = mock(EditText.class);
-        descInput = mock(EditText.class);
-        startInput = mock(EditText.class);
-        endInput = mock(EditText.class);
-        timeInput = mock(EditText.class);
-        priceInput = mock(EditText.class);
-        maxEntrantsInput = mock(EditText.class);
-
-        // Inject mocks using your new test-only setter
-        fragment.setMockInputs(titleInput, descInput, startInput, endInput, timeInput, priceInput, maxEntrantsInput);
+        fragment.eventId = "fakeEventId";
     }
 
+    private EditText mockEditText(String text) {
+        EditText mockEdit = mock(EditText.class);
+        when(mockEdit.getText()).thenReturn(new android.text.SpannableStringBuilder(text));
+        return mockEdit;
+    }
 
     @Test
-    public void testSaveEventsFirestore() {
-        // Act — call your new helper method that doesn’t rely on EditText
+    public void testSaveEventChanges_withValidInput_updatesFirestore() {
+        // given valid mock inputs
+        EditText title = mockEditText("New Event");
+        EditText desc = mockEditText("Description");
+        EditText startDate = mockEditText("2025-11-06");
+        EditText endDate = mockEditText("2025-11-07");
+        EditText time = mockEditText("12:00 PM");
+        EditText location = mockEditText("Random Location");
+        EditText price = mockEditText("20.5");
+        EditText maxEntrants = mockEditText("100");
+
+        // inject mocks
+        fragment.setMockInputs(title, desc, startDate, endDate, time, location, price, maxEntrants);
+
+        // when saving
         fragment.testSaveEventChanges(
-                "new event name",
-                "hello world",
-                "2025-11-06",
-                "2025-11-07",
-                "12:00 PM",
-                "2.0",
-                "500"
+                "New Event", "Description", "2025-11-06",
+                "2025-11-07", "12:00 PM", "Random Location",
+                "20.5", "100"
         );
 
-        // Assert — verify the Firestore update call
-        verify(mockDoc, times(1)).update(
-                eq("eventName"), eq("new event name"),
-                eq("description"), eq("hello world"),
+        // then Firestore's update should be called with the correct parameters
+        verify(mockDocRef).update(
+                eq("eventName"), eq("New Event"),
+                eq("description"), eq("Description"),
                 eq("startDate"), eq("2025-11-06"),
                 eq("endDate"), eq("2025-11-07"),
                 eq("time"), eq("12:00 PM"),
-                eq("price"), eq(2.0),
-                eq("maxEntrants"), eq(500)
+                eq("location"), eq("Random Location"),
+                eq("price"), eq(20.5),
+                eq("maxEntrants"), eq(100)
+        );
+    }
+
+    @Test
+    public void testSaveEventChanges_withEmptyFields_doesNotCallUpdate() {
+        // given missing title
+        EditText title = mockEditText("");
+        EditText desc = mockEditText("Description");
+        EditText startDate = mockEditText("2025-11-06");
+        EditText endDate = mockEditText("2025-11-07");
+        EditText time = mockEditText("12:00 PM");
+        EditText location = mockEditText("Random Location");
+        EditText price = mockEditText("20.5");
+        EditText maxEntrants = mockEditText("100");
+
+        fragment.setMockInputs(title, desc, startDate, endDate, time, location, price, maxEntrants);
+
+        fragment.testSaveEventChanges(
+                "", "Description", "2025-11-06", "2025-11-07",
+                "12:00 PM", "Random Location", "20.5", "100"
         );
     }
 }

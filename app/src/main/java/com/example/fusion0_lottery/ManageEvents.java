@@ -3,12 +3,14 @@ package com.example.fusion0_lottery;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,11 +18,12 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-
-import android.net.Uri;
-import android.util.Base64;
-import android.widget.Toast;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
 
 import java.util.ArrayList;
 
@@ -28,10 +31,11 @@ public class ManageEvents extends Fragment {
 
     private TabLayout tabLayout;
     private ImageView eventPosterImage, qrCodeImage;
-    private TextView manageEventTitle, eventDetailsText, eventDescriptionText;
-    private Button editEventButton, updatePosterButton, notifyWaitlistButton, drawWinnersButton, exportCsvButton;
+    private TextView manageEventTitle, eventDescriptionText, eventInterests,
+            eventTime, eventLocation, eventRegistration, eventMaxEntrants, eventPrice, qrCodeLabel;
 
-    private Uri newPosterUri;
+    private Button editEventButton, updatePosterButton, notifyWaitlistButton, drawWinnersButton, exportCsvButton;
+    private Button backToEventsButton;
 
     private FirebaseFirestore db;
     private String eventId;
@@ -44,14 +48,19 @@ public class ManageEvents extends Fragment {
 
         View view = inflater.inflate(R.layout.manage_events, container, false);
 
+        // Tabs + buttons
         tabLayout = view.findViewById(R.id.manageEventTabs);
-        // viewPager = view.findViewById(R.id.viewPager);
-
         eventPosterImage = view.findViewById(R.id.eventPosterImage);
-        qrCodeImage = view.findViewById(R.id.qrCodeImage);
-        manageEventTitle = view.findViewById(R.id.manageEventTitle);
-        eventDetailsText = view.findViewById(R.id.eventDetailsText);
-        eventDescriptionText = view.findViewById(R.id.eventDescriptionText);
+        qrCodeLabel = view.findViewById(R.id.qrCodeLabel);
+        qrCodeImage = view.findViewById(R.id.eventQrCode);
+        manageEventTitle = view.findViewById(R.id.eventName);
+        eventDescriptionText = view.findViewById(R.id.eventDescription);
+        eventInterests = view.findViewById(R.id.eventInterests);
+        eventTime = view.findViewById(R.id.eventTime);
+        eventLocation = view.findViewById(R.id.eventLocation);
+        eventRegistration = view.findViewById(R.id.eventRegistration);
+        eventMaxEntrants = view.findViewById(R.id.eventMaxEntrants);
+        eventPrice = view.findViewById(R.id.eventPrice);
 
 
         editEventButton = view.findViewById(R.id.editEventButton);
@@ -59,8 +68,8 @@ public class ManageEvents extends Fragment {
         notifyWaitlistButton = view.findViewById(R.id.notifyWaitlistButton);
         drawWinnersButton = view.findViewById(R.id.drawWinnersButton);
         exportCsvButton = view.findViewById(R.id.exportCsvButton);
+        backToEventsButton = view.findViewById(R.id.backToEventsButton);
 
-        Button backToEventsButton = view.findViewById(R.id.backToEventsButton);
         backToEventsButton.setOnClickListener(v -> {
             FragmentOrganizer organizerFragment = new FragmentOrganizer();
             ((MainActivity) requireActivity()).replaceFragment(organizerFragment);
@@ -80,18 +89,12 @@ public class ManageEvents extends Fragment {
     }
 
     /**
-     * function to set up tabs on the Manage Events screen
-     * takes the organizer to a different screen within Manage Events when clicked
-     * Details: default screen for managing events
-     * Waiting List: view all entrants who are in the waiting list for that event
-     * Selected: list of all entrants who have been chosen for the event [incomplete]
-     * Manage Participants: allow organizers control on the entrants who have been selected [incomplete]
-     * Generate QR code: generate a working QR code for the event that entrants can scan and see the event details [incomplete]
-    */
+     * Setup the Manage Event tabs
+     */
     private void setupTabs() {
         tabLayout.addTab(tabLayout.newTab().setText("Details"));
         tabLayout.addTab(tabLayout.newTab().setText("Waiting List"));
-        tabLayout.addTab(tabLayout.newTab().setText("Selected"));
+        tabLayout.addTab(tabLayout.newTab().setText("Selected Entrants"));
         tabLayout.addTab(tabLayout.newTab().setText("Manage Participants"));
         tabLayout.addTab(tabLayout.newTab().setText("Generate QR"));
 
@@ -113,14 +116,8 @@ public class ManageEvents extends Fragment {
     }
 
     /**
-     *  function to set up the buttons near the bottom of the screen in the Manage Events screen
-     *  after clicking on "Manage" for any of the listed events, display list of buttons for the event
-     *  Update Poster: allow organizer to change the event poster
-     *  Edit Event: allow the organizer to change the details for the event
-     *  Notify Waiting List: send a notification to everyone in the event's waiting list [incomplete]
-     *  Draw Winners: allow the organizer to select a winner from the waiting list [incomplete]
-     *  Export CSV: download CSV file for all confirmed entrants [incomplete]
-    */
+     * Setup buttons at the bottom
+     */
     private void setupButtonActions() {
         updatePosterButton.setOnClickListener(v -> {
             if (eventId != null) {
@@ -129,8 +126,7 @@ public class ManageEvents extends Fragment {
                 args.putString("eventId", eventId);
                 updatePosterImage.setArguments(args);
                 ((MainActivity) requireActivity()).replaceFragment(updatePosterImage);
-            }
-            else {
+            } else {
                 Toast.makeText(requireContext(), "Unable to edit Poster Image", Toast.LENGTH_SHORT).show();
             }
         });
@@ -142,42 +138,26 @@ public class ManageEvents extends Fragment {
                 args.putString("eventId", eventId);
                 editFragment.setArguments(args);
                 ((MainActivity) requireActivity()).replaceFragment(editFragment);
-            }
-            else {
+            } else {
                 Toast.makeText(requireContext(), "Event ID not available", Toast.LENGTH_SHORT).show();
             }
         });
-
-
-        /*
-        other tabs not started
-        notifyWaitlistButton.setOnClickListener(v -> {
-
-        });
-
-        drawWinnersButton.setOnClickListener(v -> {
-        });
-
-        exportCsvButton.setOnClickListener(v -> {
-        });
-        */
     }
-
 
     /**
      *  function display the details for the event
      *  gets the reference from Firestore 'Events' based on event ID
      *  if document exists, convert the data into an object and display event information
-    */
+     */
     private void loadEventDetails() {
         DocumentReference eventRef = db.collection("Events").document(eventId);
-        eventRef.get().addOnSuccessListener(snapshot -> {
-            if (snapshot.exists()) {
-                Event event = snapshot.toObject(Event.class);
+        eventRef.get().addOnSuccessListener(DocumentSnapshot -> {
+            if (DocumentSnapshot.exists()) {
+                Event event = DocumentSnapshot.toObject(Event.class);
                 if (event != null) {
                     // get the event's description from the database
                     String description;
-                    if (event.getDescription() != null || !event.getDescription().isEmpty()) {
+                    if (event.getDescription() != null && !event.getDescription().isEmpty()) {
                         description = event.getDescription();
                     }
                     // if no description set empty
@@ -185,53 +165,66 @@ public class ManageEvents extends Fragment {
                         description = "";
                     }
 
-                    eventDescriptionText.setText(description);
+                    eventDescriptionText.setText("Event Description: " + description);
                     manageEventTitle.setText(event.getEventName());
-
-                    // get the number of people in the waiting list
-                    ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
-                    int waitingCount, selectedCount, enrolledCount;
-
-                    // check if waiting list is empty, if empty -> waiting count = 0, otherwise set count = waiting count size
-                    if (waitingList != null) {
-                        waitingCount = waitingList.size();
-                    }
-                    else {
-                        waitingCount = 0;
-                    }
-
-                    // get the number of entrants selected and enrolled (null / 0 for now)
-                    // check if users selected is null or not, if null, set = 0
-                    if (event.getUserSelectedCount() != null) {
-                        selectedCount = event.getUserSelectedCount();
-                    }
-                    else {
-                        selectedCount = 0;
-                    }
-
-                    // check if users enrolled  is null or not, if null, set = 0
-                    if (event.getUserEnrolledCount() != null) {
-                        enrolledCount = event.getUserEnrolledCount();
-                    }
-                    else {
-                        enrolledCount = 0;
-                    }
-
-                    // get all of the event's details
-                    eventDetailsText.setText(getString(
-                            R.string.event_details, event.getRegistrationStart(), event.getRegistrationEnd(),
-                            event.getMaxEntrants(), waitingCount, selectedCount, enrolledCount,
-                            event.getStartDate(), event.getTime(), event.getPrice()));
+                    eventInterests.setText("Interests: "+ event.getInterests());
+                    eventTime.setText("Time: " + event.getTime());
+                    eventLocation.setText("Location: " + event.getLocation());
+                    eventRegistration.setText("Registration Date: " + event.getStartDate() + " - " + event.getEndDate());
+                    eventMaxEntrants.setText("Max Entrants: " + event.getMaxEntrants());
+                    eventPrice.setText("Price: $" + event.getPrice());
 
                     // load poster from Base64
-                    String poster = snapshot.getString("posterImage");
+                    String poster = DocumentSnapshot.getString("posterImage");
                     if (poster != null && !poster.isEmpty()) {
                         byte[] imageBytes = Base64.decode(poster, Base64.DEFAULT);
                         Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
                         eventPosterImage.setImageBitmap(bitmap);
                     }
+
+                    // Generate and display QR code if enabled
+                    Boolean hasQrCode = DocumentSnapshot.getBoolean("hasQrCode");
+                    String eventId = event.getEventId();
+
+                    if (hasQrCode != null && hasQrCode && eventId != null) {
+                        try {
+                            Bitmap qrBitmap = generateQRCode(eventId);
+                            qrCodeLabel.setVisibility(View.VISIBLE);
+                            qrCodeImage.setVisibility(View.VISIBLE);
+                            qrCodeImage.setImageBitmap(qrBitmap);
+                        } catch (WriterException e) {
+                            qrCodeLabel.setVisibility(View.GONE);
+                            qrCodeImage.setVisibility(View.GONE);
+                        }
+                    } else {
+                        qrCodeLabel.setVisibility(View.GONE);
+                        qrCodeImage.setVisibility(View.GONE);
+                    }
                 }
             }
         });
+    }
+
+    /**
+     * Generate QR code from event ID
+     */
+    private Bitmap generateQRCode(String eventId) throws WriterException {
+        String qrContent = "event://" + eventId;
+        int size = 500;
+
+        BitMatrix bitMatrix = new MultiFormatWriter().encode(
+                qrContent,
+                BarcodeFormat.QR_CODE,
+                size,
+                size
+        );
+
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565);
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                bitmap.setPixel(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
+            }
+        }
+        return bitmap;
     }
 }

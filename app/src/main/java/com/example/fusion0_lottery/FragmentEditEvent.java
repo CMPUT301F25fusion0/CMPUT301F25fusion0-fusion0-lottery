@@ -17,7 +17,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class FragmentEditEvent extends Fragment {
 
-    private EditText titleInput, eventDescriptionInput, startDateInput, endDateInput, timeInput, priceInput, maxEntrantsInput;
+    private EditText titleInput, eventDescriptionInput, interestsInput, locationInput, startDateInput, endDateInput, timeInput, priceInput, maxEntrantsInput;
     private Button saveButton;
 
     FirebaseFirestore db;
@@ -33,9 +33,11 @@ public class FragmentEditEvent extends Fragment {
 
         titleInput = view.findViewById(R.id.editEventTitle);
         eventDescriptionInput = view.findViewById(R.id.editEventDescription);
+        interestsInput = view.findViewById(R.id.editEventInterests);
         startDateInput = view.findViewById(R.id.editStartDate);
         endDateInput = view.findViewById(R.id.editEndDate);
         timeInput = view.findViewById(R.id.editTime);
+        locationInput = view.findViewById(R.id.editLocation);
         priceInput = view.findViewById(R.id.editPrice);
         maxEntrantsInput = view.findViewById(R.id.editMaxEntrants);
         saveButton = view.findViewById(R.id.saveEventButton);
@@ -70,9 +72,11 @@ public class FragmentEditEvent extends Fragment {
                             // get all information from the event if the event exists and automatically set it in the inputs
                             titleInput.setText(event.getEventName());
                             eventDescriptionInput.setText(event.getDescription());
+                            interestsInput.setText(event.getInterests());
                             startDateInput.setText(event.getStartDate());
                             endDateInput.setText(event.getEndDate());
                             timeInput.setText(event.getTime());
+                            locationInput.setText(event.getLocation());
                             priceInput.setText(String.valueOf(event.getPrice()));
                             maxEntrantsInput.setText(String.valueOf(event.getMaxEntrants()));
                         }
@@ -92,14 +96,16 @@ public class FragmentEditEvent extends Fragment {
     private void saveEventChanges() {
         String title = titleInput.getText().toString().trim();
         String eventDescription = eventDescriptionInput.getText().toString().trim();
+        String interests = interestsInput.getText().toString().trim();
         String startDate = startDateInput.getText().toString().trim();
         String endDate = endDateInput.getText().toString().trim();
         String time = timeInput.getText().toString().trim();
+        String location = locationInput.getText().toString().trim();
         String price = priceInput.getText().toString().trim();
         String maxEntrants = maxEntrantsInput.getText().toString().trim();
 
         // check if all the fields are filled and not empty
-        if (title.isEmpty() || eventDescription.isEmpty() || startDate.isEmpty() || endDate.isEmpty() || time.isEmpty() || price.isEmpty() || maxEntrants.isEmpty()) {
+        if (title.isEmpty() || eventDescription.isEmpty() || interests.isEmpty() || startDate.isEmpty() || endDate.isEmpty() || time.isEmpty() || location.isEmpty() || price.isEmpty() || maxEntrants.isEmpty()) {
             Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -112,9 +118,11 @@ public class FragmentEditEvent extends Fragment {
         eventRef.update(
                         "eventName", title,
                         "description", eventDescription,
+                        "interests", interests,
                         "startDate", startDate,
                         "endDate", endDate,
                         "time", time,
+                        "location", location,
                         "price", doublePrice,
                         "maxEntrants", intMaxEntrants
                 )
@@ -130,23 +138,24 @@ public class FragmentEditEvent extends Fragment {
                 .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed to update event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    void setMockInputs(EditText title, EditText desc, EditText start, EditText end,
-                       EditText time, EditText price, EditText max) {
+    void setMockInputs(EditText title, EditText desc, EditText startDate, EditText endDate,
+                       EditText time, EditText location, EditText price, EditText max) {
         this.titleInput = title;
         this.eventDescriptionInput = desc;
-        this.startDateInput = start;
-        this.endDateInput = end;
+        this.startDateInput = startDate;
+        this.endDateInput = endDate;
         this.timeInput = time;
+        this.locationInput = location;
         this.priceInput = price;
         this.maxEntrantsInput = max;
     }
 
 
     void testSaveEventChanges(String title, String eventDescription, String startDate,
-                              String endDate, String time, String price, String maxEntrants) {
+                              String endDate, String time, String location, String price, String maxEntrants) {
 
         if (title.isEmpty() || eventDescription.isEmpty() || startDate.isEmpty() ||
-                endDate.isEmpty() || time.isEmpty() || price.isEmpty() || maxEntrants.isEmpty()) {
+                endDate.isEmpty() || time.isEmpty() || location.isEmpty() || price.isEmpty() || maxEntrants.isEmpty()) {
             return;
         }
 
@@ -160,6 +169,7 @@ public class FragmentEditEvent extends Fragment {
                 "startDate", startDate,
                 "endDate", endDate,
                 "time", time,
+                "location", location,
                 "price", doublePrice,
                 "maxEntrants", intMaxEntrants
         );

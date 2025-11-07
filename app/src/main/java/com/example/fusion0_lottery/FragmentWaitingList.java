@@ -148,17 +148,26 @@ public class FragmentWaitingList extends Fragment {
     }
 
 
+    // converts the waiting list data into display strings (for testing)
+    ArrayList<String> getDisplayStrings(ArrayList<WaitingListEntrants> waitingList) {
+        ArrayList<String> displayList = new ArrayList<>();
+        for (WaitingListEntrants entry : waitingList) {
+            displayList.add(
+                    "Name: " + entry.getName() + "\n" +
+                    "Joined: " + entry.getJoinDate() + "\n" +
+                    "Status: " + entry.getStatus()
+            );
+        }
+        return displayList;
+    }
+
+
     /**
      * function to update the waiting list
      * used when trying to sort entrants by name or join date
     */
     private void updateListView() {
-        ArrayList<String> displayList = new ArrayList<>();
-        for (WaitingListEntrants entry : waitingList) {
-            displayList.add(
-                    "Name: " + entry.getName() + "\n" + "Joined: " + entry.getJoinDate() + "\n" + "Status: " + entry.getStatus()
-            );
-        }
+        ArrayList<String> displayList = getDisplayStrings(waitingList);
         waitingListAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, displayList);
         waitingListView.setAdapter(waitingListAdapter);
     }

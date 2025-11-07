@@ -48,6 +48,9 @@ public class Event {
         this.userEnrolledCount = userEnrolledCount;
     }
 
+    public Event(String eventName, String description, String startDate, String endDate, String time, double price, String location, String registrationStart, String registrationEnd, Integer maxEntrants, int i, int i1, int i2) {
+    }
+
     // Getters and Setters
     public String getEventId() {
         return eventId;

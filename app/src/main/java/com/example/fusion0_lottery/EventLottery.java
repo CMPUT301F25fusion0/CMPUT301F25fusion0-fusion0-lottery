@@ -56,7 +56,9 @@ public class EventLottery extends Fragment {
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
 
-        buttonBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
+        buttonBack.setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).replaceFragment(new FragmentRoleSelection());
+        });
 
         db = FirebaseFirestore.getInstance();
 

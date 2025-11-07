@@ -313,8 +313,6 @@ public class EventCreationActivity extends AppCompatActivity {
         }
 
         // Create Event object
-        Event event = new Event(eventName, interests, description, startDate, endDate, time,
-                price, location, registrationStart, registrationEnd, maxEntrants);
         Event event = new Event(eventName, description, startDate, endDate, time,
                 price, location, registrationStart, registrationEnd, maxEntrants, 0, 0, 0);
 

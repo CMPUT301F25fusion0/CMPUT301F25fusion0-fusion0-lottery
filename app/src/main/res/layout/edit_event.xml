@@ -29,6 +29,30 @@
             android:padding="8dp" />
 
         <EditText
+            android:id="@+id/editEventInterests"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Interest"
+            android:inputType="text"
+            android:padding="8dp" />
+
+        <EditText
+            android:id="@+id/editTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Event Time (HH:MM)"
+            android:inputType="time"
+            android:padding="8dp" />
+
+        <EditText
+            android:id="@+id/editLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Location"
+            android:inputType="time"
+            android:padding="8dp" />
+
+        <EditText
             android:id="@+id/editStartDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -44,13 +68,6 @@
             android:inputType="date"
             android:padding="8dp" />
 
-        <EditText
-            android:id="@+id/editTime"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Event Time (HH:MM)"
-            android:inputType="time"
-            android:padding="8dp" />
 
         <EditText
             android:id="@+id/editPrice"

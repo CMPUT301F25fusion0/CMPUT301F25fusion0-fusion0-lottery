@@ -25,6 +25,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+
 /**
  * A fragment for the Organizer screen
  * - Code from lines 89 to 91 was inspired
@@ -50,23 +51,11 @@ public class FragmentOrganizer extends Fragment {
 
         ArrayList<Event> eventsArray = new ArrayList<>();
 
-        // Listview Adapter
-        EventArrayAdapter eventsAdapter = new EventArrayAdapter(getContext(), eventsArray);
-        eventsOrg.setAdapter(eventsAdapter);
-
         //Firebase attributes
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        CollectionReference eventsRef = db.collection("Events");
+        db = FirebaseFirestore.getInstance();
+        eventsRef = db.collection("Events");
 
-        EventArrayAdapter eventsAdapter = new EventArrayAdapter(requireContext(), eventsArray, event -> {
-            ManageEvents manageEventsFragment = new ManageEvents();
-            Bundle args = new Bundle();
-            args.putString("eventId", event.getEventId());
-            args.putString("eventName", event.getEventName());
-            manageEventsFragment.setArguments(args);
-            ((MainActivity) requireActivity()).replaceFragment(manageEventsFragment);
-        });
-
+        EventArrayAdapter eventsAdapter = new EventArrayAdapter(requireContext(), eventsArray);
         eventsOrg.setAdapter(eventsAdapter);
 
         // load events from Firestore
@@ -95,6 +84,7 @@ public class FragmentOrganizer extends Fragment {
                     Long maxEntrants = snapshot.getLong("maxEntrants");
                     if (maxEntrants == null) {
                         maxEntrants = -1L; // placeholder; "No Limit" if -1
+                    }
                     // convert the event into an object to get data from
                     Event event = snapshot.toObject(Event.class);
                     event.setEventId(snapshot.getId());
@@ -102,33 +92,11 @@ public class FragmentOrganizer extends Fragment {
                     ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
                     ArrayList<String> selectedList = (ArrayList<String>) snapshot.get("selectedList");
                     ArrayList<String> enrolledList = (ArrayList<String>) snapshot.get("enrolledList");
-
-                    // set the waiting list count, selected count, and enrolled count based on what size value was in the array
-                    if (waitingList != null) {
-                        event.setWaitingListCount(waitingList.size());
-                    }
-                    else {
-                        event.setWaitingListCount(0);
-                    }
-                    Event event = new Event(eventName, interests, description,
-                            startDate, endDate, time, price,
-                            location, regStart, regEnd, maxEntrants.intValue());
-                    event.setEventId(eventId);
-                    eventsAdapter.add(event);
-
-                    if (selectedList != null) {
-                        event.setUserSelectedCount(selectedList.size());
-                    }
-                    else {
-                        event.setUserSelectedCount(0);
-                    }
-
-                    if (enrolledList != null) {
-                        event.setUserEnrolledCount(enrolledList.size());
-                    }
-                    else {
-                        event.setUserEnrolledCount(0);
-                    }
+                    // set counts
+                    event.setWaitingListCount(waitingList != null ? waitingList.size() : 0);
+                    event.setUserSelectedCount(selectedList != null ? selectedList.size() : 0);
+                    event.setUserEnrolledCount(enrolledList != null ? enrolledList.size() : 0);
+                    // add to adapter
                     eventsAdapter.add(event);
                 }
                 eventsAdapter.notifyDataSetChanged();
@@ -138,14 +106,14 @@ public class FragmentOrganizer extends Fragment {
         eventsOrg.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                EventFragmentOrganizer eventFragmentOrganizer = new EventFragmentOrganizer();
+                ManageEvents manageEventsFragment = new ManageEvents();
                 Bundle args = new Bundle();
                 args.putString("eventId", eventsAdapter.getItem(position).getEventId());
-                eventFragmentOrganizer.setArguments(args);
+                manageEventsFragment.setArguments(args);
                 getParentFragmentManager()
                         .beginTransaction()
                         .addToBackStack(null)
-                        .replace(R.id.fragment_container, eventFragmentOrganizer)
+                        .replace(R.id.fragment_container, manageEventsFragment)
                         .commit();
             }
         });
