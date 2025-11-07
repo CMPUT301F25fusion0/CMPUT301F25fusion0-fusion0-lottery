@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
@@ -8,15 +9,16 @@
     android:padding="16dp"
     tools:context=".EventLottery">
 
-    <!-- Toolbar with back arrow -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         android:navigationIcon="@drawable/ic_arrow_back"
-        android:title="Event Lottery"
-        android:titleTextColor="@android:color/white" />
+        app:title="Event Lottery"
+        app:titleTextColor="@android:color/white"
+        app:menu="@menu/event_lottery_menu" />
 
     <!-- Filter Section -->
     <LinearLayout
@@ -50,7 +52,6 @@
             android:id="@+id/spinnerInterest"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:entries="@array/interests_array"
             android:prompt="@string/select_interest" />
 
         <!-- Availability Filter -->
@@ -84,7 +85,6 @@
                 android:layout_marginStart="8dp" />
         </LinearLayout>
 
-        <!-- Apply Filter Button -->
         <Button
             android:id="@+id/buttonApplyFilters"
             android:layout_width="match_parent"
@@ -93,14 +93,13 @@
             android:layout_marginTop="12dp"
             android:backgroundTint="?attr/colorPrimary"
             android:textColor="@android:color/white" />
-        <!-- Clear Filters Button -->
+
         <Button
             android:id="@+id/buttonClearFilters"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Clear Filters"
             android:layout_marginTop="8dp" />
-
     </LinearLayout>
 
     <!-- Scrollable list of events -->
@@ -118,14 +117,14 @@
             android:divider="?android:attr/dividerVertical"
             android:showDividers="middle" />
     </ScrollView>
+
     <Button
+        android:id="@+id/scan_qr"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="📷 SCAN QR Code"
-        android:id="@+id/scan_qr"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center" />
 
-    <!-- Bottom back button -->
     <Button
         android:id="@+id/buttonBack"
         android:layout_width="match_parent"

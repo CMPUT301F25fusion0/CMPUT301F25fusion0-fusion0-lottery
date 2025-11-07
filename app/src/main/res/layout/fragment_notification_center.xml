@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Purple banner toolbar, same as Edit Profile -->
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:navigationIcon="@drawable/ic_arrow_back_white_24"
+            app:navigationIconTint="@android:color/white"
+            app:title="Notifications"
+            app:titleTextColor="@android:color/white" />
+
+        <!-- On/Off toggle (acceptance criterion #1/#2) -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switch_notifications"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Notify me when I’m chosen for an event" />
+
+        <!-- Notifications list -->
+        <LinearLayout
+            android:id="@+id/notificationsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp" />
+
+    </LinearLayout>
+</ScrollView>
