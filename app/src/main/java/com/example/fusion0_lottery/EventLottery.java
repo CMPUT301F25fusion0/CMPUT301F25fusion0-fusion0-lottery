@@ -121,9 +121,9 @@ public class EventLottery extends Fragment {
         buttonEndDate       = view.findViewById(R.id.buttonEndDate);
         buttonClearFilters  = view.findViewById(R.id.buttonClearFilters);
 
-        if (buttonBack != null) {
-            buttonBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
-        }
+        buttonBack.setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).replaceFragment(new FragmentRoleSelection());
+        });
         if (toolbar != null) {
             toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
         }

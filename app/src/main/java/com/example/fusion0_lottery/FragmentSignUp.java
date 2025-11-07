@@ -74,4 +74,11 @@ public class FragmentSignUp extends Fragment {
             }
         });
     }
+
+    public boolean validSignUp(String name, String email, String password, String confirmPassword) {
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            return false;
+        }
+        return password.equals(confirmPassword);
+    }
 }

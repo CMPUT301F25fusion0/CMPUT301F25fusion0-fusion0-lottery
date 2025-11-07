@@ -178,21 +178,21 @@ public class EventFragmentEntrant extends Fragment {
 
                         // Clean waitingList of deleted users
                         @SuppressWarnings("unchecked")
-                        ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
-                        if (waitingList == null) waitingList = new ArrayList<>();
+                        ArrayList<String> tempList = (ArrayList<String>) snapshot.get("waitingList");
+                        final ArrayList<String> waitingList = (tempList != null) ? tempList : new ArrayList<>();
 
                         List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
                         for (String uid : new ArrayList<>(waitingList)) {
                             tasks.add(db.collection("Users").document(uid).get());
                         }
 
-                        ArrayList<String> finalWaitingList = waitingList;
+                        final ArrayList<String> waitingListCopy = new ArrayList<>(waitingList);
                         Tasks.whenAllSuccess(tasks)
                                 .addOnSuccessListener(results -> {
                                     ArrayList<String> cleanList = new ArrayList<>();
                                     for (int i = 0; i < results.size(); i++) {
                                         DocumentSnapshot userSnap = (DocumentSnapshot) results.get(i);
-                                        if (userSnap.exists()) cleanList.add(finalWaitingList.get(i));
+                                        if (userSnap.exists()) cleanList.add(waitingListCopy.get(i));
                                     }
 
                                     isInWaitingList = cleanList.contains(currentUserId);
@@ -203,6 +203,7 @@ public class EventFragmentEntrant extends Fragment {
                                             "waitingListCount", cleanList.size());
                                     joinWaitingListButton.setVisibility(View.VISIBLE);
                                 });
+
                     });
         }
 
@@ -229,8 +230,8 @@ public class EventFragmentEntrant extends Fragment {
             }
 
             @SuppressWarnings("unchecked")
-            ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
-            if (waitingList == null) waitingList = new ArrayList<>();
+            ArrayList<String> tempList = (ArrayList<String>) snapshot.get("waitingList");
+            final ArrayList<String> waitingList = (tempList != null) ? new ArrayList<>(tempList) : new ArrayList<>();
 
             Long maxEntrants = snapshot.getLong("maxEntrants");
             String registrationEndStr = snapshot.getString("registrationEnd");

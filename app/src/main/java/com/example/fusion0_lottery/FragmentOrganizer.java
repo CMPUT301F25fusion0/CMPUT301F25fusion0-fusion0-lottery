@@ -16,13 +16,15 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 
+import androidx.fragment.app.Fragment;
+
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+
 
 /**
  * A fragment for the Organizer screen
@@ -34,6 +36,12 @@ import java.util.ArrayList;
 public class FragmentOrganizer extends Fragment {
     private Button createNewEvent;
 
+    // Firebase attributes
+    private FirebaseFirestore db;
+    private CollectionReference eventsRef;
+
+    private Button backButton;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -43,21 +51,24 @@ public class FragmentOrganizer extends Fragment {
 
         ArrayList<Event> eventsArray = new ArrayList<>();
 
-        // Listview Adapter
-        EventArrayAdapter eventsAdapter = new EventArrayAdapter(getContext(), eventsArray);
+        //Firebase attributes
+        db = FirebaseFirestore.getInstance();
+        eventsRef = db.collection("Events");
+
+        EventArrayAdapter eventsAdapter = new EventArrayAdapter(requireContext(), eventsArray);
         eventsOrg.setAdapter(eventsAdapter);
 
-        //Firebase attributes
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        CollectionReference eventsRef = db.collection("Events");
-
-        // Adds events from firestore into listview
+        // load events from Firestore
         eventsRef.addSnapshotListener((value, error) -> {
             if (error != null) {
                 Log.e("Firestore", error.toString());
+                return;
             }
+            // check if there are any events
             if (value != null && !value.isEmpty()) {
                 eventsAdapter.clear();
+
+                // go through through all the documents
                 for (QueryDocumentSnapshot snapshot : value) {
                     String eventId = snapshot.getId();
                     String eventName = snapshot.getString("eventName");
@@ -74,10 +85,18 @@ public class FragmentOrganizer extends Fragment {
                     if (maxEntrants == null) {
                         maxEntrants = -1L; // placeholder; "No Limit" if -1
                     }
-                    Event event = new Event(eventName, interests, description,
-                            startDate, endDate, time, price,
-                            location, regStart, regEnd, maxEntrants.intValue());
-                    event.setEventId(eventId);
+                    // convert the event into an object to get data from
+                    Event event = snapshot.toObject(Event.class);
+                    event.setEventId(snapshot.getId());
+                    // get size of list from Firestore database arrays
+                    ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
+                    ArrayList<String> selectedList = (ArrayList<String>) snapshot.get("selectedList");
+                    ArrayList<String> enrolledList = (ArrayList<String>) snapshot.get("enrolledList");
+                    // set counts
+                    event.setWaitingListCount(waitingList != null ? waitingList.size() : 0);
+                    event.setUserSelectedCount(selectedList != null ? selectedList.size() : 0);
+                    event.setUserEnrolledCount(enrolledList != null ? enrolledList.size() : 0);
+                    // add to adapter
                     eventsAdapter.add(event);
                 }
                 eventsAdapter.notifyDataSetChanged();
@@ -87,26 +106,30 @@ public class FragmentOrganizer extends Fragment {
         eventsOrg.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                EventFragmentOrganizer eventFragmentOrganizer = new EventFragmentOrganizer();
+                ManageEvents manageEventsFragment = new ManageEvents();
                 Bundle args = new Bundle();
                 args.putString("eventId", eventsAdapter.getItem(position).getEventId());
-                eventFragmentOrganizer.setArguments(args);
+                manageEventsFragment.setArguments(args);
                 getParentFragmentManager()
                         .beginTransaction()
                         .addToBackStack(null)
-                        .replace(R.id.fragment_container, eventFragmentOrganizer)
+                        .replace(R.id.fragment_container, manageEventsFragment)
                         .commit();
             }
         });
 
         createNewEvent = view.findViewById(R.id.createEventButton);
-
         createNewEvent.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), EventCreationActivity.class);
             startActivity(intent);
         });
 
+        // go back to role selection (for testing purposes; don't include in final submission)
+        backButton = view.findViewById(R.id.backToRoleButton);
+        backButton.setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).replaceFragment(new FragmentRoleSelection());
+        });
+
         return view;
     }
-
 }

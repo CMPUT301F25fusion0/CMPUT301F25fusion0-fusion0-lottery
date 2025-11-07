@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#E8F5E9">
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/manageEventTabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabMode="scrollable"
+        app:tabIndicatorColor="@android:color/holo_green_dark"
+        app:tabSelectedTextColor="@android:color/holo_green_dark"
+        app:tabTextColor="@android:color/darker_gray"
+        android:layout_marginTop="24dp"/>
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:background="@color/green_700"
+        android:elevation="4dp"
+        android:titleTextColor="@android:color/white"
+        android:paddingTop="8dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/eventPosterImage"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginBottom="16dp"
+                android:adjustViewBounds="true"
+                android:background="#000000"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:contentDescription="Event Poster" />
+
+            <TextView
+                android:id="@+id/eventName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Event Name"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/eventDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Event Description"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/eventInterests"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Interests: "
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/eventTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Starts: "
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/eventLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Location: "
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/eventRegistration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Registration: "
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/eventMaxEntrants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Max Entrants: "
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/eventPrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Price: "
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:id="@+id/qrCodeLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Event QR Code:"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/eventQrCode"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_gravity="center"
+                android:scaleType="fitCenter"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="24dp"
+                android:visibility="gone"
+                android:contentDescription="Event QR Code" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/editEventButton"
+                        android:layout_width="168dp"
+                        android:layout_height="40dp"
+                        android:text="Edit Event"
+                        android:textColor="#FFFFFF" />
+
+                    <Button
+                        android:id="@+id/updatePosterButton"
+                        android:layout_width="168dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="16dp"
+                        android:text="Update Poster"
+                        android:textColor="#FFFFFF"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/notifyWaitlistButton"
+                        android:layout_width="168dp"
+                        android:layout_height="40dp"
+                        android:text="Notify Waiting List"
+                        android:textColor="#FFFFFF" />
+
+                    <Button
+                        android:id="@+id/drawWinnersButton"
+                        android:layout_width="168dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="16dp"
+                        android:text="Draw Winners"
+                        android:textColor="#FFFFFF"/>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/exportCsvButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:text="Export as CSV"
+                    android:textColor="#FFFFFF" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/backToEventsButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Back to Events"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
