@@ -105,7 +105,7 @@ public class FragmentUpdatePoster extends Fragment {
      * Upload poster image to Firebase Storage
      * Convert image to Base64
      * Scale the image then upload to Firestore
-     * References:
+     * References from StackOverflow:
      *     https://stackoverflow.com/questions/65210522/how-to-get-bitmap-from-imageuri-in-api-level-30
      *     https://stackoverflow.com/questions/4830711/how-can-i-convert-an-image-into-a-base64-string
      *     https://stackoverflow.com/questions/9224056/android-bitmap-to-base64-string

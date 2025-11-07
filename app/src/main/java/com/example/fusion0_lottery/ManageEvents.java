@@ -48,7 +48,6 @@ public class ManageEvents extends Fragment {
 
         View view = inflater.inflate(R.layout.manage_events, container, false);
 
-        // Tabs + buttons
         tabLayout = view.findViewById(R.id.manageEventTabs);
         eventPosterImage = view.findViewById(R.id.eventPosterImage);
         qrCodeLabel = view.findViewById(R.id.qrCodeLabel);
@@ -89,7 +88,7 @@ public class ManageEvents extends Fragment {
     }
 
     /**
-     * Setup the Manage Event tabs
+     * setup the Manage Event tabs at the top
      */
     private void setupTabs() {
         tabLayout.addTab(tabLayout.newTab().setText("Details"));
@@ -116,7 +115,7 @@ public class ManageEvents extends Fragment {
     }
 
     /**
-     * Setup buttons at the bottom
+     * Setup buttons at the bottom of the manage events screen
      */
     private void setupButtonActions() {
         updatePosterButton.setOnClickListener(v -> {

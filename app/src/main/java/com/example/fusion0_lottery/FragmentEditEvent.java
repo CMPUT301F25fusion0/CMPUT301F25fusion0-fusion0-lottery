@@ -138,40 +138,48 @@ public class FragmentEditEvent extends Fragment {
                 .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed to update event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    void setMockInputs(EditText title, EditText desc, EditText startDate, EditText endDate,
-                       EditText time, EditText location, EditText price, EditText max) {
+
+
+
+    // testing inputs
+    void testingEdit(EditText title, EditText desc, EditText start, EditText end,
+                       EditText time, EditText location, EditText price, EditText max, EditText interests) {
         this.titleInput = title;
         this.eventDescriptionInput = desc;
-        this.startDateInput = startDate;
-        this.endDateInput = endDate;
+        this.startDateInput = start;
+        this.endDateInput = end;
         this.timeInput = time;
         this.locationInput = location;
         this.priceInput = price;
         this.maxEntrantsInput = max;
+        this.interestsInput = interests;
     }
 
 
-    void testSaveEventChanges(String title, String eventDescription, String startDate,
-                              String endDate, String time, String location, String price, String maxEntrants) {
-
-        if (title.isEmpty() || eventDescription.isEmpty() || startDate.isEmpty() ||
-                endDate.isEmpty() || time.isEmpty() || location.isEmpty() || price.isEmpty() || maxEntrants.isEmpty()) {
-            return;
+    /**
+     * make sure that all of the fields are filled
+     * @return true none of the fields are empty
+     */
+    boolean validateInputs() {
+        if (titleInput.getText().toString().trim().isEmpty() || eventDescriptionInput.getText().toString().trim().isEmpty() || interestsInput.getText().toString().trim().isEmpty() ||
+                startDateInput.getText().toString().trim().isEmpty() || endDateInput.getText().toString().trim().isEmpty() ||  timeInput.getText().toString().trim().isEmpty() ||
+                locationInput.getText().toString().trim().isEmpty() || priceInput.getText().toString().trim().isEmpty() || maxEntrantsInput.getText().toString().trim().isEmpty()) {
+            return false;
         }
-
-        double doublePrice = Double.parseDouble(price);
-        int intMaxEntrants = Integer.parseInt(maxEntrants);
-
-        DocumentReference eventRef = db.collection("Events").document(eventId);
-        eventRef.update(
-                "eventName", title,
-                "description", eventDescription,
-                "startDate", startDate,
-                "endDate", endDate,
-                "time", time,
-                "location", location,
-                "price", doublePrice,
-                "maxEntrants", intMaxEntrants
-        );
+        else {
+            return true;
+        }
     }
+
+    /**
+     * check if the information is saves after editing
+     */
+    boolean editThenSave() {
+        if (!validateInputs()) {
+            return false;
+        }
+        return true;
+    }
+
+
 }
