@@ -97,6 +97,7 @@ public class EventLottery extends Fragment {
 
                         String eventNameStr = eventSnapshot.getString("eventName");
                         String eventDescStr = eventSnapshot.getString("description");
+                        String eventInterests = eventSnapshot.getString("interests");
                         String eventStartDateStr = eventSnapshot.getString("startDate");
                         String eventLocationStr = eventSnapshot.getString("location");
 
@@ -122,6 +123,7 @@ public class EventLottery extends Fragment {
                                                 currentUserId,
                                                 eventNameStr != null ? eventNameStr : "No Name",
                                                 eventDescStr != null ? eventDescStr : "No Description",
+                                                eventInterests != null ? eventInterests : "None",
                                                 eventStartDateStr != null ? eventStartDateStr : "No Date",
                                                 eventLocationStr != null ? eventLocationStr : "No Location",
                                                 isOnWaitlist,
@@ -207,7 +209,7 @@ public class EventLottery extends Fragment {
             viewDetailsBtn.setText("View Details");
             viewDetailsBtn.setBackgroundColor(getResources().getColor(android.R.color.holo_purple));
             viewDetailsBtn.setTextColor(getResources().getColor(android.R.color.white));
-            
+
             viewDetailsBtn.setOnClickListener(v -> {
                event_details(eventId);
             });
