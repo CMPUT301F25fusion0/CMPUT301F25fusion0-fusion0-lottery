@@ -131,7 +131,7 @@ public class EventFragmentEntrant extends Fragment {
             });
         }
 
-        // Args
+        // Argss
         if (getArguments() != null) {
             eventId           = getArguments().getString("eventId");
             currentUserId     = getArguments().getString("currentUserId");
