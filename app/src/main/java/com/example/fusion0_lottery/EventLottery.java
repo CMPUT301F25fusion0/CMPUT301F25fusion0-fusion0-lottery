@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -25,11 +26,12 @@ import java.util.List;
 public class EventLottery extends Fragment {
 
     private LinearLayout eventsContainer;
-    private Button buttonBack;
+
     private FirebaseFirestore db;
     private String userEmail;
     private Button scan_qr;
     private static final int QR_SCAN_REQUEST_CODE = 100;
+    private BottomNavigationView bottomNavigationView;
 
     public EventLottery() {}
 
@@ -49,14 +51,14 @@ public class EventLottery extends Fragment {
         View view = inflater.inflate(R.layout.fragment_event_lottery, container, false);
 
         eventsContainer = view.findViewById(R.id.eventsContainer);
-        buttonBack = view.findViewById(R.id.buttonBack);
 
         scan_qr = view.findViewById(R.id.scan_qr);
+        bottomNavigationView = view.findViewById(R.id.bottom_navigation);
+        setupBottomNavigation();
 
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
 
-        buttonBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
 
         db = FirebaseFirestore.getInstance();
 
@@ -71,6 +73,25 @@ public class EventLottery extends Fragment {
 
         loadEvents();
         return view;
+    }
+
+    private void setupBottomNavigation() {
+        bottomNavigationView.setOnNavigationItemSelectedListener(menuItem -> {
+            int item_id = menuItem.getItemId();
+
+            if (item_id == R.id.navigation_home){
+                return true;
+            } else if (item_id == R.id.navigation_my_events) {
+                Intent intent = new Intent(getActivity(), MyEventsActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (item_id == R.id.navigation_profile) {
+//                Intent intent = new Intent(EventLottery.this, Pr)
+
+            }
+            return false;
+        });
+        bottomNavigationView.setSelectedItemId(R.id.navigation_home);
     }
 
     @Override
