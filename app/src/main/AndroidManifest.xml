@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.fusion0_lottery">
 
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Android 13+ runtime permission for notifications -->
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        tools:targetApi="33" />
+
+    <!-- Require camera for QR scanning -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
@@ -18,6 +27,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Fusion0_lottery">
         <activity
+            android:name=".QRScannerActivity"
+            android:exported="false" />
+
+        <!-- Event creation screen -->
+        <activity
+            android:name=".EventCreationActivity"
+            android:exported="false" />
+
+        <!-- Launcher -->
             android:name=".MyEventsActivity"
             android:exported="true" />
         <activity
@@ -31,10 +49,19 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- FCM messaging service -->
+        <service
+            android:name=".AppMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>
