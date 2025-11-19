@@ -7,7 +7,6 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -16,8 +15,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-
-import com.example.fusion0_lottery.R;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
 
@@ -36,6 +33,16 @@ License: CC BY-SA 3.0
 Request runtime permissions code from Android Developers documentation
 Source: https://developer.android.com/training/permissions/requesting#java
 License: Apache 2.0
+ */
+/**
+ * purpose:
+ *  This activity allows users to scan QR code within the app and
+ *  allow them to navigate the event detail screen.
+ *  design pattern:
+ *  uses ZXing library for QR code scanning
+ *  outstanding issues:
+ *  no outstanding issues for now
+ *
  */
 
 
@@ -87,20 +94,22 @@ public class QRScannerActivity extends AppCompatActivity implements ZXingScanner
         setContentView(mainLayout);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-               == PackageManager.PERMISSION_GRANTED) {
+                == PackageManager.PERMISSION_GRANTED) {
             startCamera();
         } else {
             requestCameraPermission.launch(Manifest.permission.CAMERA);
         }
 
-  }
+    }
     private void startCamera() {
         mScannerView.setResultHandler(this);
         mScannerView.startCamera();
         mScannerView.setAutoFocus(true);
     }
 
-
+    /**
+     * used to resume the camera when the user initiates the QR code scanner
+     */
     @Override
     public void onResume(){
         super.onResume();
@@ -109,6 +118,10 @@ public class QRScannerActivity extends AppCompatActivity implements ZXingScanner
             mScannerView.startCamera();
         }
     }
+
+    /**
+     * used to stop camera when QR code is scanned or canceled
+     */
     @Override
     public void onPause(){
         super.onPause();
@@ -116,22 +129,27 @@ public class QRScannerActivity extends AppCompatActivity implements ZXingScanner
             mScannerView.stopCamera();
         }
     }
+
+    /**
+     * used to validate the the scanned QR code
+     * @param rawResult object that stores the scanned QR code information
+     */
     @Override
     public void handleResult(Result rawResult){
         String result = rawResult.getText();
         BarcodeFormat format = rawResult.getBarcodeFormat();
 
         if(result != null && !result.isEmpty() && format.equals(BarcodeFormat.QR_CODE)){
-                Intent result_intent = new Intent();
-                result_intent.putExtra("EVENT_ID", result);
-                setResult(RESULT_OK, result_intent);
+            Intent result_intent = new Intent();
+            result_intent.putExtra("EVENT_ID", result);
+            setResult(RESULT_OK, result_intent);
 
-                if(mScannerView != null){
-                    mScannerView.stopCamera();
-                }
-                finish();
-                Toast.makeText(this,"Valid QR code\n"+ result, Toast.LENGTH_SHORT).show();
-            } else{
+            if(mScannerView != null){
+                mScannerView.stopCamera();
+            }
+            finish();
+            Toast.makeText(this,"Valid QR code\n"+ result, Toast.LENGTH_SHORT).show();
+        } else{
             Toast.makeText(this, "Invalid QR code", Toast.LENGTH_SHORT).show();
             if (mScannerView != null) {
                 mScannerView.resumeCameraPreview(this);

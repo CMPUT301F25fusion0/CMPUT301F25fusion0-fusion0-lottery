@@ -25,7 +25,10 @@ public class EventTest {
                 "Test Location",
                 "2024-12-01",
                 "2024-12-31",
-                100
+                100,
+                1,
+                1,
+                1
         );
 
         assertEquals("Test Event", event.getEventName());
@@ -112,7 +115,10 @@ public class EventTest {
                 "Location",
                 "2024-12-01",
                 "2024-12-31",
-                null
+                null,
+                1,
+                1,
+                1
         );
 
         assertNull(event.getMaxEntrants());
