@@ -1,5 +1,6 @@
 package com.example.fusion0_lottery;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -20,12 +22,14 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FragmentWaitingList extends Fragment {
 
     private ListView waitingListView;
     private TextView emptyText;
-    private Button backButton, refreshButton;
+    private Button backButton, refreshButton, notifyWaitListButton;
     private Spinner sortFilter;
 
     private ArrayList<WaitingListEntrants> waitingList;
@@ -41,6 +45,7 @@ public class FragmentWaitingList extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.waiting_list, container, false);
 
+        notifyWaitListButton = view.findViewById(R.id.notifyWaitListButton);
         waitingListView = view.findViewById(R.id.waitingListView);
         emptyText = view.findViewById(R.id.emptyText);
         backButton = view.findViewById(R.id.backButton);
@@ -60,6 +65,9 @@ public class FragmentWaitingList extends Fragment {
 
         // refresh button to reload the waiting list information after applying sorting changes
         refreshButton.setOnClickListener(v -> loadWaitingList(eventId));
+
+        // notify waiting list button to send a message to all users in the waiting list
+        notifyWaitListButton.setOnClickListener(v -> showNotificationDialog());
 
         sortFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -170,5 +178,110 @@ public class FragmentWaitingList extends Fragment {
         ArrayList<String> displayList = getDisplayStrings(waitingList);
         waitingListAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, displayList);
         waitingListView.setAdapter(waitingListAdapter);
+    }
+
+    /**
+     * Show dialog to send notification to all users in the waiting list
+     * The notifications are stored in Firebase under: Users/{userId}/notifications/ and include the message, event details, and timestamp.
+     */
+    private void showNotificationDialog() {
+        // Create a multiline EditText for the message
+        final EditText messageInput = new EditText(getContext());
+        messageInput.setHint("Enter your message here...");
+        messageInput.setMinLines(4);
+        messageInput.setMaxLines(10);
+        messageInput.setVerticalScrollBarEnabled(true);
+        messageInput.setPadding(50, 40, 50, 40);
+
+        // Build the dialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Please type the update you'd like to share:");
+        builder.setView(messageInput);
+
+        // Add Send Update button
+        builder.setPositiveButton("Send Update", (dialog, which) -> {
+            String message = messageInput.getText().toString().trim();
+            if (message.isEmpty()) {
+                Toast.makeText(getContext(), "Please enter a message", Toast.LENGTH_SHORT).show();
+            } else {
+                sendNotificationToWaitingList(message);
+            }
+        });
+
+        // Add Cancel Update button
+        builder.setNegativeButton("Cancel Update", (dialog, which) -> dialog.dismiss());
+
+        // Show the dialog
+        builder.create().show();
+    }
+
+    /**
+     * Send notification to all users in the waiting list
+     */
+    private void sendNotificationToWaitingList(String message) {
+        db.collection("Events").document(eventId).get()
+                .addOnSuccessListener(snapshot -> {
+                    if (!snapshot.exists()) {
+                        Toast.makeText(getContext(), "Event not found", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    ArrayList<String> userIds = (ArrayList<String>) snapshot.get("waitingList");
+                    if (userIds == null || userIds.isEmpty()) {
+                        Toast.makeText(getContext(), "No users in waiting list", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // Get event name for the notification
+                    String eventName = snapshot.getString("eventName");
+                    if (eventName == null) {
+                        eventName = "Event";
+                    }
+
+                    // Create notification data
+                    Map<String, Object> notification = new HashMap<>();
+                    notification.put("message", message);
+                    notification.put("eventId", eventId);
+                    notification.put("eventName", eventName);
+                    notification.put("timestamp", System.currentTimeMillis());
+                    notification.put("type", "waiting_list_update");
+
+                    // Send notification to each user in the waiting list
+                    int totalUsers = userIds.size();
+                    final int[] successCount = {0};
+                    final int[] failCount = {0};
+
+                    for (String userId : userIds) {
+                        db.collection("Users").document(userId)
+                                .collection("notifications").add(notification)
+                                .addOnSuccessListener(docRef -> {
+                                    successCount[0]++;
+                                    if (successCount[0] + failCount[0] == totalUsers) {
+                                        showNotificationResult(successCount[0], failCount[0]);
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    failCount[0]++;
+                                    if (successCount[0] + failCount[0] == totalUsers) {
+                                        showNotificationResult(successCount[0], failCount[0]);
+                                    }
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> Toast.makeText(getContext(),
+                        "Failed to send notifications: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    /**
+     * Show result of notification sending
+     */
+    private void showNotificationResult(int successCount, int failCount) {
+        String resultMessage;
+        if (failCount == 0) {
+            resultMessage = "Successfully sent notification to " + successCount + " user(s)";
+        } else {
+            resultMessage = "Sent to " + successCount + " user(s), failed for " + failCount + " user(s)";
+        }
+        Toast.makeText(getContext(), resultMessage, Toast.LENGTH_LONG).show();
     }
 }

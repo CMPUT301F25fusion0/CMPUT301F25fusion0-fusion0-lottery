@@ -52,6 +52,13 @@
         android:padding="16dp">
 
         <Button
+            android:id="@+id/notifyWaitListButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Notify Waiting List" />
+
+        <Button
             android:id="@+id/refreshButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
