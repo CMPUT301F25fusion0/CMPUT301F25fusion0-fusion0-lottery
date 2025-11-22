@@ -28,7 +28,8 @@ public class EventTest {
                 100,
                 1,
                 1,
-                1
+                1,
+                5
         );
 
         assertEquals("Test Event", event.getEventName());
@@ -118,7 +119,8 @@ public class EventTest {
                 null,
                 1,
                 1,
-                1
+                1,
+                3
         );
 
         assertNull(event.getMaxEntrants());
