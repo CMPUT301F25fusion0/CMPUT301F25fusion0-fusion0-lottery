@@ -11,10 +11,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
+/**
+ * This class ia a RecyclerView adapter class for displaying user's lottery events.
+ * It shows waiting list and selected list in horizontal scroll view
+ */
+
 public class MyEventAdapter extends RecyclerView.Adapter<MyEventAdapter.MyViewHolder> {
     private List<Event> events;
     private String type;
     private OnEventActionListener listener;
+
+    /**
+     * Interface for handling user actions on events in the RecyclerView.
+     */
 
     public interface OnEventActionListener {
         void onViewEvent(String eventId);
@@ -23,12 +32,26 @@ public class MyEventAdapter extends RecyclerView.Adapter<MyEventAdapter.MyViewHo
         void onDeclineInvitation(String eventId, int position);
     }
 
+    /**
+     * constructs a new MyEventAdapter
+     * @param events the list of events to display
+     * @param type  the display type: waiting or selected
+     * @param listener the listener for handling event actions
+     */
     public MyEventAdapter(List<Event> events, String type, OnEventActionListener listener) {
         this.events = events;
         this.type = type;
         this.listener = listener;
     }
 
+    /**
+     * creates new viewHolder for recyclerView based on the view type
+     * @param parent The ViewGroup into which the new View will be added after it is bound to
+     *               an adapter position.
+     * @param viewType The view type of the new View.
+     *
+     * @return a new ViewHolder that holds a view of the given view type
+     */
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -37,6 +60,12 @@ public class MyEventAdapter extends RecyclerView.Adapter<MyEventAdapter.MyViewHo
         return new MyViewHolder(view, type);
     }
 
+    /**
+     * binds event data to the viewHolder
+     * @param holder The ViewHolder which should be updated to represent the contents of the
+     *        item at the given position in the data set.
+     * @param position The position of the item within the adapter's data set.
+     */
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         Event event = events.get(position);
@@ -77,6 +106,10 @@ public class MyEventAdapter extends RecyclerView.Adapter<MyEventAdapter.MyViewHo
         }
     }
 
+    /**
+     * Returns the total number of items in the data set held by the adapter
+     * @return the total number of items in this adapter
+     */
     @Override
     public int getItemCount() {
         return events.size();
@@ -86,6 +119,11 @@ public class MyEventAdapter extends RecyclerView.Adapter<MyEventAdapter.MyViewHo
         TextView eventName, eventStatus, drawDate, selectedName;
         Button accept, decline, view, leave;
 
+        /**
+         * constructs a ViewHolder for the event item view based on the type
+         * @param itemView the view of the event item
+         * @param type the type of the event display (waiting or selected)
+         */
         public MyViewHolder(@NonNull View itemView, String type) {
             super(itemView);
 

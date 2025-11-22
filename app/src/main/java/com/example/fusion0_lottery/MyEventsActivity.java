@@ -13,15 +13,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
+
+/**
+ * This activity is used for managing user events including waiting list and selected events.
+ * It allows users to accept or decline events from selected list
+ * and view event details and leave waiting list from waiting list
+ * user will be replaced by random selection from waiting lists
+ */
 
 public class MyEventsActivity extends AppCompatActivity implements MyEventAdapter.OnEventActionListener {
 
@@ -49,7 +53,7 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
         recycler_selected = findViewById(R.id.recycler_selected);
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
-        setupBottomNavigation();
+        Bottom_navigation();
 
         waiting_events = new ArrayList<>();
         selected_event = new ArrayList<>();
@@ -69,6 +73,7 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
 
                 findViewById(R.id.main).setVisibility(View.VISIBLE);
                 findViewById(R.id.fragment_container).setVisibility(View.GONE);
+                bottomNavigationView.setSelectedItemId(R.id.navigation_my_events);
             }
         });
     }
@@ -78,6 +83,9 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
         recycler.setLayoutManager(layoutManager);
     }
 
+    /**
+     * Loads events from firebase where the current user is either on waiting list or selected
+     */
     private void load_events() {
         waiting_events.clear();
         selected_event.clear();
@@ -104,6 +112,9 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                 });
     }
 
+    /**
+     * notifies both waiting and selected adapters that their data set have changed
+     */
     private void updateAdapters() {
         if(waitingAdapter != null){
             waitingAdapter.notifyDataSetChanged();
@@ -113,7 +124,7 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
         }
     }
 
-    private void setupBottomNavigation() {
+    private void Bottom_navigation() {
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             int itemId = item.getItemId();
 
@@ -124,8 +135,13 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
             } else if (itemId == R.id.navigation_my_events) {
                 return true;
             } else if (itemId == R.id.navigation_profile) {
-                // Intent intent = new Intent(MyEventsActivity.this, ProfileActivity.class);
-                // startActivity(intent);
+                findViewById(R.id.main).setVisibility(View.GONE);
+                findViewById(R.id.fragment_container).setVisibility(View.VISIBLE);
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, new UpdateProfileFragment())
+                        .addToBackStack("Profile")
+                        .commit();
                 return true;
             }
             return false;
@@ -134,6 +150,9 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
         bottomNavigationView.setSelectedItemId(R.id.navigation_my_events);
     }
 
+    /**
+     * handles back button press
+     */
     @Override
     public void onBackPressed() {
         if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
@@ -144,21 +163,40 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
     }
 
 
+    /**
+     * Opens detailed view for a specific event
+     * @param eventId unique id of the event to view
+     */
     @Override
     public void onViewEvent(String eventId) {
         openEventDetails(eventId);
     }
 
+    /**
+     * handles user request to leave waiting list
+     * @param eventId unique id of the event
+     * @param position the position of the event in the waiting list adapter
+     */
     @Override
     public void onLeaveWaitingList(String eventId, int position) {
         leaveWaitingList(eventId, position);
     }
 
+    /**
+     * handles user acceptance of an event invitation
+     * @param eventId unique id of the event
+     * @param position the position of the event in the selected events adapter
+     */
     @Override
     public void onAcceptInvitation(String eventId, int position) {
         acceptInvitation(eventId, position);
     }
 
+    /**
+     * handles user decline of an event invitation
+     * @param eventId unique id of the event
+     * @param position the position of the event in the selected events adapter
+     */
     @Override
     public void onDeclineInvitation(String eventId, int position) {
         declineInvitation(eventId, position);
@@ -206,7 +244,6 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                                             selected_event.remove(position);
                                             selectedAdapter.notifyItemRemoved(position);
                                             Toast.makeText(this, "Invitation declined.", Toast.LENGTH_SHORT).show();
-                                            sendNotificationToUser(newSelectedUser, eventId, eventSnapshot.getString("eventName"));
                                         })
                                         .addOnFailureListener(e -> {
                                             Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -246,7 +283,6 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                         }
 
                         if (selectedUsers != null && selectedUsers.contains(currentUserId)) {
-                            // Move from selected to enrolled
                             selectedUsers.remove(currentUserId);
                             enrolledUsers.add(currentUserId);
 
@@ -265,26 +301,6 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                                     });
                         }
                     }
-                });
-    }
-
-    private void sendNotificationToUser(String userId, String eventId, String eventName) {
-
-        Map<String, Object> notification = new HashMap<>();
-        notification.put("userId", userId);
-        notification.put("eventId", eventId);
-        notification.put("type", "selected");
-        notification.put("message", "Congratulations! You've been selected for: " + (eventName != null ? eventName : "an event"));
-        notification.put("timestamp", System.currentTimeMillis());
-        notification.put("read", false);
-
-        db.collection("Notifications")
-                .add(notification)
-                .addOnSuccessListener(documentReference -> {
-                    android.util.Log.d("Notification", "Notification sent to user: " + userId);
-                })
-                .addOnFailureListener(e -> {
-                    android.util.Log.e("Notification", "Error sending notification: " + e.getMessage());
                 });
     }
 

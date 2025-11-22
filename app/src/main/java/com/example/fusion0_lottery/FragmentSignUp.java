@@ -15,12 +15,19 @@ import androidx.fragment.app.Fragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+/**
+ * This fragment handles user sign up functionality
+ * It allows user to register by providing their name, email, and optional phone number
+ * It uses firebase Anonymous Authentication to give a unique device ID
+ */
+
 public class FragmentSignUp extends Fragment {
 
     private EditText nameInput, emailInput, phoneInput;
     private Button signupButton;
     private FirebaseAuth auth;
     private FirebaseFirestore db;
+
 
     @Nullable
     @Override
@@ -75,10 +82,4 @@ public class FragmentSignUp extends Fragment {
         });
     }
 
-    public boolean validSignUp(String name, String email, String password, String confirmPassword) {
-        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-            return false;
-        }
-        return password.equals(confirmPassword);
-    }
 }
