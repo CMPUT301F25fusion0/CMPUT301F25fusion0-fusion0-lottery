@@ -199,6 +199,17 @@ public class EventLottery extends Fragment {
         bottomNavigationView.setSelectedItemId(R.id.navigation_home);
     }
 
+    /**
+     * handles the result from QR code scanning activity.
+     * @param request_code The integer request code originally supplied to
+     *                    startActivityForResult(), allowing you to identify who this
+     *                    result came from.
+     * @param result_code The integer result code returned by the child activity
+     *                   through its setResult().
+     * @param data An Intent, which can return result data to the caller
+     *               (various data can be attached to Intent "extras").
+     *
+     */
     @Override
     public void onActivityResult(int request_code, int result_code, Intent data){
         super.onActivityResult(request_code,result_code,data);
