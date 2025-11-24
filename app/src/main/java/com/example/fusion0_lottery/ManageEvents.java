@@ -34,7 +34,7 @@ public class ManageEvents extends Fragment {
     private TextView manageEventTitle, eventDescriptionText, eventInterests,
             eventTime, eventLocation, eventRegistration, eventMaxEntrants, eventPrice, qrCodeLabel;
 
-    private Button editEventButton, updatePosterButton, notifyWaitlistButton, drawWinnersButton, exportCsvButton;
+    private Button editEventButton, updatePosterButton, notifyWaitlistButton, exportCsvButton;
     private Button backToEventsButton;
 
     private FirebaseFirestore db;
@@ -65,7 +65,6 @@ public class ManageEvents extends Fragment {
         editEventButton = view.findViewById(R.id.editEventButton);
         updatePosterButton = view.findViewById(R.id.updatePosterButton);
         notifyWaitlistButton = view.findViewById(R.id.notifyWaitlistButton);
-        drawWinnersButton = view.findViewById(R.id.drawWinnersButton);
         exportCsvButton = view.findViewById(R.id.exportCsvButton);
         backToEventsButton = view.findViewById(R.id.backToEventsButton);
 
@@ -94,8 +93,7 @@ public class ManageEvents extends Fragment {
         tabLayout.addTab(tabLayout.newTab().setText("Details"));
         tabLayout.addTab(tabLayout.newTab().setText("Waiting List"));
         tabLayout.addTab(tabLayout.newTab().setText("Selected Entrants"));
-        tabLayout.addTab(tabLayout.newTab().setText("Manage Participants"));
-        tabLayout.addTab(tabLayout.newTab().setText("Generate QR"));
+        tabLayout.addTab(tabLayout.newTab().setText("Final List"));
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -108,7 +106,36 @@ public class ManageEvents extends Fragment {
                     fragmentWaitingList.setArguments(args);
                     ((MainActivity) requireActivity()).replaceFragment(fragmentWaitingList);
                 }
+
+                else if (title.equals("Selected Entrants")) {
+                    FragmentSelectedEntrants fragmentSelectedEntrants = new FragmentSelectedEntrants();
+                    Bundle args = new Bundle();
+                    args.putString("eventId", eventId);
+                    fragmentSelectedEntrants.setArguments(args);
+                    ((MainActivity) requireActivity()).replaceFragment(fragmentSelectedEntrants);
+                }
+
+                /*
+
+                else if (title.equals("Final List")) {
+                    FragmentFinalList fragmentFinalList = new FragmentFinalList();
+                    Bundle args = new Bundle();
+                    args.putString("eventId", eventId);
+                    fragmentFinalList.setArguments(args);
+                    ((MainActivity) requireActivity()).replaceFragment(fragmentFinalList);
+                }
+
+
+                else if (title.equals("Cancelled Entrants")) { }
+                    FragmentSelectedEntrants fragmentCancelledEntrants = new FragmentCancelledEntrants();
+                    Bundle args = new Bundle();
+                    args.putString("eventId", eventId);
+                    fragmentCancelledEntrants.setArguments(args);
+                    ((MainActivity) requireActivity()).replaceFragment(fragmentCancelledEntrants);
+                */
             }
+
+
             @Override public void onTabUnselected(TabLayout.Tab tab) {}
             @Override public void onTabReselected(TabLayout.Tab tab) {}
         });
@@ -116,6 +143,11 @@ public class ManageEvents extends Fragment {
 
     /**
      * Setup buttons at the bottom of the manage events screen
+     * updatePosterButton: Update existing or non-existing event poster by uploading an image
+     * editEventButton: Change Event's details
+     *
+     *
+     *
      */
     private void setupButtonActions() {
         updatePosterButton.setOnClickListener(v -> {
@@ -137,10 +169,15 @@ public class ManageEvents extends Fragment {
                 args.putString("eventId", eventId);
                 editFragment.setArguments(args);
                 ((MainActivity) requireActivity()).replaceFragment(editFragment);
-            } else {
+            }
+            else {
                 Toast.makeText(requireContext(), "Event ID not available", Toast.LENGTH_SHORT).show();
             }
         });
+
+        // notifyWaitlistButton.setOnClickListener(v -> {} });
+        // exportCsvButton.setOnClickListener(v -> {} });
+
     }
 
     /**
@@ -159,7 +196,6 @@ public class ManageEvents extends Fragment {
                     if (event.getDescription() != null && !event.getDescription().isEmpty()) {
                         description = event.getDescription();
                     }
-                    // if no description set empty
                     else {
                         description = "";
                     }
