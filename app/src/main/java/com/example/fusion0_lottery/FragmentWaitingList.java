@@ -88,6 +88,7 @@ public class FragmentWaitingList extends Fragment {
      *  function to display the waiting list for an event
      *  lists all entrants in the waiting list
      *  allow sorting by name and join date
+     *  Handles both String (userId only) and Map (userId with joinedAt) entries
     */
     private void loadWaitingList(String eventId) {
         db.collection("Events").document(eventId).get()
@@ -97,7 +98,7 @@ public class FragmentWaitingList extends Fragment {
                         return;
                     }
 
-                    List<Map<String, Object>> waitingListData = (List<Map<String, Object>>) snapshot.get("waitingList");
+                    List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
 
                     if (waitingListData == null || waitingListData.isEmpty()) {
                         waitingListView.setVisibility(View.GONE);
@@ -111,18 +112,38 @@ public class FragmentWaitingList extends Fragment {
 
                     waitingList.clear();
                     SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd");
-                    for (Map<String, Object> entry : waitingListData) {
-                        if (entry == null) {
+
+                    for (Object item : waitingListData) {
+                        if (item == null) {
                             continue;
                         }
-                        String userId = (String) entry.get("userId");
-                        Timestamp joinedAt = (Timestamp) entry.get("joinedAt");
+
+                        String userId;
                         String joinDate;
-                        if (joinedAt != null) {
-                            joinDate = formatDate.format(joinedAt.toDate());
-                        }
-                        else {
+
+                        // Handle both String (just userId) and Map (userId with joinedAt) types
+                        if (item instanceof String) {
+                            // Old format: just userId as string
+                            userId = (String) item;
                             joinDate = "Unknown";
+                        } else if (item instanceof Map) {
+                            // New format: Map with userId and joinedAt
+                            Map<String, Object> entry = (Map<String, Object>) item;
+                            userId = (String) entry.get("userId");
+                            Timestamp joinedAt = (Timestamp) entry.get("joinedAt");
+
+                            if (joinedAt != null) {
+                                joinDate = formatDate.format(joinedAt.toDate());
+                            } else {
+                                joinDate = "Unknown";
+                            }
+                        } else {
+                            // Unknown format, skip this entry
+                            continue;
+                        }
+
+                        if (userId == null) {
+                            continue;
                         }
 
                         db.collection("Users").document(userId).get()
@@ -146,7 +167,8 @@ public class FragmentWaitingList extends Fragment {
     /**
      * function to randomly select entrants in the waiting list for an event
      * randomly select up to 'numberOfWinners' amount from the waiting list
-     * once entrant is selected, remove them from waiting list and add to waiting list
+     * once entrant is selected, remove them from waiting list and add to winners list
+     * Handles both String (userId only) and Map (userId with joinedAt) entries
      */
     private void drawRandomWinners() {
         db.collection("Events").document(eventId).get()
@@ -163,23 +185,43 @@ public class FragmentWaitingList extends Fragment {
                         return;
                     }
                     int numberOfWinners = numWinners.intValue();
-                    List<Map<String, Object>> waitingList = (List<Map<String, Object>>) snapshot.get("waitingList");
+                    List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
 
-                    if (waitingList == null || waitingList.isEmpty()) {
+                    if (waitingListData == null || waitingListData.isEmpty()) {
+                        Toast.makeText(getContext(), "Waiting list is empty", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // Normalize the waiting list to Map format
+                    List<Map<String, Object>> normalizedWaitingList = new ArrayList<>();
+                    for (Object item : waitingListData) {
+                        if (item == null) {
+                            continue;
+                        }
+
+                        Map<String, Object> entry = new HashMap<>();
+                        if (item instanceof String) {
+                            // Old format: just userId as string
+                            entry.put("userId", item);
+                            entry.put("joinedAt", null);
+                        } else if (item instanceof Map) {
+                            // New format: already a map
+                            entry = (Map<String, Object>) item;
+                        } else {
+                            continue;
+                        }
+                        normalizedWaitingList.add(entry);
+                    }
+
+                    if (normalizedWaitingList.isEmpty()) {
                         Toast.makeText(getContext(), "Waiting list is empty", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     // randomly select numberOfWinners amount or until waiting list is empty
-                    int numberRandomWinners = 0;
-                    if (numberOfWinners > waitingList.size()) {
-                        numberRandomWinners = waitingList.size();
-                    }
-                    else {
-                        numberRandomWinners = numberOfWinners;
-                    }
+                    int numberRandomWinners = Math.min(numberOfWinners, normalizedWaitingList.size());
 
-                    List<Map<String, Object>> tempList = new ArrayList<>(waitingList);
+                    List<Map<String, Object>> tempList = new ArrayList<>(normalizedWaitingList);
                     List<Map<String, Object>> chosenWinners = new ArrayList<>();
 
                     Random random = new Random();
@@ -287,6 +329,7 @@ public class FragmentWaitingList extends Fragment {
 
     /**
      * Send notification to all users in the waiting list
+     * Handles both String (userId only) and Map (userId with joinedAt) entries
      */
     private void sendNotificationToWaitingList(String message) {
         db.collection("Events").document(eventId).get()
@@ -296,8 +339,37 @@ public class FragmentWaitingList extends Fragment {
                         return;
                     }
 
-                    ArrayList<String> userIds = (ArrayList<String>) snapshot.get("waitingList");
-                    if (userIds == null || userIds.isEmpty()) {
+                    List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
+                    if (waitingListData == null || waitingListData.isEmpty()) {
+                        Toast.makeText(getContext(), "No users in waiting list", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // Extract user IDs from the waiting list (handles both String and Map formats)
+                    ArrayList<String> userIds = new ArrayList<>();
+                    for (Object item : waitingListData) {
+                        if (item == null) {
+                            continue;
+                        }
+
+                        String userId;
+                        if (item instanceof String) {
+                            // Old format: just userId as string
+                            userId = (String) item;
+                        } else if (item instanceof Map) {
+                            // New format: Map with userId and joinedAt
+                            Map<String, Object> entry = (Map<String, Object>) item;
+                            userId = (String) entry.get("userId");
+                        } else {
+                            continue;
+                        }
+
+                        if (userId != null && !userId.isEmpty()) {
+                            userIds.add(userId);
+                        }
+                    }
+
+                    if (userIds.isEmpty()) {
                         Toast.makeText(getContext(), "No users in waiting list", Toast.LENGTH_SHORT).show();
                         return;
                     }
