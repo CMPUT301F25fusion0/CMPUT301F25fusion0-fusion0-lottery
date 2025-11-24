@@ -85,6 +85,16 @@
             android:inputType="number"
             android:padding="8dp" />
 
+        <EditText
+            android:id="@+id/editLotteryCriteria"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Lottery Criteria"
+            android:inputType="textMultiLine"
+            android:minLines="2"
+            android:gravity="top"
+            android:padding="8dp" />
+
         <Button
             android:id="@+id/saveEventButton"
             android:layout_width="match_parent"

@@ -23,7 +23,7 @@ import java.util.Locale;
 public class FragmentEditEvent extends Fragment {
 
     private EditText titleInput, eventDescriptionInput, interestsInput, locationInput,
-            startDateInput, endDateInput, timeInput, priceInput, maxEntrantsInput;
+            startDateInput, endDateInput, timeInput, priceInput, maxEntrantsInput, lotteryCriteriaInput;
     private Button saveButton;
 
     FirebaseFirestore db;
@@ -45,6 +45,8 @@ public class FragmentEditEvent extends Fragment {
         priceInput = view.findViewById(R.id.editPrice);
         maxEntrantsInput = view.findViewById(R.id.editMaxEntrants);
         saveButton = view.findViewById(R.id.saveEventButton);
+        lotteryCriteriaInput = view.findViewById(R.id.editLotteryCriteria);
+
 
         db = FirebaseFirestore.getInstance();
 
@@ -118,6 +120,7 @@ public class FragmentEditEvent extends Fragment {
                     locationInput.setText(event.getLocation());
                     priceInput.setText(String.valueOf(event.getPrice()));
                     maxEntrantsInput.setText(String.valueOf(event.getMaxEntrants()));
+                    lotteryCriteriaInput.setText(event.getLotteryCriteria());
                 })
                 .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed to load event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
@@ -142,6 +145,7 @@ public class FragmentEditEvent extends Fragment {
                         "endDate", endDateInput.getText().toString().trim(),
                         "time", timeInput.getText().toString().trim(),
                         "location", locationInput.getText().toString().trim(),
+                        "lotteryCriteria", lotteryCriteriaInput.getText().toString().trim(),
                         "price", doublePrice,
                         "maxEntrants", intMaxEntrants
                 )
@@ -161,7 +165,8 @@ public class FragmentEditEvent extends Fragment {
                 timeInput.getText().toString().trim().isEmpty() ||
                 locationInput.getText().toString().trim().isEmpty() ||
                 priceInput.getText().toString().trim().isEmpty() ||
-                maxEntrantsInput.getText().toString().trim().isEmpty()) {
+                maxEntrantsInput.getText().toString().trim().isEmpty() ||
+                lotteryCriteriaInput.getText().toString().trim().isEmpty()){
             return false;
         }
         else {
