@@ -221,7 +221,8 @@ public class ManageEvents extends Fragment {
                     Boolean hasQrCode = DocumentSnapshot.getBoolean("hasQrCode");
                     String eventId = event.getEventId();
 
-                    if (hasQrCode != null && hasQrCode && eventId != null) {
+                    // Generate QR code if hasQrCode is true OR if field is not set (null) - for backward compatibility
+                    if (eventId != null && (hasQrCode == null || hasQrCode)) {
                         try {
                             Bitmap qrBitmap = generateQRCode(eventId);
                             qrCodeLabel.setVisibility(View.VISIBLE);
