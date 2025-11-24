@@ -34,8 +34,11 @@ public class FragmentAdmin extends Fragment {
         TextView greeting = view.findViewById(R.id.greeting);
 
         //OnClickListeners
+//        showUsers.setOnClickListener(v -> {
+//            ((MainActivity) requireActivity()).replaceFragment(new FragmentAdminUsers());
+//        });
         showUsers.setOnClickListener(v -> {
-            ((MainActivity) requireActivity()).replaceFragment(new FragmentAdminUsers());
+            ((MainActivity) requireActivity()).replaceFragment(new BrowseProfileFragment());
         });
 
         showEvents.setOnClickListener(v -> {
