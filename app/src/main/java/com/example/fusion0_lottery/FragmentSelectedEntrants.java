@@ -179,7 +179,13 @@ public class FragmentSelectedEntrants extends Fragment {
                                     return;
                                 }
 
-                                int numberOfRedraws = Math.min(declinedCount, waitingList.size());
+                                int numberOfRedraws = 0;
+                                if (declinedCount > waitingList.size()) {
+                                    numberOfRedraws = waitingList.size();
+                                }
+                                else {
+                                    numberOfRedraws = declinedCount;
+                                }
                                 List<Map<String, Object>> tempList = new ArrayList<>(waitingList);
                                 List<Map<String, Object>> newWinners = new ArrayList<>();
 

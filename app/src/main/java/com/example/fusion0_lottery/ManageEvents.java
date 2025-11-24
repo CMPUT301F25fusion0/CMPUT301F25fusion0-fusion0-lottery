@@ -114,7 +114,25 @@ public class ManageEvents extends Fragment {
                     fragmentSelectedEntrants.setArguments(args);
                     ((MainActivity) requireActivity()).replaceFragment(fragmentSelectedEntrants);
                 }
-                // else if (title.equals("Final List")) { }
+
+                /*
+
+                else if (title.equals("Final List")) {
+                    FragmentFinalList fragmentFinalList = new FragmentFinalList();
+                    Bundle args = new Bundle();
+                    args.putString("eventId", eventId);
+                    fragmentFinalList.setArguments(args);
+                    ((MainActivity) requireActivity()).replaceFragment(fragmentFinalList);
+                }
+
+
+                else if (title.equals("Cancelled Entrants")) { }
+                    FragmentSelectedEntrants fragmentCancelledEntrants = new FragmentCancelledEntrants();
+                    Bundle args = new Bundle();
+                    args.putString("eventId", eventId);
+                    fragmentCancelledEntrants.setArguments(args);
+                    ((MainActivity) requireActivity()).replaceFragment(fragmentCancelledEntrants);
+                */
             }
 
 

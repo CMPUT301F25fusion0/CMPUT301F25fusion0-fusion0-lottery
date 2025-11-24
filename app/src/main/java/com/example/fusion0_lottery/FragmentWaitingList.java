@@ -163,21 +163,30 @@ public class FragmentWaitingList extends Fragment {
                         return;
                     }
                     int numberOfWinners = numWinners.intValue();
-                    List<Map<String, Object>> waitingListData = (List<Map<String, Object>>) snapshot.get("waitingList");
+                    List<Map<String, Object>> waitingList = (List<Map<String, Object>>) snapshot.get("waitingList");
 
-                    if (waitingListData == null || waitingListData.isEmpty()) {
+                    if (waitingList == null || waitingList.isEmpty()) {
                         Toast.makeText(getContext(), "Waiting list is empty", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     // randomly select numberOfWinners amount or until waiting list is empty
-                    int numberRandomWinners = Math.min(numberOfWinners, waitingListData.size());
-                    List<Map<String, Object>> tempList = new ArrayList<>(waitingListData);
+                    int numberRandomWinners = 0;
+                    if (numberOfWinners > waitingList.size()) {
+                        numberRandomWinners = waitingList.size();
+                    }
+                    else {
+                        numberRandomWinners = numberOfWinners;
+                    }
+
+                    List<Map<String, Object>> tempList = new ArrayList<>(waitingList);
                     List<Map<String, Object>> chosenWinners = new ArrayList<>();
 
                     Random random = new Random();
 
+                    // select numberOfRandomWinners amount of entrants in waiting list
                     for (int i = 0; i < numberRandomWinners; i++) {
+                        // get a random entrant via indexing, add to winners list, remove from waiting list after adding to winners list
                         int index = random.nextInt(tempList.size());
                         chosenWinners.add(tempList.get(index));
                         tempList.remove(index);
