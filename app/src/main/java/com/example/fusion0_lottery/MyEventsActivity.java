@@ -204,104 +204,128 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
 
     private void declineInvitation(String eventId, int position) {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String eventName = selected_event.get(position).getEventName();
 
-        db.collection("Events").document(eventId)
-                .get()
-                .addOnSuccessListener(eventSnapshot -> {
-                    if (eventSnapshot.exists()) {
-                        List<String> selectedUsers = (List<String>) eventSnapshot.get("selectedUser");
-                        List<String> cancelledUsers = (List<String>) eventSnapshot.get("cancelledUser");
-                        List<String> waitingList = (List<String>) eventSnapshot.get("waitingList");
+        new AlertDialog.Builder(this)
+                .setTitle("Decline Invitation")
+                .setMessage("Are you sure you want to decline the invitation for \"" + eventName + "\"?")
+                .setPositiveButton("Yes, Decline", (dialog, which) -> {
+                    db.collection("Events").document(eventId)
+                            .get()
+                            .addOnSuccessListener(eventSnapshot -> {
+                                if (eventSnapshot.exists()) {
+                                    List<String> selectedUsers = (List<String>) eventSnapshot.get("selectedUser");
+                                    List<String> cancelledUsers = (List<String>) eventSnapshot.get("cancelledUser");
+                                    List<String> waitingList = (List<String>) eventSnapshot.get("waitingList");
 
-                        if (waitingList == null) {
-                            waitingList = new ArrayList<>();
-                        }
-                        if (selectedUsers == null) {
-                            selectedUsers = new ArrayList<>();
-                        }
-                        if (cancelledUsers == null) {
-                            cancelledUsers = new ArrayList<>();
-                        }
+                                    if (waitingList == null) {
+                                        waitingList = new ArrayList<>();
+                                    }
+                                    if (selectedUsers == null) {
+                                        selectedUsers = new ArrayList<>();
+                                    }
+                                    if (cancelledUsers == null) {
+                                        cancelledUsers = new ArrayList<>();
+                                    }
 
-                        if (selectedUsers.contains(currentUserId)) {
-                            selectedUsers.remove(currentUserId);
-                            cancelledUsers.add(currentUserId);
+                                    if (selectedUsers.contains(currentUserId)) {
+                                        selectedUsers.remove(currentUserId);
+                                        cancelledUsers.add(currentUserId);
 
-                            if (!waitingList.isEmpty()) {
-                                int randomIndex = new Random().nextInt(waitingList.size());
-                                String newSelectedUser = waitingList.get(randomIndex);
+                                        if (!waitingList.isEmpty()) {
+                                            int randomIndex = new Random().nextInt(waitingList.size());
+                                            String newSelectedUser = waitingList.get(randomIndex);
 
-                                waitingList.remove(randomIndex);
-                                selectedUsers.add(newSelectedUser);
+                                            waitingList.remove(randomIndex);
+                                            selectedUsers.add(newSelectedUser);
 
-                                db.collection("Events").document(eventId)
-                                        .update(
-                                                "selectedUser", selectedUsers,
-                                                "cancelledUser", cancelledUsers,
-                                                "waitingList", waitingList
-                                        )
-                                        .addOnSuccessListener(aVoid -> {
-                                            selected_event.remove(position);
-                                            selectedAdapter.notifyItemRemoved(position);
-                                            Toast.makeText(this, "Invitation declined.", Toast.LENGTH_SHORT).show();
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                        });
-                            } else {
-                                db.collection("Events").document(eventId)
-                                        .update(
-                                                "selectedUser", selectedUsers,
-                                                "cancelledUser", cancelledUsers
-                                        )
-                                        .addOnSuccessListener(aVoid -> {
-                                            selected_event.remove(position);
-                                            selectedAdapter.notifyItemRemoved(position);
-                                            Toast.makeText(this, "Invitation declined.", Toast.LENGTH_SHORT).show();
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                        });
-                            }
-                        }
-                    }
-                });
+                                            db.collection("Events").document(eventId)
+                                                    .update(
+                                                            "selectedUser", selectedUsers,
+                                                            "cancelledUser", cancelledUsers,
+                                                            "waitingList", waitingList
+                                                    )
+                                                    .addOnSuccessListener(aVoid -> {
+                                                        selected_event.remove(position);
+                                                        selectedAdapter.notifyItemRemoved(position);
+                                                        Toast.makeText(this, "Invitation declined.", Toast.LENGTH_SHORT).show();
+                                                    })
+                                                    .addOnFailureListener(e -> {
+                                                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    });
+                                        } else {
+                                            db.collection("Events").document(eventId)
+                                                    .update(
+                                                            "selectedUser", selectedUsers,
+                                                            "cancelledUser", cancelledUsers
+                                                    )
+                                                    .addOnSuccessListener(aVoid -> {
+                                                        selected_event.remove(position);
+                                                        selectedAdapter.notifyItemRemoved(position);
+                                                        Toast.makeText(this, "Invitation declined.", Toast.LENGTH_SHORT).show();
+                                                    })
+                                                    .addOnFailureListener(e -> {
+                                                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    });
+                                        }
+                                    }
+                                }
+                            });
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
+                })
+                .show();
+
+
     }
 
     private void acceptInvitation(String eventId, int position) {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String eventName = selected_event.get(position).getEventName();
 
-        db.collection("Events").document(eventId)
-                .get()
-                .addOnSuccessListener(eventSnapshot -> {
-                    if (eventSnapshot.exists()) {
-                        List<String> selectedUsers = (List<String>) eventSnapshot.get("selectedUser");
-                        List<String> enrolledUsers = (List<String>) eventSnapshot.get("enrolledUser");
+        new AlertDialog.Builder(this)
+                .setTitle("Accept Invitation")
+                .setMessage("Are you sure you want to accept the invitation for \"" + eventName + "\"?")
+                .setPositiveButton("Yes, Accept", (dialog, which) -> {
+                    db.collection("Events").document(eventId)
+                            .get()
+                            .addOnSuccessListener(eventSnapshot -> {
+                                if (eventSnapshot.exists()) {
+                                    List<String> selectedUsers = (List<String>) eventSnapshot.get("selectedUser");
+                                    List<String> enrolledUsers = (List<String>) eventSnapshot.get("enrolledUser");
 
-                        if (enrolledUsers == null) {
-                            enrolledUsers = new ArrayList<>();
-                        }
+                                    if (enrolledUsers == null) {
+                                        enrolledUsers = new ArrayList<>();
+                                    }
 
-                        if (selectedUsers != null && selectedUsers.contains(currentUserId)) {
-                            selectedUsers.remove(currentUserId);
-                            enrolledUsers.add(currentUserId);
+                                    if (selectedUsers != null && selectedUsers.contains(currentUserId)) {
+                                        selectedUsers.remove(currentUserId);
+                                        enrolledUsers.add(currentUserId);
 
-                            db.collection("Events").document(eventId)
-                                    .update(
-                                            "selectedUser", selectedUsers,
-                                            "enrolledUser", enrolledUsers
-                                    )
-                                    .addOnSuccessListener(aVoid -> {
-                                        selected_event.remove(position);
-                                        selectedAdapter.notifyItemRemoved(position);
-                                        Toast.makeText(this, "You're enrolled!", Toast.LENGTH_SHORT).show();
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                    });
-                        }
-                    }
-                });
+                                        db.collection("Events").document(eventId)
+                                                .update(
+                                                        "selectedUser", selectedUsers,
+                                                        "enrolledUser", enrolledUsers
+                                                )
+                                                .addOnSuccessListener(aVoid -> {
+                                                    selected_event.remove(position);
+                                                    selectedAdapter.notifyItemRemoved(position);
+                                                    Toast.makeText(this, "You're enrolled!", Toast.LENGTH_SHORT).show();
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                });
+                                    }
+                                }
+                            });
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
+                })
+                .show();
+
+
     }
 
     private void openEventDetails(String eventId) {
