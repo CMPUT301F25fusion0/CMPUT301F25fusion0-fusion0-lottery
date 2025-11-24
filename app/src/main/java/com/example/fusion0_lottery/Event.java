@@ -23,6 +23,8 @@ public class Event {
     private Integer userSelectedCount;
     private Integer userEnrolledCount;
     private Integer numberOfWinners;
+    private String posterImage;
+    private String organizerName;
 
     // Empty constructor required for Firebase
     public Event() {
@@ -198,4 +200,19 @@ public class Event {
         this.numberOfWinners = numberOfWinners;
     }
 
+    public String getOrganizerName() {
+        return organizerName;
+    }
+
+    public void setOrganizerName(String organizerName) {
+        this.organizerName = organizerName;
+    }
+
+    public String getPosterImage() {
+        return posterImage;
+    }
+
+    public void setPosterImage(String posterImage) {
+        this.posterImage = posterImage;
+    }
 }
