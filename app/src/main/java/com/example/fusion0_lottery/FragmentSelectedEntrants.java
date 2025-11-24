@@ -197,7 +197,7 @@ public class FragmentSelectedEntrants extends Fragment {
                                 db.collection("Events").document(eventId)
                                         .update(updates)
                                         .addOnSuccessListener(v -> {
-                                            Toast.makeText(getContext(), "Selected " + newWinners.size() + " winners!", Toast.LENGTH_LONG).show();
+                                            Toast.makeText(getContext(), "Selected " + newWinners.size() + " winners", Toast.LENGTH_LONG).show();
                                             loadWinnersList();
                                         })
                                         .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show());
@@ -242,7 +242,7 @@ public class FragmentSelectedEntrants extends Fragment {
         new AlertDialog.Builder(getContext())
                 .setTitle("Send Notification?")
                 .setMessage("Do you want to send notification to all selected entrants?")
-                .setPositiveButton("Send", (dialog, which) -> {Toast.makeText(getContext(), "Notifications sent!", Toast.LENGTH_SHORT).show();})
+                .setPositiveButton("Send", (dialog, which) -> {Toast.makeText(getContext(), "Notifications sent", Toast.LENGTH_SHORT).show();})
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .create()
                 .show();

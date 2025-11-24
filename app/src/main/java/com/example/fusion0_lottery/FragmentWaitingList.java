@@ -166,7 +166,7 @@ public class FragmentWaitingList extends Fragment {
                     List<Map<String, Object>> waitingListData = (List<Map<String, Object>>) snapshot.get("waitingList");
 
                     if (waitingListData == null || waitingListData.isEmpty()) {
-                        Toast.makeText(getContext(), "Waiting list is empty!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Waiting list is empty", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -189,7 +189,7 @@ public class FragmentWaitingList extends Fragment {
                     db.collection("Events").document(eventId)
                             .update(updates)
                             .addOnSuccessListener(v -> {
-                                Toast.makeText(getContext(), "Selected " + chosenWinners.size() + " winners!", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getContext(), "Selected " + chosenWinners.size() + " winners", Toast.LENGTH_LONG).show();
                                 loadWaitingList(eventId);
                             })
                             .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show());
