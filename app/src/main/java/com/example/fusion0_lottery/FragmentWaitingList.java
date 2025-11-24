@@ -157,12 +157,12 @@ public class FragmentWaitingList extends Fragment {
                         return;
                     }
 
-                    Long numWinnersLong = snapshot.getLong("numberOfWinners");
-                    if (numWinnersLong == null) {
-                        Toast.makeText(getContext(), "numberOfWinners missing!", Toast.LENGTH_SHORT).show();
+                    Long numWinners = snapshot.getLong("numberOfWinners");
+                    if (numWinners == null) {
+                        Toast.makeText(getContext(), "Event missing number of winners field", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    int numberOfWinners = numWinnersLong.intValue();
+                    int numberOfWinners = numWinners.intValue();
                     List<Map<String, Object>> waitingListData = (List<Map<String, Object>>) snapshot.get("waitingList");
 
                     if (waitingListData == null || waitingListData.isEmpty()) {
