@@ -37,7 +37,7 @@ public class NotificationCenterFragment extends Fragment {
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
 
-        // Toolbar setup (title + back)
+        // Toolbar setup
         Toolbar toolbar = v.findViewById(R.id.toolbar);
         if (toolbar != null) {
             toolbar.setTitle("Notifications");
@@ -56,17 +56,23 @@ public class NotificationCenterFragment extends Fragment {
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                 : null;
 
-        // Load toggle state (default = true if missing)
+        // Load switch state (default ON if missing)
         if (uid != null) {
-            db.collection("Users").document(uid).get().addOnSuccessListener(doc -> {
-                boolean enabled = doc.contains("notificationsEnabled")
-                        ? Boolean.TRUE.equals(doc.getBoolean("notificationsEnabled"))
-                        : true;
-                switchNotifications.setChecked(enabled);
-            });
+            db.collection("Users").document(uid)
+                    .get()
+                    .addOnSuccessListener(doc -> {
+                        boolean enabled = doc.contains("notificationsEnabled")
+                                ? Boolean.TRUE.equals(doc.getBoolean("notificationsEnabled"))
+                                : true;
+                        switchNotifications.setChecked(enabled);
+                    });
 
-            switchNotifications.setOnCheckedChangeListener((button, isChecked) ->
-                    db.collection("Users").document(uid).update("notificationsEnabled", isChecked));
+            switchNotifications.setOnCheckedChangeListener(
+                    (button, isChecked) ->
+                            db.collection("Users")
+                                    .document(uid)
+                                    .update("notificationsEnabled", isChecked)
+            );
         } else {
             switchNotifications.setEnabled(false);
         }
@@ -83,29 +89,35 @@ public class NotificationCenterFragment extends Fragment {
             return;
         }
 
-        db.collection("Users").document(uid).collection("Notifications")
+        // ❗FIXED: Correct collection name: "notifications"
+        db.collection("Users").document(uid).collection("notifications")
                 .get()
                 .addOnSuccessListener(q -> {
                     if (q.isEmpty()) {
                         addMessage("No new notifications.");
                     } else {
                         for (QueryDocumentSnapshot doc : q) {
-                            addNotification(doc.getString("title"), doc.getString("body"));
+                            // ❗FIXED: Read "message" not "body"
+                            String title = doc.getString("title");
+                            String message = doc.getString("message");
+                            addNotification(title, message);
                         }
                     }
                 })
-                .addOnFailureListener(e -> addMessage("Error loading notifications: " + e.getMessage()));
+                .addOnFailureListener(e ->
+                        addMessage("Error loading notifications: " + e.getMessage())
+                );
     }
 
-    private void addNotification(String title, String body) {
+    private void addNotification(String title, String message) {
         View card = LayoutInflater.from(getContext())
                 .inflate(R.layout.row_notification, notificationsContainer, false);
 
         TextView titleView = card.findViewById(R.id.notificationTitle);
-        TextView bodyView  = card.findViewById(R.id.notificationBody);
+        TextView messageView = card.findViewById(R.id.notificationBody);
 
         titleView.setText(title != null ? title : "No Title");
-        bodyView.setText(body != null ? body : "");
+        messageView.setText(message != null ? message : "");
 
         notificationsContainer.addView(card);
     }

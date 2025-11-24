@@ -144,9 +144,7 @@ public class FragmentWaitingList extends Fragment {
     }
 
     /**
-     * function to randomly select entrants in the waiting list for an event
-     * randomly select up to 'numberOfWinners' amount from the waiting list
-     * once entrant is selected, remove them from waiting list and add to waiting list
+     * Draw random winners from the waiting list and notify users who were NOT selected.
      */
     private void drawRandomWinners() {
         db.collection("Events").document(eventId).get()
@@ -159,54 +157,90 @@ public class FragmentWaitingList extends Fragment {
 
                     Long numWinners = snapshot.getLong("numberOfWinners");
                     if (numWinners == null) {
-                        Toast.makeText(getContext(), "Event missing number of winners field", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Event missing numberOfWinners", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    int numberOfWinners = numWinners.intValue();
-                    List<Map<String, Object>> waitingList = (List<Map<String, Object>>) snapshot.get("waitingList");
 
-                    if (waitingList == null || waitingList.isEmpty()) {
+                    int numberOfWinners = numWinners.intValue();
+                    List<Map<String, Object>> waitingListData =
+                            (List<Map<String, Object>>) snapshot.get("waitingList");
+
+                    if (waitingListData == null || waitingListData.isEmpty()) {
                         Toast.makeText(getContext(), "Waiting list is empty", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
-                    // randomly select numberOfWinners amount or until waiting list is empty
-                    int numberRandomWinners = 0;
-                    if (numberOfWinners > waitingList.size()) {
-                        numberRandomWinners = waitingList.size();
-                    }
-                    else {
-                        numberRandomWinners = numberOfWinners;
-                    }
+                    // Shuffle waiting list
+                    List<Map<String, Object>> tempList = new ArrayList<>(waitingListData);
+                    Collections.shuffle(tempList);
 
-                    List<Map<String, Object>> tempList = new ArrayList<>(waitingList);
-                    List<Map<String, Object>> chosenWinners = new ArrayList<>();
+                    // Split winners vs losers
+                    int winnerCount = Math.min(numberOfWinners, tempList.size());
+                    List<Map<String, Object>> winners = new ArrayList<>(tempList.subList(0, winnerCount));
+                    List<Map<String, Object>> losers  = new ArrayList<>(tempList.subList(winnerCount, tempList.size()));
 
-                    Random random = new Random();
+                    // Prepare update
+                    Map<String, Object> update = new HashMap<>();
+                    update.put("winnersList", winners);
+                    update.put("waitingList", losers);
+                    update.put("lotteryClosed", true);
 
-                    // select numberOfRandomWinners amount of entrants in waiting list
-                    for (int i = 0; i < numberRandomWinners; i++) {
-                        // get a random entrant via indexing, add to winners list, remove from waiting list after adding to winners list
-                        int index = random.nextInt(tempList.size());
-                        chosenWinners.add(tempList.get(index));
-                        tempList.remove(index);
-                    }
-                    Map<String, Object> updates = new HashMap<>();
-                    updates.put("waitingList", tempList);
-                    updates.put("winnersList", chosenWinners);
+                    String eventName = snapshot.getString("eventName");
 
-                    db.collection("Events").document(eventId)
-                            .update(updates)
+                    db.collection("Events").document(eventId).update(update)
                             .addOnSuccessListener(v -> {
-                                Toast.makeText(getContext(), "Selected " + chosenWinners.size() + " winners", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getContext(),
+                                        "Selected " + winners.size() + " winners",
+                                        Toast.LENGTH_LONG).show();
+
+                                // Notify users who were NOT selected
+                                notifyLosers(losers, eventName);
+
                                 loadWaitingList(eventId);
                             })
-                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show());
-
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(getContext(),
+                                            "Failed to update winners: " + e.getMessage(),
+                                            Toast.LENGTH_LONG).show());
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(),
+                                "Error loading event: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show());
     }
+
+    /**
+     * Notify all users who were NOT selected in the lottery.
+     * Sends a notification only if the user has notificationsEnabled = true
+     */
+    private void notifyLosers(List<Map<String, Object>> losers, String eventName) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        for (Map<String, Object> loser : losers) {
+            String userId = (String) loser.get("userId");
+
+            db.collection("Users").document(userId).get()
+                    .addOnSuccessListener(userSnap -> {
+                        Boolean enabled = userSnap.getBoolean("notificationsEnabled");
+
+                        // Notify only if toggle is ON
+                        if (enabled != null && enabled) {
+
+                            Map<String, Object> notification = new HashMap<>();
+                            notification.put("title", "Not Selected");
+                            notification.put("message", "You were NOT selected for " + eventName);
+                            notification.put("timestamp", System.currentTimeMillis());
+                            notification.put("type", "not_selected");
+
+                            db.collection("Users")
+                                    .document(userId)
+                                    .collection("notifications")
+                                    .add(notification);
+                        }
+                    });
+        }
+    }
+
 
     /**
      * function to sort the waiting list viewing based on name or join date
