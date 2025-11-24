@@ -26,7 +26,6 @@ import com.google.zxing.common.BitMatrix;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -125,8 +124,8 @@ public class EventFragmentEntrant extends Fragment {
                     .addOnSuccessListener(snapshot -> {
                         if (!snapshot.exists()) return;
 
-                        ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
-                        if (waitingList == null) waitingList = new ArrayList<>();
+                        List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
+                        if (waitingListData == null) waitingListData = new ArrayList<>();
 
                         // Generate and display QR code if enabled
                         Boolean hasQrCode = snapshot.getBoolean("hasQrCode");
@@ -147,22 +146,61 @@ public class EventFragmentEntrant extends Fragment {
                             qrCodeImage.setVisibility(View.GONE);
                         }
 
+                        // Extract user IDs from waiting list (handles both String and Map formats)
+                        ArrayList<String> userIds = new ArrayList<>();
+                        for (Object item : waitingListData) {
+                            if (item == null) continue;
+
+                            String userId;
+                            if (item instanceof String) {
+                                // Old format: just userId as string
+                                userId = (String) item;
+                            } else if (item instanceof Map) {
+                                // New format: Map with userId and joinedAt
+                                Map<String, Object> entry = (Map<String, Object>) item;
+                                userId = (String) entry.get("userId");
+                            } else {
+                                continue;
+                            }
+
+                            if (userId != null && !userId.isEmpty()) {
+                                userIds.add(userId);
+                            }
+                        }
+
                         List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
-                        for (String uid : new ArrayList<>(waitingList)) {
+                        for (String uid : userIds) {
                             tasks.add(db.collection("Users").document(uid).get());
                         }
 
-                        ArrayList<String> finalWaitingList = waitingList;
+                        List<Object> finalWaitingListData = waitingListData;
+                        ArrayList<String> finalUserIds = userIds;
                         com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
                                 .addOnSuccessListener(results -> {
-                                    ArrayList<String> cleanList = new ArrayList<>();
+                                    // Build cleaned list maintaining the original format
+                                    List<Object> cleanList = new ArrayList<>();
                                     for (int i = 0; i < results.size(); i++) {
                                         DocumentSnapshot userSnap = (DocumentSnapshot) results.get(i);
-                                        if (userSnap.exists()) cleanList.add(finalWaitingList.get(i));
+                                        if (userSnap.exists()) {
+                                            // Find the original entry in waitingListData
+                                            String validUserId = finalUserIds.get(i);
+                                            for (Object item : finalWaitingListData) {
+                                                if (item instanceof String && item.equals(validUserId)) {
+                                                    cleanList.add(item);
+                                                    break;
+                                                } else if (item instanceof Map) {
+                                                    Map<String, Object> entry = (Map<String, Object>) item;
+                                                    if (validUserId.equals(entry.get("userId"))) {
+                                                        cleanList.add(item);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
 
                                     // Update isInWaitingList
-                                    isInWaitingList = cleanList.contains(currentUserId);
+                                    isInWaitingList = finalUserIds.contains(currentUserId);
                                     joinWaitingListButton.setText(isInWaitingList ? "Leave Waiting List" : "Join Waiting List");
 
                                     // Update Firestore with cleaned list
@@ -203,19 +241,32 @@ public class EventFragmentEntrant extends Fragment {
                 return;
             }
 
-            // Get waiting list as list of maps
-            List<Map<String, Object>> waitingList =
-                    (List<Map<String, Object>>) snapshot.get("waitingList");
-            if (waitingList == null) waitingList = new ArrayList<>();
+            // Get waiting list (handles both String and Map formats)
+            List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
+            if (waitingListData == null) waitingListData = new ArrayList<>();
 
-            // Mutable copy
-            List<Map<String, Object>> mutableWaitingList = new ArrayList<>(waitingList);
+            // Normalize to Map format and build mutable list
+            List<Map<String, Object>> mutableWaitingList = new ArrayList<>();
+            for (Object item : waitingListData) {
+                if (item == null) continue;
 
-            // Remove invalid entries
-            Iterator<Map<String, Object>> iter = mutableWaitingList.iterator();
-            while (iter.hasNext()) {
-                Map<String, Object> entry = iter.next();
-                if (!entry.containsKey("userId") || entry.get("userId") == null) iter.remove();
+                Map<String, Object> entry;
+                if (item instanceof String) {
+                    // Old format: convert String to Map
+                    entry = new HashMap<>();
+                    entry.put("userId", item);
+                    entry.put("joinedAt", null);
+                } else if (item instanceof Map) {
+                    // New format: already a map
+                    entry = new HashMap<>((Map<String, Object>) item);
+                } else {
+                    continue;
+                }
+
+                // Only add valid entries
+                if (entry.containsKey("userId") && entry.get("userId") != null) {
+                    mutableWaitingList.add(entry);
+                }
             }
 
             // Check if current user is already in list
