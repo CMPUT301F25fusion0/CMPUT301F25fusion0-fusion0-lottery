@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:id="@+id/contentLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_above="@id/buttonLayout">
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="30dp" />
+
+        <Spinner
+            android:id="@+id/sortFilter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/sort_options" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="20dp" />
+
+        <TextView
+            android:id="@+id/emptyText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No one in waiting list"
+            android:textAlignment="center"
+            android:textSize="18sp"
+            android:visibility="gone"
+            android:padding="16dp"
+            android:layout_marginTop="20dp" />
+
+        <ListView
+            android:id="@+id/waitingListView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <Button
+            android:id="@+id/notifyWaitListButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Notify Waiting List" />
+
+        <Button
+            android:id="@+id/refreshButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Refresh List"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/mapViewButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Map View"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/backButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Back" />
+    </LinearLayout>
+
+</RelativeLayout>

@@ -127,6 +127,7 @@ public class HistoryFragment extends Fragment {
                                                     currentUid,
                                                     (name != null ? name : "No Name"),
                                                     (desc != null ? desc : "No Description"),
+                                                    "None",  // interests (optional cache)
                                                     (date != null ? date : "No Date"),
                                                     (loc  != null ? loc  : "No Location"),
                                                     false,   // isInWaitingList (recomputed inside)

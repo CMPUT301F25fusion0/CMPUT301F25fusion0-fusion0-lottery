@@ -1,6 +1,7 @@
 package com.example.fusion0_lottery;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -11,7 +12,6 @@ import org.junit.Test;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 

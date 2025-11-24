@@ -14,8 +14,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
@@ -49,6 +47,8 @@ public class EventLottery extends Fragment {
     private FirebaseFirestore db;
     private String userEmail;
 
+    private static final int QR_SCAN_REQUEST_CODE = 100;
+
     private String selectedInterest = "All";
     private String selectedStartDate = null;
     private String selectedEndDate = null;
@@ -64,19 +64,6 @@ public class EventLottery extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
-
-    // --- New Activity Result launcher for QR scan (replaces startActivityForResult)
-    private final ActivityResultLauncher<Intent> qrLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == requireActivity().RESULT_OK && result.getData() != null) {
-                    String eventId = result.getData().getStringExtra("EVENT_ID");
-                    if (eventId != null && !eventId.isEmpty()) {
-                        eventDetails(eventId);
-                    }
-                } else {
-                    Toast.makeText(getContext(), "QR scan cancelled", Toast.LENGTH_SHORT).show();
-                }
-            });
 
     @Nullable
     @Override
@@ -143,23 +130,23 @@ public class EventLottery extends Fragment {
 
         db = FirebaseFirestore.getInstance();
         if (getArguments() != null) {
-            userEmail         = getArguments().getString("userEmail");
-            selectedInterest  = getArguments().getString("selectedInterest", "All");
-            selectedStartDate = getArguments().getString("selectedStartDate", null);
-            selectedEndDate   = getArguments().getString("selectedEndDate", null);
+            userEmail        = getArguments().getString("userEmail");
+            selectedInterest = getArguments().getString("selectedInterest", "All");
+            selectedStartDate= getArguments().getString("selectedStartDate", null);
+            selectedEndDate  = getArguments().getString("selectedEndDate", null);
         }
 
         // QR scan
         if (scan_qr != null) {
             scan_qr.setOnClickListener(v -> {
-                Intent intent = new Intent(requireContext(), QRScannerActivity.class);
-                qrLauncher.launch(intent);
+                Intent intent = new Intent(getActivity(), QRScannerActivity.class);
+                startActivityForResult(intent, QR_SCAN_REQUEST_CODE);
             });
         }
 
         // Spinner
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                requireContext(),
+                getContext(),
                 R.array.interests_array,
                 android.R.layout.simple_spinner_item
         );
@@ -194,6 +181,22 @@ public class EventLottery extends Fragment {
         return view;
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == QR_SCAN_REQUEST_CODE) {
+            if (resultCode == getActivity().RESULT_OK && data != null) {
+                String eventId = data.getStringExtra("EVENT_ID");
+                if (eventId != null && !eventId.isEmpty()) {
+                    eventDetails(eventId);
+                }
+            } else {
+                Toast.makeText(getContext(), "QR scan cancelled", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     /** Load details and navigate to entrant fragment. */
     private void eventDetails(String eventId) {
         db.collection("Events").document(eventId)
@@ -209,14 +212,10 @@ public class EventLottery extends Fragment {
                         Long   maxEntrants = eventSnapshot.getLong("maxEntrants");
                         Double price       = eventSnapshot.getDouble("price");
 
-                        @SuppressWarnings("unchecked")
                         List<String> waitingList = (List<String>) eventSnapshot.get("waitingList");
-                        boolean isOnWaitlist = waitingList != null
-                                && userEmail != null
-                                && waitingList.contains(userEmail);
+                        boolean isOnWaitlist = waitingList != null && userEmail != null && waitingList.contains(userEmail);
 
-                        boolean waitingListClosed = Boolean.TRUE.equals(
-                                eventSnapshot.getBoolean("waitingListClosed"));
+                        boolean waitingListClosed = Boolean.TRUE.equals(eventSnapshot.getBoolean("waitingListClosed"));
 
                         String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
                                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
@@ -258,7 +257,7 @@ public class EventLottery extends Fragment {
         int month = calendar.get(Calendar.MONTH);
         int day   = calendar.get(Calendar.DAY_OF_MONTH);
 
-        DatePickerDialog dialog = new DatePickerDialog(requireContext(),
+        DatePickerDialog dialog = new DatePickerDialog(getContext(),
                 (view, year1, month1, dayOfMonth) -> {
                     String pickedDate = String.format(Locale.US, "%04d-%02d-%02d", year1, month1 + 1, dayOfMonth);
                     if (isStartDate) {
@@ -376,7 +375,6 @@ public class EventLottery extends Fragment {
 
             // full?
             Long maxEntrants = eventDoc.getLong("maxEntrants");
-            @SuppressWarnings("unchecked")
             List<String> waitingList = (List<String>) eventDoc.get("waitingList");
             int waitlistCount = waitingList != null ? waitingList.size() : 0;
             if (maxEntrants != null && maxEntrants > 0 && waitlistCount >= maxEntrants) return false;
@@ -398,7 +396,6 @@ public class EventLottery extends Fragment {
             String eventName      = eventDoc.getString("eventName");
             String eventStartDate = eventDoc.getString("startDate");
             String eventLocation  = eventDoc.getString("location");
-            @SuppressWarnings("unchecked")
             List<String> waitingList = (List<String>) eventDoc.get("waitingList");
             int waitlistCount = waitingList != null ? waitingList.size() : 0;
             String eventId = eventDoc.getId();
@@ -447,16 +444,15 @@ public class EventLottery extends Fragment {
                                 return;
                             }
 
-                            String eventNameStr      = eventSnapshot.getString("eventName");
-                            String eventDescStr      = eventSnapshot.getString("description");
-                            String eventStartDateStr = eventSnapshot.getString("startDate");
-                            String eventLocationStr  = eventSnapshot.getString("location");
-                            String regStart          = eventSnapshot.getString("registrationStart");
-                            String regEnd            = eventSnapshot.getString("registrationEnd");
-                            Long   maxEntrantsVal    = eventSnapshot.getLong("maxEntrants");
-                            Double priceVal          = eventSnapshot.getDouble("price");
+                            String eventNameStr     = eventSnapshot.getString("eventName");
+                            String eventDescStr     = eventSnapshot.getString("description");
+                            String eventStartDateStr= eventSnapshot.getString("startDate");
+                            String eventLocationStr = eventSnapshot.getString("location");
+                            String regStart         = eventSnapshot.getString("registrationStart");
+                            String regEnd           = eventSnapshot.getString("registrationEnd");
+                            Long   maxEntrantsVal   = eventSnapshot.getLong("maxEntrants");
+                            Double priceVal         = eventSnapshot.getDouble("price");
 
-                            @SuppressWarnings("unchecked")
                             List<String> fullWaitlist = (List<String>) eventSnapshot.get("waitingList");
                             boolean isOnWaitlist = fullWaitlist != null
                                     && userEmail != null
