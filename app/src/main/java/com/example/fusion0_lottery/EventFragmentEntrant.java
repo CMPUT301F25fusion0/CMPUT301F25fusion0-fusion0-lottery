@@ -32,12 +32,13 @@ import java.util.Map;
 
 public class EventFragmentEntrant extends Fragment {
 
-    private TextView eventNameText, eventDescriptionText, eventInterestsText, eventDateText, eventLocationText;
+    private TextView eventNameText, eventDescriptionText, eventInterestsText, eventDateText, eventLocationText, totalEntrantsText, lotteryCriteriaText;
     private TextView registrationText, maxEntrantsText, eventPriceText, qrCodeLabel;
     private Button joinWaitingListButton;
     private ImageView qrCodeImage;
     private String eventId;
     private boolean isInWaitingList;
+
     private boolean waitingListClosed;
 
     private FirebaseFirestore db;
@@ -96,6 +97,8 @@ public class EventFragmentEntrant extends Fragment {
         registrationText = view.findViewById(R.id.eventEndDate);
         maxEntrantsText = view.findViewById(R.id.eventEntrants);
         eventPriceText = view.findViewById(R.id.eventPrice);
+        totalEntrantsText = view.findViewById(R.id.textTotalEntrants);
+        lotteryCriteriaText = view.findViewById(R.id.textLotteryCriteria);
         joinWaitingListButton = view.findViewById(R.id.buttonJoinWaitingList);
         qrCodeImage = view.findViewById(R.id.eventQrCode);
         qrCodeLabel = view.findViewById(R.id.qrCodeLabel);
@@ -119,6 +122,35 @@ public class EventFragmentEntrant extends Fragment {
 
             maxEntrantsText.setText("Max Entrants: " + getArguments().getLong("maxEntrants"));
             eventPriceText.setText("Price: $" + getArguments().getDouble("price"));
+
+            // Listen for live updates of total entrants
+            db.collection("Events").document(eventId)
+                    .addSnapshotListener((snapshot, e) -> {
+                        if (snapshot != null && snapshot.exists()) {
+                            List<String> waitingList = (List<String>) snapshot.get("waitingList");
+                            int total = waitingList != null ? waitingList.size() : 0;
+                            long maxEntrantsVal = getArguments().getLong("maxEntrants");
+                            totalEntrantsText.setText("Total Entrants: " + total + " / " + maxEntrantsVal);
+                        }
+                    });
+
+
+            // Fetch and display lottery selection criteria (NEW)
+            db.collection("Events").document(eventId)
+                    .get()
+                    .addOnSuccessListener(snapshot -> {
+                        if (snapshot != null && snapshot.exists()) {
+                            String criteria = snapshot.getString("lotteryCriteria");
+                            if (criteria != null && !criteria.isEmpty()) {
+                                lotteryCriteriaText.setText("Lottery Criteria: " + criteria);
+                            } else {
+                                lotteryCriteriaText.setText("Lottery Criteria: Random selection after registration closes.");
+                            }
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        lotteryCriteriaText.setText("Lottery Criteria: (Unavailable)");
+                    });
 
             // Fetch latest waiting list and remove deleted users before showing button
             db.collection("Events").document(eventId).get()
