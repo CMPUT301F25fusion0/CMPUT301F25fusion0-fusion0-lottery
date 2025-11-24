@@ -58,7 +58,6 @@ public class FragmentWaitingList extends Fragment {
         sortFilter = view.findViewById(R.id.sortFilter);
         drawWinnersButton = view.findViewById(R.id.drawWinnersButton);
 
-
         waitingList = new ArrayList<>();
         db = FirebaseFirestore.getInstance();
 
@@ -75,8 +74,6 @@ public class FragmentWaitingList extends Fragment {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 sortAndUpdate();
             }
-
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 return;
@@ -100,8 +97,7 @@ public class FragmentWaitingList extends Fragment {
                         return;
                     }
 
-                    List<Map<String, Object>> waitingListData =
-                            (List<Map<String, Object>>) snapshot.get("waitingList");
+                    List<Map<String, Object>> waitingListData = (List<Map<String, Object>>) snapshot.get("waitingList");
 
                     if (waitingListData == null || waitingListData.isEmpty()) {
                         waitingListView.setVisibility(View.GONE);
@@ -114,17 +110,16 @@ public class FragmentWaitingList extends Fragment {
                     }
 
                     waitingList.clear();
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
+                    SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd");
                     for (Map<String, Object> entry : waitingListData) {
-                        if (entry == null) continue;
-
+                        if (entry == null) {
+                            continue;
+                        }
                         String userId = (String) entry.get("userId");
                         Timestamp joinedAt = (Timestamp) entry.get("joinedAt");
-
                         String joinDate;
                         if (joinedAt != null) {
-                            joinDate = sdf.format(joinedAt.toDate());
+                            joinDate = formatDate.format(joinedAt.toDate());
                         }
                         else {
                             joinDate = "Unknown";
@@ -135,9 +130,7 @@ public class FragmentWaitingList extends Fragment {
                                     if (userSnap.exists()) {
                                         String name = userSnap.getString("name");
                                         String status = userSnap.getString("status") != null ? userSnap.getString("status") : "Pending";
-
                                         waitingList.add(new WaitingListEntrants(name, joinDate, status));
-
                                         if (waitingList.size() == waitingListData.size()) {
                                             sortAndUpdate();
                                         }
@@ -172,17 +165,14 @@ public class FragmentWaitingList extends Fragment {
                         return;
                     }
                     int numberOfWinners = numWinnersLong.intValue();
-
-                    // read waiting list
-                    List<Map<String, Object>> waitingListData =
-                            (List<Map<String, Object>>) snapshot.get("waitingList");
+                    List<Map<String, Object>> waitingListData = (List<Map<String, Object>>) snapshot.get("waitingList");
 
                     if (waitingListData == null || waitingListData.isEmpty()) {
                         Toast.makeText(getContext(), "Waiting list is empty!", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
-                    // random select numberOfWinners amount or until waiting list is empty
+                    // randomly select numberOfWinners amount or until waiting list is empty
                     int numberRandomWinners = Math.min(numberOfWinners, waitingListData.size());
                     List<Map<String, Object>> tempList = new ArrayList<>(waitingListData);
                     List<Map<String, Object>> chosenWinners = new ArrayList<>();
@@ -204,16 +194,11 @@ public class FragmentWaitingList extends Fragment {
                                 Toast.makeText(getContext(), "Selected " + chosenWinners.size() + " winners!", Toast.LENGTH_LONG).show();
                                 loadWaitingList(eventId);
                             })
-                            .addOnFailureListener(e ->
-                                    Toast.makeText(getContext(),
-                                            "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show()
                             );
 
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(),
-                                "Error loading event: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
 
     }
 

@@ -88,7 +88,6 @@ public class FragmentSelectedEntrants extends Fragment {
     private void loadWinnersList() {
         db.collection("Events").document(eventId).get()
                 .addOnSuccessListener(snapshot -> {
-
                     if (!snapshot.exists()) {
                         Toast.makeText(getContext(), "Event not found", Toast.LENGTH_SHORT).show();
                         return;
@@ -122,18 +121,13 @@ public class FragmentSelectedEntrants extends Fragment {
                                         updateWinnersListDisplay(winnersList);
                                     }
                                 })
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(getContext(),
-                                                "Failed to load user: " + e.getMessage(),
-                                                Toast.LENGTH_SHORT).show()
+                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load user: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                                 );
                     }
 
                 })
                 .addOnFailureListener(e ->
-                        Toast.makeText(getContext(),
-                                "Failed to load winners list: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show());
+                        Toast.makeText(getContext(), "Failed to load winners list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     /**
@@ -175,7 +169,6 @@ public class FragmentSelectedEntrants extends Fragment {
                                     DocumentSnapshot userSnap = (DocumentSnapshot) obj;
                                     if (userSnap.exists()) {
                                         String status = userSnap.getString("status");
-                                        assert status != null;
                                         if (status.equals("Declined")) {
                                             declinedCount++;
                                         }
@@ -208,22 +201,14 @@ public class FragmentSelectedEntrants extends Fragment {
                                             Toast.makeText(getContext(), "Selected " + newWinners.size() + " winners!", Toast.LENGTH_LONG).show();
                                             loadWinnersList();
                                         })
-                                        .addOnFailureListener(e ->
-                                                Toast.makeText(getContext(),
-                                                        "Failed to update winners: " + e.getMessage(),
-                                                        Toast.LENGTH_LONG).show()
+                                        .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show()
                                         );
                             })
-                            .addOnFailureListener(e ->
-                                    Toast.makeText(getContext(),
-                                            "Failed to load user statuses: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load user statuses: " + e.getMessage(), Toast.LENGTH_LONG).show()
                             );
 
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(),
-                                "Error loading event: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     /**
@@ -254,14 +239,13 @@ public class FragmentSelectedEntrants extends Fragment {
 
     /**
      * placeholder function to send notifications to all winners
+     * replace this with the notification stuff
      */
     private void showConfirmDialog() {
         new AlertDialog.Builder(getContext())
                 .setTitle("Send Notification?")
                 .setMessage("Do you want to send notification to all selected entrants?")
-                .setPositiveButton("Send", (dialog, which) -> {
-                    Toast.makeText(getContext(), "Notifications sent!", Toast.LENGTH_SHORT).show();
-                })
+                .setPositiveButton("Send", (dialog, which) -> {Toast.makeText(getContext(), "Notifications sent!", Toast.LENGTH_SHORT).show();})
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .create()
                 .show();
