@@ -136,13 +136,11 @@ public class FragmentWaitingList extends Fragment {
                                         }
                                     }
                                 })
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(getContext(), "Failed to load user: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load user: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                     }
 
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Failed to load event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     /**
@@ -194,8 +192,7 @@ public class FragmentWaitingList extends Fragment {
                                 Toast.makeText(getContext(), "Selected " + chosenWinners.size() + " winners!", Toast.LENGTH_LONG).show();
                                 loadWaitingList(eventId);
                             })
-                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                            );
+                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show());
 
                 })
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show());

@@ -121,8 +121,7 @@ public class FragmentSelectedEntrants extends Fragment {
                                         updateWinnersListDisplay(winnersList);
                                     }
                                 })
-                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load user: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                                );
+                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load user: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                     }
 
                 })
@@ -201,11 +200,9 @@ public class FragmentSelectedEntrants extends Fragment {
                                             Toast.makeText(getContext(), "Selected " + newWinners.size() + " winners!", Toast.LENGTH_LONG).show();
                                             loadWinnersList();
                                         })
-                                        .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                                        );
+                                        .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show());
                             })
-                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load user statuses: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                            );
+                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load user statuses: " + e.getMessage(), Toast.LENGTH_LONG).show());
 
                 })
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
