@@ -68,13 +68,15 @@ public class FragmentEditEvent extends Fragment {
         int month = calendar.get(Calendar.MONTH);
         int day = calendar.get(Calendar.DAY_OF_MONTH);
 
-        new DatePickerDialog(requireContext(),
-                (view, y, m, d) -> {
-                    String date = String.format(Locale.getDefault(),
-                            "%04d-%02d-%02d", y, m + 1, d);
+        DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(),
+                (view, selectedYear, selectedMonth, selectedDay) -> {
+                    String date = String.format(Locale.getDefault(), "%04d-%02d-%02d",
+                            selectedYear, selectedMonth + 1, selectedDay);
                     inputField.setText(date);
                 },
-                year, month, day).show();
+                year, month, day
+        );
+        datePickerDialog.show();
     }
 
     private void showTimePicker(EditText inputField) {
@@ -82,12 +84,15 @@ public class FragmentEditEvent extends Fragment {
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
 
-        new TimePickerDialog(requireContext(),
-                (view, h, m) -> {
-                    String time = String.format(Locale.getDefault(),
-                            "%02d:%02d", h, m);
+        TimePickerDialog timePickerDialog = new TimePickerDialog(requireContext(),
+                (view, selectedHour, selectedMinute) -> {
+                    String time = String.format(Locale.getDefault(), "%02d:%02d",
+                            selectedHour, selectedMinute);
                     inputField.setText(time);
-                }, hour, minute, true).show();
+                },
+                hour, minute, true
+        );
+        timePickerDialog.show();
     }
 
     private void loadEventDetails() {
@@ -96,9 +101,13 @@ public class FragmentEditEvent extends Fragment {
         db.collection("Events").document(eventId)
                 .get()
                 .addOnSuccessListener(snapshot -> {
-                    if (!snapshot.exists()) return;
+                    if (!snapshot.exists()) {
+                        return;
+                    }
                     Event event = snapshot.toObject(Event.class);
-                    if (event == null) return;
+                    if (event == null) {
+                        return;
+                    }
 
                     titleInput.setText(event.getEventName());
                     eventDescriptionInput.setText(event.getDescription());
@@ -110,17 +119,13 @@ public class FragmentEditEvent extends Fragment {
                     priceInput.setText(String.valueOf(event.getPrice()));
                     maxEntrantsInput.setText(String.valueOf(event.getMaxEntrants()));
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(requireContext(),
-                                "Failed to load event: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed to load event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void saveEventChanges() {
         // Validate
         if (!validateInputs()) {
-            Toast.makeText(requireContext(),
-                    "Please fill in all fields", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -140,16 +145,10 @@ public class FragmentEditEvent extends Fragment {
                         "price", doublePrice,
                         "maxEntrants", intMaxEntrants
                 )
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(requireContext(),
-                            "Event updated!", Toast.LENGTH_SHORT).show();
-                    ((MainActivity) requireActivity())
-                            .replaceFragment(new ManageEvents());
+                .addOnSuccessListener(aVoid -> {Toast.makeText(requireContext(), "Event updated!", Toast.LENGTH_SHORT).show();
+                    ((MainActivity) requireActivity()).replaceFragment(new ManageEvents());
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(requireContext(),
-                                "Failed: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     /** * make sure that all of the fields are filled * @return true none of the fields are empty */
