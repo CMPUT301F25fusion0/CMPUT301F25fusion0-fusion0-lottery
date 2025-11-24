@@ -173,6 +173,22 @@ public class FragmentEditEvent extends Fragment {
             return true;
         }
     }
+    // Add this inside your FragmentEditEvent class
+    void testingEdit(EditText title1, EditText text, EditText editText, EditText title, EditText desc,
+                     EditText start, EditText end, EditText time, EditText location,
+                     EditText price, EditText max, EditText interests, EditText lottery) {
+        this.titleInput = title;
+        this.eventDescriptionInput = desc;
+        this.startDateInput = start;
+        this.endDateInput = end;
+        this.timeInput = time;
+        this.locationInput = location;
+        this.priceInput = price;
+        this.maxEntrantsInput = max;
+        this.interestsInput = interests;
+        this.lotteryCriteriaInput = lottery; // assign lottery criteria too
+    }
+
 
 
     /**
