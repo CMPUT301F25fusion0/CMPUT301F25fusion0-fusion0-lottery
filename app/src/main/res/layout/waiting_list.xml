@@ -51,32 +51,51 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <Button
-            android:id="@+id/notifyWaitListButton"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:text="Notify Waiting List" />
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/refreshButton"
+            <Button
+                android:id="@+id/notifyWaitListButton"
+                android:layout_width="168dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:text="Notify Waiting List" />
+
+            <Button
+                android:id="@+id/refreshButton"
+                android:layout_width="168dp"
+                android:layout_height="40dp"
+                android:text="Refresh List" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Refresh List"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp"
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/mapViewButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Map View"
-            android:layout_marginBottom="8dp" />
+            <Button
+                android:id="@+id/drawWinnersButton"
+                android:layout_width="168dp"
+                android:layout_height="40dp"
+                android:text="Draw Winners"
+                android:layout_marginEnd="8dp" />
+
+            <Button
+                android:id="@+id/mapViewButton"
+                android:layout_width="168dp"
+                android:layout_height="40dp"
+                android:text="Map View" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/backButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Back" />
+            android:text="Back to Events" />
     </LinearLayout>
 
 </RelativeLayout>

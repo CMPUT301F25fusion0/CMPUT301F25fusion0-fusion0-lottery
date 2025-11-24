@@ -86,6 +86,9 @@ public class FragmentOrganizer extends Fragment {
                     if (maxEntrants == null) {
                         maxEntrants = -1L; // placeholder; "No Limit" if -1
                     }
+                    Long winnersLong = snapshot.getLong("numberOfWinners");
+                    int numberOfWinners = (winnersLong != null) ? winnersLong.intValue() : 0;
+
                     // convert the event into an object to get data from
                     Event event = snapshot.toObject(Event.class);
                     event.setEventId(snapshot.getId());

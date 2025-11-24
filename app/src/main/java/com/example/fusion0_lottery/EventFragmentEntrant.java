@@ -25,8 +25,10 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class EventFragmentEntrant extends Fragment {
 
@@ -201,44 +203,52 @@ public class EventFragmentEntrant extends Fragment {
                 return;
             }
 
-            ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
+            // Get waiting list as list of maps
+            List<Map<String, Object>> waitingList =
+                    (List<Map<String, Object>>) snapshot.get("waitingList");
             if (waitingList == null) waitingList = new ArrayList<>();
 
-            // Create a copy for mutation inside lambda
-            ArrayList<String> mutableWaitingList = new ArrayList<>(waitingList);
+            // Mutable copy
+            List<Map<String, Object>> mutableWaitingList = new ArrayList<>(waitingList);
 
-            List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
-            for (String uid : new ArrayList<>(mutableWaitingList)) {
-                tasks.add(db.collection("Users").document(uid).get());
+            // Remove invalid entries
+            Iterator<Map<String, Object>> iter = mutableWaitingList.iterator();
+            while (iter.hasNext()) {
+                Map<String, Object> entry = iter.next();
+                if (!entry.containsKey("userId") || entry.get("userId") == null) iter.remove();
             }
 
-            com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
-                    .addOnSuccessListener(results -> {
-                        // Clean up deleted users
-                        Iterator<String> iter = mutableWaitingList.iterator();
-                        for (Object obj : results) {
-                            com.google.firebase.firestore.DocumentSnapshot userSnap = (com.google.firebase.firestore.DocumentSnapshot) obj;
-                            if (!userSnap.exists()) iter.remove();
-                        }
+            // Check if current user is already in list
+            Map<String, Object> existingEntry = null;
+            for (Map<String, Object> entry : mutableWaitingList) {
+                if (currentUserId.equals(entry.get("userId"))) {
+                    existingEntry = entry;
+                    break;
+                }
+            }
 
-                        // Add/remove current user
-                        if (isInWaitingList) {
-                            mutableWaitingList.remove(currentUserId);
-                            isInWaitingList = false;
-                            joinWaitingListButton.setText("Join Waiting List");
-                            Toast.makeText(getContext(), "You left the waiting list", Toast.LENGTH_SHORT).show();
-                        } else {
-                            if (!mutableWaitingList.contains(currentUserId)) mutableWaitingList.add(currentUserId);
-                            isInWaitingList = true;
-                            joinWaitingListButton.setText("Leave Waiting List");
-                            Toast.makeText(getContext(), "You joined the waiting list", Toast.LENGTH_SHORT).show();
-                        }
+            if (existingEntry != null) {
+                // Leave waiting list
+                mutableWaitingList.remove(existingEntry);
+                isInWaitingList = false;
+                joinWaitingListButton.setText("Join Waiting List");
+                Toast.makeText(getContext(), "You left the waiting list", Toast.LENGTH_SHORT).show();
+            } else {
+                // Join waiting list
+                Map<String, Object> newEntrant = new HashMap<>();
+                newEntrant.put("userId", currentUserId);
+                newEntrant.put("joinedAt", com.google.firebase.Timestamp.now());
+                mutableWaitingList.add(newEntrant);
 
-                        // Update Firestore
-                        eventRef.update("waitingList", mutableWaitingList)
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(getContext(), "Error updating waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-                    });
+                isInWaitingList = true;
+                joinWaitingListButton.setText("Leave Waiting List");
+                Toast.makeText(getContext(), "You joined the waiting list", Toast.LENGTH_SHORT).show();
+            }
+
+            // Update Firestore
+            eventRef.update("waitingList", mutableWaitingList)
+                    .addOnFailureListener(e ->
+                            Toast.makeText(getContext(), "Error updating waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         });
     }
 
