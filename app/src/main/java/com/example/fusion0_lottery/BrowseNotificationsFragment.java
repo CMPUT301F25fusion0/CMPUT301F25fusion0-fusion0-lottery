@@ -12,7 +12,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 
-public class FragmentAdminEvents extends Fragment {
+public class BrowseNotificationsFragment extends Fragment {
 
     private FirebaseFirestore db;
     private BottomNavigationView bottomNavigation;
@@ -20,9 +20,9 @@ public class FragmentAdminEvents extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_admin_events, container, false);
+        View view = inflater.inflate(R.layout.fragment_browse_notifications, container, false);
         bottomNavigation = view.findViewById(R.id.bottom_navigation);
+        bottomNavigation.setSelectedItemId(R.id.nav_logs);
 
         bottom_navigation();
         return view;
@@ -36,13 +36,12 @@ public class FragmentAdminEvents extends Fragment {
                 navigateToFragment(new BrowseProfileFragment());
                 return true;
             } else if (itemId == R.id.nav_events) {
-//                navigateToFragment(new BrowseEventsFragment());
+                navigateToFragment(new BrowseEventsFragment());
                 return true;
             } else if (itemId == R.id.nav_images) {
-//                navigateToFragment(new BrowseImagesFragment());
+                navigateToFragment(new BrowseImagesFragment());
                 return true;
             } else if (itemId == R.id.nav_logs) {
-//                navigateToFragment(new BrowseLogsFragment());
                 return true;
             }
             return false;
