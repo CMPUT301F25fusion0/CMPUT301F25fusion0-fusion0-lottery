@@ -1,12 +1,10 @@
 package com.example.fusion0_lottery;
 
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,21 +17,17 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class EventFragmentEntrant extends Fragment {
 
     private TextView eventNameText, eventDescriptionText, eventInterestsText, eventDateText, eventLocationText;
-    private TextView registrationText, maxEntrantsText, eventPriceText, qrCodeLabel;
+    private TextView registrationText, maxEntrantsText, eventPriceText;
     private Button joinWaitingListButton;
-    private ImageView qrCodeImage;
     private String eventId;
     private boolean isInWaitingList;
     private boolean waitingListClosed;
@@ -95,8 +89,6 @@ public class EventFragmentEntrant extends Fragment {
         maxEntrantsText = view.findViewById(R.id.eventEntrants);
         eventPriceText = view.findViewById(R.id.eventPrice);
         joinWaitingListButton = view.findViewById(R.id.buttonJoinWaitingList);
-        qrCodeImage = view.findViewById(R.id.eventQrCode);
-        qrCodeLabel = view.findViewById(R.id.qrCodeLabel);
         joinWaitingListButton.setVisibility(View.INVISIBLE);
 
         if (getArguments() != null) {
@@ -123,44 +115,64 @@ public class EventFragmentEntrant extends Fragment {
                     .addOnSuccessListener(snapshot -> {
                         if (!snapshot.exists()) return;
 
-                        ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
-                        if (waitingList == null) waitingList = new ArrayList<>();
+                        List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
+                        if (waitingListData == null) waitingListData = new ArrayList<>();
 
-                        // Generate and display QR code if enabled
-                        Boolean hasQrCode = snapshot.getBoolean("hasQrCode");
-                        String eventIdForQr = snapshot.getString("eventId");
+                        // Extract user IDs from waiting list (handles both String and Map formats)
+                        ArrayList<String> userIds = new ArrayList<>();
+                        for (Object item : waitingListData) {
+                            if (item == null) continue;
 
-                        if (hasQrCode != null && hasQrCode && eventIdForQr != null) {
-                            try {
-                                Bitmap qrBitmap = generateQRCode(eventIdForQr);
-                                qrCodeLabel.setVisibility(View.VISIBLE);
-                                qrCodeImage.setVisibility(View.VISIBLE);
-                                qrCodeImage.setImageBitmap(qrBitmap);
-                            } catch (WriterException e) {
-                                qrCodeLabel.setVisibility(View.GONE);
-                                qrCodeImage.setVisibility(View.GONE);
+                            String userId;
+                            if (item instanceof String) {
+                                // Old format: just userId as string
+                                userId = (String) item;
+                            } else if (item instanceof Map) {
+                                // New format: Map with userId and joinedAt
+                                Map<String, Object> entry = (Map<String, Object>) item;
+                                userId = (String) entry.get("userId");
+                            } else {
+                                continue;
                             }
-                        } else {
-                            qrCodeLabel.setVisibility(View.GONE);
-                            qrCodeImage.setVisibility(View.GONE);
+
+                            if (userId != null && !userId.isEmpty()) {
+                                userIds.add(userId);
+                            }
                         }
 
                         List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
-                        for (String uid : new ArrayList<>(waitingList)) {
+                        for (String uid : userIds) {
                             tasks.add(db.collection("Users").document(uid).get());
                         }
 
-                        ArrayList<String> finalWaitingList = waitingList;
+                        List<Object> finalWaitingListData = waitingListData;
+                        ArrayList<String> finalUserIds = userIds;
                         com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
                                 .addOnSuccessListener(results -> {
-                                    ArrayList<String> cleanList = new ArrayList<>();
+                                    // Build cleaned list maintaining the original format
+                                    List<Object> cleanList = new ArrayList<>();
                                     for (int i = 0; i < results.size(); i++) {
                                         DocumentSnapshot userSnap = (DocumentSnapshot) results.get(i);
-                                        if (userSnap.exists()) cleanList.add(finalWaitingList.get(i));
+                                        if (userSnap.exists()) {
+                                            // Find the original entry in waitingListData
+                                            String validUserId = finalUserIds.get(i);
+                                            for (Object item : finalWaitingListData) {
+                                                if (item instanceof String && item.equals(validUserId)) {
+                                                    cleanList.add(item);
+                                                    break;
+                                                } else if (item instanceof Map) {
+                                                    Map<String, Object> entry = (Map<String, Object>) item;
+                                                    if (validUserId.equals(entry.get("userId"))) {
+                                                        cleanList.add(item);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
 
                                     // Update isInWaitingList
-                                    isInWaitingList = cleanList.contains(currentUserId);
+                                    isInWaitingList = finalUserIds.contains(currentUserId);
                                     joinWaitingListButton.setText(isInWaitingList ? "Leave Waiting List" : "Join Waiting List");
 
                                     // Update Firestore with cleaned list
@@ -201,67 +213,66 @@ public class EventFragmentEntrant extends Fragment {
                 return;
             }
 
-            ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
-            if (waitingList == null) waitingList = new ArrayList<>();
+            // Get waiting list (handles both String and Map formats)
+            List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
+            if (waitingListData == null) waitingListData = new ArrayList<>();
 
-            // Create a copy for mutation inside lambda
-            ArrayList<String> mutableWaitingList = new ArrayList<>(waitingList);
+            // Normalize to Map format and build mutable list
+            List<Map<String, Object>> mutableWaitingList = new ArrayList<>();
+            for (Object item : waitingListData) {
+                if (item == null) continue;
 
-            List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
-            for (String uid : new ArrayList<>(mutableWaitingList)) {
-                tasks.add(db.collection("Users").document(uid).get());
+                Map<String, Object> entry;
+                if (item instanceof String) {
+                    // Old format: convert String to Map
+                    entry = new HashMap<>();
+                    entry.put("userId", item);
+                    entry.put("joinedAt", null);
+                } else if (item instanceof Map) {
+                    // New format: already a map
+                    entry = new HashMap<>((Map<String, Object>) item);
+                } else {
+                    continue;
+                }
+
+                // Only add valid entries
+                if (entry.containsKey("userId") && entry.get("userId") != null) {
+                    mutableWaitingList.add(entry);
+                }
             }
 
-            com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
-                    .addOnSuccessListener(results -> {
-                        // Clean up deleted users
-                        Iterator<String> iter = mutableWaitingList.iterator();
-                        for (Object obj : results) {
-                            com.google.firebase.firestore.DocumentSnapshot userSnap = (com.google.firebase.firestore.DocumentSnapshot) obj;
-                            if (!userSnap.exists()) iter.remove();
-                        }
+            // Check if current user is already in list
+            Map<String, Object> existingEntry = null;
+            for (Map<String, Object> entry : mutableWaitingList) {
+                if (currentUserId.equals(entry.get("userId"))) {
+                    existingEntry = entry;
+                    break;
+                }
+            }
 
-                        // Add/remove current user
-                        if (isInWaitingList) {
-                            mutableWaitingList.remove(currentUserId);
-                            isInWaitingList = false;
-                            joinWaitingListButton.setText("Join Waiting List");
-                            Toast.makeText(getContext(), "You left the waiting list", Toast.LENGTH_SHORT).show();
-                        } else {
-                            if (!mutableWaitingList.contains(currentUserId)) mutableWaitingList.add(currentUserId);
-                            isInWaitingList = true;
-                            joinWaitingListButton.setText("Leave Waiting List");
-                            Toast.makeText(getContext(), "You joined the waiting list", Toast.LENGTH_SHORT).show();
-                        }
+            if (existingEntry != null) {
+                // Leave waiting list
+                mutableWaitingList.remove(existingEntry);
+                isInWaitingList = false;
+                joinWaitingListButton.setText("Join Waiting List");
+                Toast.makeText(getContext(), "You left the waiting list", Toast.LENGTH_SHORT).show();
+            } else {
+                // Join waiting list
+                Map<String, Object> newEntrant = new HashMap<>();
+                newEntrant.put("userId", currentUserId);
+                newEntrant.put("joinedAt", com.google.firebase.Timestamp.now());
+                mutableWaitingList.add(newEntrant);
 
-                        // Update Firestore
-                        eventRef.update("waitingList", mutableWaitingList)
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(getContext(), "Error updating waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-                    });
+                isInWaitingList = true;
+                joinWaitingListButton.setText("Leave Waiting List");
+                Toast.makeText(getContext(), "You joined the waiting list", Toast.LENGTH_SHORT).show();
+            }
+
+            // Update Firestore
+            eventRef.update("waitingList", mutableWaitingList)
+                    .addOnFailureListener(e ->
+                            Toast.makeText(getContext(), "Error updating waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         });
     }
 
-    /**
-     * Generate QR code bitmap from event ID
-     */
-    private Bitmap generateQRCode(String eventId) throws WriterException {
-        String qrContent = "event://" + eventId;
-        int size = 500;
-
-        BitMatrix bitMatrix = new MultiFormatWriter().encode(
-                qrContent,
-                BarcodeFormat.QR_CODE,
-                size,
-                size
-        );
-
-        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565);
-        for (int x = 0; x < size; x++) {
-            for (int y = 0; y < size; y++) {
-                bitmap.setPixel(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
-            }
-        }
-        return bitmap;
-    }
 }

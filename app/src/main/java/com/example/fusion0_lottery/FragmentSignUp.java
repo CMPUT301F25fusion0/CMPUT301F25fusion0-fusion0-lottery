@@ -32,7 +32,7 @@ public class FragmentSignUp extends Fragment {
     private FirebaseFirestore db;
     private static final List<String> ADMIN_EMAILS = Arrays.asList(
             "mersimoy@ualberta.ca",
-            "@ualberta.ca",
+            "thi2@ualberta.ca",
             "@ualberta.ca",
             "@ualberta.ca",
             "@ualberta.ca",
