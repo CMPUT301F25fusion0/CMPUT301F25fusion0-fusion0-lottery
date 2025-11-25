@@ -341,7 +341,9 @@ public class EventCreationActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentReference -> {
                     // create the event ID
                     createdEventId = documentReference.getId();
-                    documentReference.update("eventId", createdEventId);
+                    // Update event ID and QR code setting
+                    documentReference.update("eventId", createdEventId,
+                            "hasQrCode", generateQrCheckbox.isChecked());
 
                     if (posterImageUri != null) {
                         // upload the poster first then save the event

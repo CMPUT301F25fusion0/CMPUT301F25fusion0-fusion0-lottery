@@ -18,18 +18,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class FragmentWaitingList extends Fragment {
 
     private ListView waitingListView;
     private TextView emptyText;
-    private Button backButton, refreshButton, notifyWaitListButton;
+    private Button backButton, refreshButton, notifyWaitListButton, drawWinnersButton;
+
     private Spinner sortFilter;
 
     private ArrayList<WaitingListEntrants> waitingList;
@@ -51,6 +56,7 @@ public class FragmentWaitingList extends Fragment {
         backButton = view.findViewById(R.id.backButton);
         refreshButton = view.findViewById(R.id.refreshButton);
         sortFilter = view.findViewById(R.id.sortFilter);
+        drawWinnersButton = view.findViewById(R.id.drawWinnersButton);
 
         waitingList = new ArrayList<>();
         db = FirebaseFirestore.getInstance();
@@ -60,35 +66,21 @@ public class FragmentWaitingList extends Fragment {
             loadWaitingList(eventId);
         }
 
-        // go back to the previous event manage screen
         backButton.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
-
-        // refresh button to reload the waiting list information after applying sorting changes
         refreshButton.setOnClickListener(v -> loadWaitingList(eventId));
-
-        // notify waiting list button to send a message to all users in the waiting list
         notifyWaitListButton.setOnClickListener(v -> showNotificationDialog());
-
         sortFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position == 0) {
-                    // sort by name
-                    Collections.sort(waitingList, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
-                }
-                else {
-                    // sort by join date using a lambda
-                    Collections.sort(waitingList, (a, b) -> a.getJoinDate().compareTo(b.getJoinDate()));
-                }
-                updateListView();
+                sortAndUpdate();
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 return;
             }
         });
 
+        drawWinnersButton.setOnClickListener(v -> drawRandomWinners());
         return view;
     }
 
@@ -96,6 +88,7 @@ public class FragmentWaitingList extends Fragment {
      *  function to display the waiting list for an event
      *  lists all entrants in the waiting list
      *  allow sorting by name and join date
+     *  Handles both String (userId only) and Map (userId with joinedAt) entries
     */
     private void loadWaitingList(String eventId) {
         db.collection("Events").document(eventId).get()
@@ -105,54 +98,173 @@ public class FragmentWaitingList extends Fragment {
                         return;
                     }
 
-                    ArrayList<String> userIds = (ArrayList<String>) snapshot.get("waitingList");
-                    /// check if waiting list exists, if not then create one
-                    if (userIds == null) {
-                        userIds = new ArrayList<>();
-                    }
+                    List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
 
-                    // check if there's anyone in the waiting list
-                    if (userIds.isEmpty()) {
+                    if (waitingListData == null || waitingListData.isEmpty()) {
                         waitingListView.setVisibility(View.GONE);
                         emptyText.setVisibility(View.VISIBLE);
                         return;
                     }
+                    else {
+                        waitingListView.setVisibility(View.VISIBLE);
+                        emptyText.setVisibility(View.GONE);
+                    }
 
-                    // find the number of entrants in the waiting list by ID
-                    int totalEntrantsWaiting = userIds.size();
-
-                    // clear the waiting list, then add entrants to the waiting list by ID
                     waitingList.clear();
-                    // for every ID that's in the waiting list, get their name, joinDate, and status
-                    for (String uid : userIds) {
-                        db.collection("Users").document(uid).get()
+                    SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd");
+
+                    for (Object item : waitingListData) {
+                        if (item == null) {
+                            continue;
+                        }
+
+                        String userId;
+                        String joinDate;
+
+                        // Handle both String (just userId) and Map (userId with joinedAt) types
+                        if (item instanceof String) {
+                            // Old format: just userId as string
+                            userId = (String) item;
+                            joinDate = "Unknown";
+                        } else if (item instanceof Map) {
+                            // New format: Map with userId and joinedAt
+                            Map<String, Object> entry = (Map<String, Object>) item;
+                            userId = (String) entry.get("userId");
+                            Timestamp joinedAt = (Timestamp) entry.get("joinedAt");
+
+                            if (joinedAt != null) {
+                                joinDate = formatDate.format(joinedAt.toDate());
+                            } else {
+                                joinDate = "Unknown";
+                            }
+                        } else {
+                            // Unknown format, skip this entry
+                            continue;
+                        }
+
+                        if (userId == null) {
+                            continue;
+                        }
+
+                        db.collection("Users").document(userId).get()
                                 .addOnSuccessListener(userSnap -> {
                                     if (userSnap.exists()) {
                                         String name = userSnap.getString("name");
-                                        String joinDate = userSnap.getString("joinDate") != null ? userSnap.getString("joinDate") : "Unknown";
                                         String status = userSnap.getString("status") != null ? userSnap.getString("status") : "Pending";
-
-                                        // add the entrant to the waiting list
                                         waitingList.add(new WaitingListEntrants(name, joinDate, status));
-
-                                        // check if everyone is added yet, if yes then sort, if not keep adding
-                                        if (waitingList.size() == totalEntrantsWaiting) {
-                                            if (sortFilter.getSelectedItemPosition() == 0) {
-                                                Collections.sort(waitingList, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
-                                            }
-                                            else {
-                                                Collections.sort(waitingList, (a, b) -> a.getJoinDate().compareTo(b.getJoinDate()));
-                                            }
-                                            updateListView();
+                                        if (waitingList.size() == waitingListData.size()) {
+                                            sortAndUpdate();
                                         }
                                     }
                                 })
-                                .addOnFailureListener(e -> Toast.makeText(getContext(),
-                                        "Failed to load user: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load user: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                     }
+
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(),
-                        "Failed to load event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    /**
+     * function to randomly select entrants in the waiting list for an event
+     * randomly select up to 'numberOfWinners' amount from the waiting list
+     * once entrant is selected, remove them from waiting list and add to winners list
+     * Handles both String (userId only) and Map (userId with joinedAt) entries
+     */
+    private void drawRandomWinners() {
+        db.collection("Events").document(eventId).get()
+                .addOnSuccessListener(snapshot -> {
+
+                    if (!snapshot.exists()) {
+                        Toast.makeText(getContext(), "Event not found", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    Long numWinners = snapshot.getLong("numberOfWinners");
+                    if (numWinners == null) {
+                        Toast.makeText(getContext(), "Event missing number of winners field", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    int numberOfWinners = numWinners.intValue();
+                    List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
+
+                    if (waitingListData == null || waitingListData.isEmpty()) {
+                        Toast.makeText(getContext(), "Waiting list is empty", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // Normalize the waiting list to Map format
+                    List<Map<String, Object>> normalizedWaitingList = new ArrayList<>();
+                    for (Object item : waitingListData) {
+                        if (item == null) {
+                            continue;
+                        }
+
+                        Map<String, Object> entry = new HashMap<>();
+                        if (item instanceof String) {
+                            // Old format: just userId as string
+                            entry.put("userId", item);
+                            entry.put("joinedAt", null);
+                        } else if (item instanceof Map) {
+                            // New format: already a map
+                            entry = (Map<String, Object>) item;
+                        } else {
+                            continue;
+                        }
+                        normalizedWaitingList.add(entry);
+                    }
+
+                    if (normalizedWaitingList.isEmpty()) {
+                        Toast.makeText(getContext(), "Waiting list is empty", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // randomly select numberOfWinners amount or until waiting list is empty
+                    int numberRandomWinners = Math.min(numberOfWinners, normalizedWaitingList.size());
+
+                    List<Map<String, Object>> tempList = new ArrayList<>(normalizedWaitingList);
+                    List<Map<String, Object>> chosenWinners = new ArrayList<>();
+
+                    Random random = new Random();
+
+                    // select numberOfRandomWinners amount of entrants in waiting list
+                    for (int i = 0; i < numberRandomWinners; i++) {
+                        // get a random entrant via indexing, add to winners list, remove from waiting list after adding to winners list
+                        int index = random.nextInt(tempList.size());
+                        chosenWinners.add(tempList.get(index));
+                        tempList.remove(index);
+                    }
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put("waitingList", tempList);
+                    updates.put("winnersList", chosenWinners);
+
+                    db.collection("Events").document(eventId)
+                            .update(updates)
+                            .addOnSuccessListener(v -> {
+                                Toast.makeText(getContext(), "Selected " + chosenWinners.size() + " winners", Toast.LENGTH_LONG).show();
+                                loadWaitingList(eventId);
+                            })
+                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show());
+
+                })
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+
+    }
+
+    /**
+     * function to sort the waiting list viewing based on name or join date
+     * if sort filter is on "Name", then display waiting list sorted by name alphabetically
+     * if sort filter is on "Date", then display waiting list sorted by join date from earliest to latest
+     */
+    private void sortAndUpdate() {
+        if (sortFilter.getSelectedItemPosition() == 0) {
+            // sort by name
+            Collections.sort(waitingList, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+        }
+        else {
+            // sort by join date
+            Collections.sort(waitingList, (a, b) -> a.getJoinDate().compareTo(b.getJoinDate()));
+        }
+        updateListView();
     }
 
 
@@ -217,6 +329,7 @@ public class FragmentWaitingList extends Fragment {
 
     /**
      * Send notification to all users in the waiting list
+     * Handles both String (userId only) and Map (userId with joinedAt) entries
      */
     private void sendNotificationToWaitingList(String message) {
         db.collection("Events").document(eventId).get()
@@ -226,8 +339,37 @@ public class FragmentWaitingList extends Fragment {
                         return;
                     }
 
-                    ArrayList<String> userIds = (ArrayList<String>) snapshot.get("waitingList");
-                    if (userIds == null || userIds.isEmpty()) {
+                    List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
+                    if (waitingListData == null || waitingListData.isEmpty()) {
+                        Toast.makeText(getContext(), "No users in waiting list", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // Extract user IDs from the waiting list (handles both String and Map formats)
+                    ArrayList<String> userIds = new ArrayList<>();
+                    for (Object item : waitingListData) {
+                        if (item == null) {
+                            continue;
+                        }
+
+                        String userId;
+                        if (item instanceof String) {
+                            // Old format: just userId as string
+                            userId = (String) item;
+                        } else if (item instanceof Map) {
+                            // New format: Map with userId and joinedAt
+                            Map<String, Object> entry = (Map<String, Object>) item;
+                            userId = (String) entry.get("userId");
+                        } else {
+                            continue;
+                        }
+
+                        if (userId != null && !userId.isEmpty()) {
+                            userIds.add(userId);
+                        }
+                    }
+
+                    if (userIds.isEmpty()) {
                         Toast.makeText(getContext(), "No users in waiting list", Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -285,3 +427,6 @@ public class FragmentWaitingList extends Fragment {
         Toast.makeText(getContext(), resultMessage, Toast.LENGTH_LONG).show();
     }
 }
+
+
+

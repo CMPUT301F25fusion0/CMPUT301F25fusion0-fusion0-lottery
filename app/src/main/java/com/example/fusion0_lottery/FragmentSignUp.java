@@ -15,12 +15,30 @@ import androidx.fragment.app.Fragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * This fragment handles user sign up functionality
+ * It allows user to register by providing their name, email, and optional phone number
+ * It uses firebase Anonymous Authentication to give a unique device ID
+ */
+
 public class FragmentSignUp extends Fragment {
 
     private EditText nameInput, emailInput, phoneInput;
     private Button signupButton;
     private FirebaseAuth auth;
     private FirebaseFirestore db;
+    private static final List<String> ADMIN_EMAILS = Arrays.asList(
+            "mersimoy@ualberta.ca",
+            "thi2@ualberta.ca",
+            "@ualberta.ca",
+            "@ualberta.ca",
+            "@ualberta.ca",
+            "@ualberta.ca"
+    );
+
 
     @Nullable
     @Override
@@ -59,13 +77,18 @@ public class FragmentSignUp extends Fragment {
         auth.signInAnonymously().addOnCompleteListener(task -> {
             if (task.isSuccessful() && auth.getCurrentUser() != null) {
                 String deviceId = auth.getCurrentUser().getUid();
+                String role = ADMIN_EMAILS.contains(email.toLowerCase()) ? "admin" : "";
 
-                User user = new User(name, email, phone, "", deviceId); // Role can be set later
+                User user = new User(name, email, phone, role, deviceId);
 
                 db.collection("Users").document(deviceId).set(user)
                         .addOnSuccessListener(aVoid -> {
                             Toast.makeText(getContext(), "Sign up successful", Toast.LENGTH_SHORT).show();
-                            ((MainActivity) requireActivity()).replaceFragment(new FragmentRoleSelection());
+                            if (role.equals("admin")){
+                                ((MainActivity) requireActivity()).replaceFragment(new BrowseEventsFragment());
+                            } else {
+                                ((MainActivity) requireActivity()).replaceFragment(new FragmentRoleSelection());
+                            }
                         })
                         .addOnFailureListener(e ->
                                 Toast.makeText(getContext(), "Sign up failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
@@ -75,10 +98,4 @@ public class FragmentSignUp extends Fragment {
         });
     }
 
-    public boolean validSignUp(String name, String email, String password, String confirmPassword) {
-        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-            return false;
-        }
-        return password.equals(confirmPassword);
-    }
 }
