@@ -22,6 +22,7 @@ public class Event {
     private Integer waitingListCount;
     private Integer userSelectedCount;
     private Integer userEnrolledCount;
+    private Integer numberOfWinners;
 
     // Empty constructor required for Firebase
     public Event() {
@@ -31,7 +32,7 @@ public class Event {
     public Event(String eventName, String interests, String description, String startDate, String endDate,
                  String time, double price, String location, String registrationStart,
                  String registrationEnd, Integer maxEntrants, Integer waitingListCount,
-                 Integer userSelectedCount, Integer userEnrolledCount) {
+                 Integer userSelectedCount, Integer userEnrolledCount, Integer numberOfWinners) {
         this.eventName = eventName;
         this.interests = interests;
         this.description = description;
@@ -46,6 +47,7 @@ public class Event {
         this.waitingListCount = waitingListCount;
         this.userSelectedCount = userSelectedCount;
         this.userEnrolledCount = userEnrolledCount;
+        this.numberOfWinners = numberOfWinners;
     }
 
     public Event(String eventName, String description, String startDate, String endDate, String time, double price, String location, String registrationStart, String registrationEnd, Integer maxEntrants, int i, int i1, int i2) {
@@ -186,6 +188,14 @@ public class Event {
 
     public void setUserEnrolledCount(Integer userEnrolledCount) {
         this.userEnrolledCount = userEnrolledCount;
+    }
+
+    public Integer getNumberOfWinners() {
+        return numberOfWinners;
+    }
+
+    public void setNumberOfWinners(Integer numberOfWinners) {
+        this.numberOfWinners = numberOfWinners;
     }
 
 }

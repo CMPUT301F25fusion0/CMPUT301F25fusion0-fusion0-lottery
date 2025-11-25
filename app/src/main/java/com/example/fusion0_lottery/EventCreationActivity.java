@@ -40,7 +40,7 @@ public class EventCreationActivity extends AppCompatActivity {
 
     // UI Elements - all the input fields from the layout
     private TextInputEditText eventNameInput, interestInput, descriptionInput, startDateInput, endDateInput;
-    private TextInputEditText timeInput, priceInput, locationInput, maxEntrantsInput;
+    private TextInputEditText timeInput, priceInput, locationInput, maxEntrantsInput, winnerInput;
 
     private TextInputEditText registrationStartInput, registrationEndInput;
     private Button uploadPosterButton, createEventButton, cancelButton;
@@ -87,6 +87,8 @@ public class EventCreationActivity extends AppCompatActivity {
         endDateInput = findViewById(R.id.endDateInput);
         timeInput = findViewById(R.id.timeInput);
         priceInput = findViewById(R.id.priceInput);
+        winnerInput = findViewById(R.id.winnerInput);
+
         locationInput = findViewById(R.id.locationInput);
         maxEntrantsInput = findViewById(R.id.maxEntrantsInput);
         registrationStartInput = findViewById(R.id.registrationStartInput);
@@ -236,6 +238,10 @@ public class EventCreationActivity extends AppCompatActivity {
             Toast.makeText(this, "Please enter price", Toast.LENGTH_SHORT).show();
             return false;
         }
+        if (winnerInput.getText().toString().trim().isEmpty()) {
+            Toast.makeText(this, "Please enter number of Winners", Toast.LENGTH_SHORT).show();
+            return false;
+        }
         if (locationInput.getText().toString().trim().isEmpty()) {
             Toast.makeText(this, "Please enter location", Toast.LENGTH_SHORT).show();
             return false;
@@ -313,6 +319,7 @@ public class EventCreationActivity extends AppCompatActivity {
         String endDate = endDateInput.getText().toString().trim();
         String time = timeInput.getText().toString().trim();
         double price = Double.parseDouble(priceInput.getText().toString().trim());
+        Integer numberOfWinners = Integer.parseInt(winnerInput.getText().toString().trim());
         String location = locationInput.getText().toString().trim();
         String registrationStart = registrationStartInput.getText().toString().trim();
         String registrationEnd = registrationEndInput.getText().toString().trim();
@@ -324,7 +331,7 @@ public class EventCreationActivity extends AppCompatActivity {
         }
         // Create Event object
         Event event = new Event(eventName, interests, description, startDate, endDate, time,
-                price, location, registrationStart, registrationEnd, maxEntrants, 0, 0, 0);
+                price, location, registrationStart, registrationEnd, maxEntrants, 0, 0, 0, numberOfWinners);
 
         // First save event to Firestore
         db.collection("Events")
