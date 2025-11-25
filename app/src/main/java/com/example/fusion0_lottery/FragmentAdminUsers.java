@@ -35,10 +35,9 @@ public class FragmentAdminUsers extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_admin_users, container, false);
 
-        // Initialize Toolbar
+        // Toolbar
         Toolbar toolbar = view.findViewById(R.id.adminUserToolbar);
         toolbar.setTitle("All Users");
         toolbar.setNavigationOnClickListener(_v ->
@@ -47,8 +46,7 @@ public class FragmentAdminUsers extends Fragment {
         // Initialize Views and Adapters
         userLayout = view.findViewById(R.id.userLinearLayout);
 
-
-        // load users from Firestore
+        // Load users from Firestore
         userRef.addSnapshotListener((value, error) -> {
             if (error != null) {
                 Log.e("Firestore", error.toString());
@@ -93,17 +91,35 @@ public class FragmentAdminUsers extends Fragment {
             nameText.setTextColor(getResources().getColor(android.R.color.black));
             nameText.setPadding(0, 0, 0, 8);
 
-            Button detailsBtn = new Button(getContext());
-            detailsBtn.setText("Details");
-            detailsBtn.setBackgroundColor(getResources().getColor(android.R.color.holo_purple));
-            detailsBtn.setTextColor(getResources().getColor(android.R.color.white));
+            TextView roleText = new TextView(getContext());
+            roleText.setText("Role: " + role);
+            roleText.setTextSize(20f);
+            roleText.setTextColor(getResources().getColor(android.R.color.black));
+            roleText.setPadding(0, 0, 0, 8);
 
-            detailsBtn.setOnClickListener(v -> {
-                db.collection("Users").document(userId)
-                        .get()
-                        .addOnSuccessListener(eventSnapshot -> {
-                        });
+            Button detailsButton = new Button(getContext());
+            detailsButton.setText("Details");
+            detailsButton.setBackgroundColor(getResources().getColor(android.R.color.holo_purple));
+            detailsButton.setTextColor(getResources().getColor(android.R.color.white));
+
+            detailsButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    FragmentAdminUserDetails fragment = new FragmentAdminUserDetails();
+                    Bundle bundle = new Bundle();
+                    bundle.putString("userId", userId);
+                    bundle.putString("email", email);
+                    bundle.putString("name", name);
+                    bundle.putString("role", role);
+                    bundle.putString("phoneNumber", phoneNumber);
+                    fragment.setArguments(bundle);
+                    ((MainActivity) requireActivity()).replaceFragment(fragment);
+                }
             });
+            card.addView(nameText);
+            card.addView(roleText);
+            card.addView(detailsButton);
+            userLayout.addView(card);
         }
     }
 
