@@ -2,13 +2,17 @@ package com.example.fusion0_lottery;
 
 import android.os.Bundle;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 /**
@@ -62,4 +66,39 @@ public class BrowseEventsFragment extends Fragment {
                     .commit();
         }
     }
-}
+
+    /*
+    public void onEventClicked(Event event) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Event Details")
+                .setMessage("Name: " + event.getEventName() +
+                        "\nDescription: " + event.getDescription())
+                .setPositiveButton("Remove", (dialog, which) ->  confirmDelete(event))
+                .setNegativeButton("Exit", null)
+                .show();
+    }
+
+    private void confirmDeleteEvent(Event event) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Remove Event?")
+                .setMessage("Are you sure you want to remove this event?")
+                .setPositiveButton("Remove", (dialog, which) -> removeEvent(event))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void removeEvent(Event event) {
+         db.collection("Events").document(event.getEventId()).delete()
+                    .addOnSuccessListener(aVoid -> {
+                        eventList.remove(event);
+                        browseEventAdapter.updateList(eventList);
+                        updateUI();
+                        Toast.makeText(requireContext(), "Event removed", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        }
+
+     */
+    }
