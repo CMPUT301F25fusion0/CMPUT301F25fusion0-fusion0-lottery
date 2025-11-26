@@ -2,6 +2,7 @@ package com.example.fusion0_lottery;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -13,11 +14,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -40,6 +46,8 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
     private MyEventAdapter selectedAdapter;
 
     private BottomNavigationView bottomNavigationView;
+    private ListenerRegistration waitingListener;
+    private ListenerRegistration selectedListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,26 +95,86 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
      * Loads events from firebase where the current user is either on waiting list or selected
      */
     private void load_events() {
+        String currentUserId = current_user.getUid();
         waiting_events.clear();
         selected_event.clear();
         updateAdapters();
 
-        db.collection("Events").whereArrayContains("waitingList", current_user.getUid()).get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    for(QueryDocumentSnapshot snapshot : queryDocumentSnapshots) {
-                        Event event = snapshot.toObject(Event.class);
-                        event.setEventId(snapshot.getId());
-                        waiting_events.add(event);
+        if (waitingListener != null) {
+            waitingListener.remove();
+        }
+        if (selectedListener != null) {
+            selectedListener.remove();
+        }
+
+        waitingListener = db.collection("Events")
+                .addSnapshotListener((queryDocumentSnapshots, error) -> {
+                    if (error != null) {
+                        Toast.makeText(this, "Error loading waiting events", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    waiting_events.clear();
+                    if (queryDocumentSnapshots != null) {
+                        for (QueryDocumentSnapshot snapshot : queryDocumentSnapshots) {
+                            // Get waiting list as List of Objects (could be Strings or Maps)
+                            List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
+
+                            if (waitingListData != null) {
+                                // Check if current user is in waiting list (handles both String and Map formats)
+                                boolean isInWaitingList = false;
+                                for (Object item : waitingListData) {
+                                    if (item instanceof String) {
+                                        if (currentUserId.equals(item)) {
+                                            isInWaitingList = true;
+                                            break;
+                                        }
+                                    } else if (item instanceof Map) {
+                                        Map<String, Object> entry = (Map<String, Object>) item;
+                                        String userId = (String) entry.get("userId");
+                                        if (currentUserId.equals(userId)) {
+                                            isInWaitingList = true;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (isInWaitingList) {
+                                    Event event = snapshot.toObject(Event.class);
+                                    event.setEventId(snapshot.getId());
+                                    waiting_events.add(event);
+                                }
+                            }
+                        }
                     }
                     updateAdapters();
                 });
 
-        db.collection("Events").whereArrayContains("selectedUser", current_user.getUid()).get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        Event event = document.toObject(Event.class);
-                        event.setEventId(document.getId());
-                        selected_event.add(event);
+        // Selected events listener (keep this as is)
+        selectedListener = db.collection("Events")
+                .addSnapshotListener((queryDocumentSnapshots, error) -> {
+                    if (error != null) {
+                        Toast.makeText(this, "Error loading selected events", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    selected_event.clear();
+                    if (queryDocumentSnapshots != null) {
+                        for (QueryDocumentSnapshot snapshot : queryDocumentSnapshots) {
+                            List<Map<String, Object>> winnersList = (List<Map<String, Object>>) snapshot.get("winnersList");
+
+                            if (winnersList != null) {
+                                for (Map<String, Object> winner : winnersList) {
+                                    String winnerUserId = (String) winner.get("userId");
+                                    if (currentUserId.equals(winnerUserId)) {
+                                        Event event = snapshot.toObject(Event.class);
+                                        event.setEventId(snapshot.getId());
+                                        selected_event.add(event);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }
                     updateAdapters();
                 });
@@ -214,36 +282,42 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                             .get()
                             .addOnSuccessListener(eventSnapshot -> {
                                 if (eventSnapshot.exists()) {
-                                    List<String> selectedUsers = (List<String>) eventSnapshot.get("selectedUser");
-                                    List<String> cancelledUsers = (List<String>) eventSnapshot.get("cancelledUser");
+                                    List<Map<String, Object>> winnersList = (List<Map<String, Object>>) eventSnapshot.get("winnersList");
                                     List<String> waitingList = (List<String>) eventSnapshot.get("waitingList");
+                                    List<String> cancelledUsers = (List<String>) eventSnapshot.get("cancelledUsers");
 
-                                    if (waitingList == null) {
-                                        waitingList = new ArrayList<>();
-                                    }
-                                    if (selectedUsers == null) {
-                                        selectedUsers = new ArrayList<>();
-                                    }
                                     if (cancelledUsers == null) {
                                         cancelledUsers = new ArrayList<>();
                                     }
 
-                                    if (selectedUsers.contains(currentUserId)) {
-                                        selectedUsers.remove(currentUserId);
+                                    if (winnersList != null) {
+                                        for (int i = 0; i < winnersList.size(); i++) {
+                                            Map<String, Object> winner = winnersList.get(i);
+                                            String winnerUserId = (String) winner.get("userId");
+                                            if (currentUserId.equals(winnerUserId)) {
+                                                winnersList.remove(i);
+                                                break;
+                                            }
+                                        }
+
                                         cancelledUsers.add(currentUserId);
 
-                                        if (!waitingList.isEmpty()) {
-                                            int randomIndex = new Random().nextInt(waitingList.size());
-                                            String newSelectedUser = waitingList.get(randomIndex);
 
+                                        if (waitingList != null && !waitingList.isEmpty()) {
+                                            int randomIndex = new Random().nextInt(waitingList.size());
+                                            String newWinnerId = waitingList.get(randomIndex);
                                             waitingList.remove(randomIndex);
-                                            selectedUsers.add(newSelectedUser);
+
+                                            Map<String, Object> newWinner = new HashMap<>();
+                                            newWinner.put("userId", newWinnerId);
+                                            newWinner.put("status", "Pending");
+                                            winnersList.add(newWinner);
 
                                             db.collection("Events").document(eventId)
                                                     .update(
-                                                            "selectedUser", selectedUsers,
-                                                            "cancelledUser", cancelledUsers,
-                                                            "waitingList", waitingList
+                                                            "winnersList", winnersList,
+                                                            "waitingList", waitingList,
+                                                            "cancelledUsers", cancelledUsers
                                                     )
                                                     .addOnSuccessListener(aVoid -> {
                                                         selected_event.remove(position);
@@ -256,8 +330,8 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                                         } else {
                                             db.collection("Events").document(eventId)
                                                     .update(
-                                                            "selectedUser", selectedUsers,
-                                                            "cancelledUser", cancelledUsers
+                                                            "winnersList", winnersList,
+                                                            "cancelledUsers", cancelledUsers
                                                     )
                                                     .addOnSuccessListener(aVoid -> {
                                                         selected_event.remove(position);
@@ -276,10 +350,7 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                     Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
                 })
                 .show();
-
-
     }
-
     private void acceptInvitation(String eventId, int position) {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String eventName = selected_event.get(position).getEventName();
@@ -292,21 +363,28 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                             .get()
                             .addOnSuccessListener(eventSnapshot -> {
                                 if (eventSnapshot.exists()) {
-                                    List<String> selectedUsers = (List<String>) eventSnapshot.get("selectedUser");
-                                    List<String> enrolledUsers = (List<String>) eventSnapshot.get("enrolledUser");
+                                    List<Map<String, Object>> winnersList = (List<Map<String, Object>>) eventSnapshot.get("winnersList");
+                                    List<String> enrolledUsers = (List<String>) eventSnapshot.get("enrolledUsers");
 
                                     if (enrolledUsers == null) {
                                         enrolledUsers = new ArrayList<>();
                                     }
 
-                                    if (selectedUsers != null && selectedUsers.contains(currentUserId)) {
-                                        selectedUsers.remove(currentUserId);
+                                    if (winnersList != null) {
+                                        for (Map<String, Object> winner : winnersList) {
+                                            String winnerUserId = (String) winner.get("userId");
+                                            if (currentUserId.equals(winnerUserId)) {
+                                                winner.put("status", "Accepted");
+                                                break;
+                                            }
+                                        }
+
                                         enrolledUsers.add(currentUserId);
 
                                         db.collection("Events").document(eventId)
                                                 .update(
-                                                        "selectedUser", selectedUsers,
-                                                        "enrolledUser", enrolledUsers
+                                                        "winnersList", winnersList,
+                                                        "enrolledUsers", enrolledUsers
                                                 )
                                                 .addOnSuccessListener(aVoid -> {
                                                     selected_event.remove(position);
@@ -324,8 +402,6 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                     Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
                 })
                 .show();
-
-
     }
 
     private void openEventDetails(String eventId) {
@@ -347,8 +423,26 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                         Long maxEntrantsVal = eventSnapshot.getLong("maxEntrants");
                         Double priceVal = eventSnapshot.getDouble("price");
 
-                        List<String> fullWaitlist = (List<String>) eventSnapshot.get("waitingList");
-                        boolean isOnWaitlist = fullWaitlist != null && fullWaitlist.contains(currentUserId);
+                        List<Object> waitingListData = (List<Object>) eventSnapshot.get("waitingList");
+                        boolean isOnWaitlist = false;
+
+                        if (waitingListData != null) {
+                            for (Object item : waitingListData) {
+                                if (item instanceof String) {
+                                    if (currentUserId.equals(item)) {
+                                        isOnWaitlist = true;
+                                        break;
+                                    }
+                                } else if (item instanceof Map) {
+                                    Map<String, Object> entry = (Map<String, Object>) item;
+                                    String userId = (String) entry.get("userId");
+                                    if (currentUserId.equals(userId)) {
+                                        isOnWaitlist = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
 
                         boolean waitingListClosed = eventSnapshot.getBoolean("waitingListClosed") != null
                                 ? eventSnapshot.getBoolean("waitingListClosed") : false;
@@ -383,7 +477,6 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                     Toast.makeText(this, "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
-
     private void leaveWaitingList(String eventId, int position) {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
@@ -395,24 +488,59 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                             .get()
                             .addOnSuccessListener(eventSnapshot -> {
                                 if (eventSnapshot.exists()) {
-                                    List<String> waitingList = (List<String>) eventSnapshot.get("waitingList");
+                                    List<Object> waitingListData = (List<Object>) eventSnapshot.get("waitingList");
 
-                                    if (waitingList != null && waitingList.contains(currentUserId)) {
-                                        waitingList.remove(currentUserId);
+                                    if (waitingListData != null) {
+                                        List<Object> updatedWaitingList = new ArrayList<>();
+                                        boolean found = false;
 
-                                        db.collection("Events").document(eventId)
-                                                .update("waitingList", waitingList)
-                                                .addOnSuccessListener(aVoid -> {
-                                                    waiting_events.remove(position);
-                                                    waitingAdapter.notifyItemRemoved(position);
-                                                    waitingAdapter.notifyItemRangeChanged(position, waiting_events.size());
-                                                    Toast.makeText(this, "Left waiting list", Toast.LENGTH_SHORT).show();
-                                                })
-                                                .addOnFailureListener(e -> {
-                                                    Toast.makeText(this, "Error leaving waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                                });
-                                    } else {
-                                        Toast.makeText(this, "You are not on this waiting list", Toast.LENGTH_SHORT).show();
+                                        for (Object item : waitingListData) {
+                                            if (item instanceof String) {
+                                                if (!currentUserId.equals(item)) {
+                                                    updatedWaitingList.add(item);
+                                                } else {
+                                                    found = true;
+                                                }
+                                            } else if (item instanceof Map) {
+                                                Map<String, Object> entry = (Map<String, Object>) item;
+                                                String userId = (String) entry.get("userId");
+                                                if (!currentUserId.equals(userId)) {
+                                                    updatedWaitingList.add(item);
+                                                } else {
+                                                    found = true;
+                                                }
+                                            } else {
+                                                updatedWaitingList.add(item);
+                                            }
+                                        }
+
+                                        if (found) {
+                                            db.collection("Events").document(eventId)
+                                                    .update("waitingList", updatedWaitingList)
+                                                    .addOnSuccessListener(aVoid -> {
+
+                                                        int actualPosition = -1;
+                                                        for (int i = 0; i < waiting_events.size(); i++) {
+                                                            if (eventId.equals(waiting_events.get(i).getEventId())) {
+                                                                actualPosition = i;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if (actualPosition != -1) {
+                                                            waiting_events.remove(actualPosition);
+                                                            waitingAdapter.notifyItemRemoved(actualPosition);
+                                                            Toast.makeText(this, "Left waiting list", Toast.LENGTH_SHORT).show();
+                                                        } else {
+                                                            load_events();
+                                                            Toast.makeText(this, "Left waiting list", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    })
+                                                    .addOnFailureListener(e -> {
+                                                        Toast.makeText(this, "Error leaving waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    });
+                                        } else {
+                                            Toast.makeText(this, "You are not on this waiting list", Toast.LENGTH_SHORT).show();
+                                        }
                                     }
                                 }
                             })
@@ -422,5 +550,14 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+    protected void onDestroy() {
+        super.onDestroy();
+        if (waitingListener != null) {
+            waitingListener.remove();
+        }
+        if (selectedListener != null) {
+            selectedListener.remove();
+        }
     }
 }
