@@ -16,6 +16,11 @@ import androidx.fragment.app.Fragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+/**
+ * This fragment allows users to select their role
+ * The selected role is stored in Firestore
+ */
+
 public class FragmentRoleSelection extends Fragment {
 
     private FirebaseAuth auth;

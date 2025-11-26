@@ -49,6 +49,17 @@ public class FragmentEditEvent extends Fragment {
 
 
         db = FirebaseFirestore.getInstance();
+        Button backButton = view.findViewById(R.id.backButton);
+        backButton.setOnClickListener(v -> {
+            // Go back to previous fragment
+            if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                getParentFragmentManager().popBackStack();
+            } else {
+                // Fallback — go to ManageEvents if stack is empty
+                ((MainActivity) requireActivity()).replaceFragment(new ManageEvents());
+            }
+        });
+
 
         startDateInput.setOnClickListener(v -> showDatePicker(startDateInput));
         endDateInput.setOnClickListener(v -> showDatePicker(endDateInput));

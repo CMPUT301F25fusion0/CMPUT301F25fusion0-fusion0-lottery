@@ -35,8 +35,8 @@ public class MainActivity extends AppCompatActivity {
                                     replaceFragment(EventLottery.newInstance(auth.getCurrentUser().getEmail()));
                                 } else if ("Organizer".equalsIgnoreCase(role)) {
                                     replaceFragment(new FragmentOrganizer());
-                                } else if ("Admin".equalsIgnoreCase(role)){
-                                    replaceFragment(new FragmentAdminDashboard());
+                                } else if("Admin".equalsIgnoreCase((role))) {
+                                    replaceFragment(new BrowseEventsFragment());
                                 } else {
                                     replaceFragment(new FragmentRoleSelection());
                                 }

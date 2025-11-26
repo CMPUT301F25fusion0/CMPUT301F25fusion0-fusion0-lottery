@@ -125,7 +125,7 @@
                 android:id="@+id/textLotteryCriteria"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Lottery Criteria/Guidelines: "
+                android:text="Lottery Criteria: "
                 android:textSize="16sp"
                 android:padding="8dp"
                 android:textColor="@android:color/black" />

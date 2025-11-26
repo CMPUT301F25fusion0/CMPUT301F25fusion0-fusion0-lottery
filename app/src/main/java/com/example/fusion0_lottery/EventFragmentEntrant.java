@@ -30,19 +30,24 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Fragment representing the detailed view of an event for entrants.
+ * Users can view event details, check lottery criteria, see total entrants,
+ * and join or leave the waiting list.
+ */
 public class EventFragmentEntrant extends Fragment {
 
     private TextView eventNameText, eventDescriptionText, eventInterestsText, eventDateText, eventLocationText, totalEntrantsText, lotteryCriteriaText;
     private TextView registrationText, maxEntrantsText, eventPriceText, qrCodeLabel;
     private Button joinWaitingListButton;
     private ImageView qrCodeImage;
-    private String eventId;
-    private boolean isInWaitingList;
+    String eventId;
+    boolean isInWaitingList;
 
-    private boolean waitingListClosed;
+    boolean waitingListClosed;
 
-    private FirebaseFirestore db;
-    private String currentUserId; // <-- Using UID now
+    FirebaseFirestore db;
+    String currentUserId; // <-- Using UID now
 
     public EventFragmentEntrant() {}
 
@@ -80,6 +85,15 @@ public class EventFragmentEntrant extends Fragment {
         return fragment;
     }
 
+    /**
+     * Inflates the layout, initializes views, displays event details,
+     * and sets up listeners for back navigation and waiting list actions.
+     *
+     * @param inflater LayoutInflater
+     * @param container ViewGroup container
+     * @param savedInstanceState Bundle of saved state
+     * @return Inflated view
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -135,16 +149,16 @@ public class EventFragmentEntrant extends Fragment {
                     });
 
 
-            // Fetch and display lottery selection criteria (NEW)
+            // Fetch and display lottery selection criteria
             db.collection("Events").document(eventId)
                     .get()
                     .addOnSuccessListener(snapshot -> {
                         if (snapshot != null && snapshot.exists()) {
                             String criteria = snapshot.getString("lotteryCriteria");
                             if (criteria != null && !criteria.isEmpty()) {
-                                lotteryCriteriaText.setText("Criteria/Guidelines: " + criteria);
+                                lotteryCriteriaText.setText("Lottery Criteria: " + criteria);
                             } else {
-                                lotteryCriteriaText.setText("Criteria/Guidelines: Random selection after registration closes.");
+                                lotteryCriteriaText.setText("Lottery Criteria: Random selection after registration closes.");
                             }
 
                         }
@@ -158,44 +172,64 @@ public class EventFragmentEntrant extends Fragment {
                     .addOnSuccessListener(snapshot -> {
                         if (!snapshot.exists()) return;
 
-                        ArrayList<String> waitingList = (ArrayList<String>) snapshot.get("waitingList");
-                        if (waitingList == null) waitingList = new ArrayList<>();
+                        List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
+                        if (waitingListData == null) waitingListData = new ArrayList<>();
 
-                        // Generate and display QR code if enabled
-                        Boolean hasQrCode = snapshot.getBoolean("hasQrCode");
-                        String eventIdForQr = snapshot.getString("eventId");
+                        // Extract user IDs from waiting list (handles both String and Map formats)
+                        ArrayList<String> userIds = new ArrayList<>();
+                        for (Object item : waitingListData) {
+                            if (item == null) continue;
 
-                        if (hasQrCode != null && hasQrCode && eventIdForQr != null) {
-                            try {
-                                Bitmap qrBitmap = generateQRCode(eventIdForQr);
-                                qrCodeLabel.setVisibility(View.VISIBLE);
-                                qrCodeImage.setVisibility(View.VISIBLE);
-                                qrCodeImage.setImageBitmap(qrBitmap);
-                            } catch (WriterException e) {
-                                qrCodeLabel.setVisibility(View.GONE);
-                                qrCodeImage.setVisibility(View.GONE);
+                            String userId;
+                            if (item instanceof String) {
+                                // Old format: just userId as string
+                                userId = (String) item;
+                            } else if (item instanceof Map) {
+                                // New format: Map with userId and joinedAt
+                                Map<String, Object> entry = (Map<String, Object>) item;
+                                userId = (String) entry.get("userId");
+                            } else {
+                                continue;
                             }
-                        } else {
-                            qrCodeLabel.setVisibility(View.GONE);
-                            qrCodeImage.setVisibility(View.GONE);
+
+                            if (userId != null && !userId.isEmpty()) {
+                                userIds.add(userId);
+                            }
                         }
 
                         List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
-                        for (String uid : new ArrayList<>(waitingList)) {
+                        for (String uid : userIds) {
                             tasks.add(db.collection("Users").document(uid).get());
                         }
 
-                        ArrayList<String> finalWaitingList = waitingList;
+                        List<Object> finalWaitingListData = waitingListData;
+                        ArrayList<String> finalUserIds = userIds;
                         com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
                                 .addOnSuccessListener(results -> {
-                                    ArrayList<String> cleanList = new ArrayList<>();
+                                    // Build cleaned list maintaining the original format
+                                    List<Object> cleanList = new ArrayList<>();
                                     for (int i = 0; i < results.size(); i++) {
                                         DocumentSnapshot userSnap = (DocumentSnapshot) results.get(i);
-                                        if (userSnap.exists()) cleanList.add(finalWaitingList.get(i));
+                                        if (userSnap.exists()) {
+                                            // Find the original entry in waitingListData
+                                            String validUserId = finalUserIds.get(i);
+                                            for (Object item : finalWaitingListData) {
+                                                if (item instanceof String && item.equals(validUserId)) {
+                                                    cleanList.add(item);
+                                                    break;
+                                                } else if (item instanceof Map) {
+                                                    Map<String, Object> entry = (Map<String, Object>) item;
+                                                    if (validUserId.equals(entry.get("userId"))) {
+                                                        cleanList.add(item);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
 
                                     // Update isInWaitingList
-                                    isInWaitingList = cleanList.contains(currentUserId);
+                                    isInWaitingList = finalUserIds.contains(currentUserId);
                                     joinWaitingListButton.setText(isInWaitingList ? "Leave Waiting List" : "Join Waiting List");
 
                                     // Update Firestore with cleaned list
@@ -222,7 +256,11 @@ public class EventFragmentEntrant extends Fragment {
         return view;
     }
 
-    private void toggleWaitingList() {
+    /**
+     * Toggles the current user's membership in the waiting list.
+     * Handles old/new waiting list formats, checks max entrants, and updates Firestore.
+     */
+    void toggleWaitingList() {
         if (waitingListClosed) {
             Toast.makeText(getContext(), "The waiting list is closed. You cannot join this event.", Toast.LENGTH_SHORT).show();
             return;
@@ -235,20 +273,39 @@ public class EventFragmentEntrant extends Fragment {
                 Toast.makeText(getContext(), "Event not found", Toast.LENGTH_SHORT).show();
                 return;
             }
+            // Fetch and check maxEntrants
+            Long maxEntrants = snapshot.getLong("maxEntrants");
+            if (maxEntrants == null || maxEntrants <= 0) {
+                Toast.makeText(getContext(), "This event cannot accept entrants (max entrants is 0).", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-            // Get waiting list as list of maps
-            List<Map<String, Object>> waitingList =
-                    (List<Map<String, Object>>) snapshot.get("waitingList");
-            if (waitingList == null) waitingList = new ArrayList<>();
+            // Get waiting list (handles both String and Map formats)
+            List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
+            if (waitingListData == null) waitingListData = new ArrayList<>();
 
-            // Mutable copy
-            List<Map<String, Object>> mutableWaitingList = new ArrayList<>(waitingList);
+            // Normalize to Map format and build mutable list
+            List<Map<String, Object>> mutableWaitingList = new ArrayList<>();
+            for (Object item : waitingListData) {
+                if (item == null) continue;
 
-            // Remove invalid entries
-            Iterator<Map<String, Object>> iter = mutableWaitingList.iterator();
-            while (iter.hasNext()) {
-                Map<String, Object> entry = iter.next();
-                if (!entry.containsKey("userId") || entry.get("userId") == null) iter.remove();
+                Map<String, Object> entry;
+                if (item instanceof String) {
+                    // Old format: convert String to Map
+                    entry = new HashMap<>();
+                    entry.put("userId", item);
+                    entry.put("joinedAt", null);
+                } else if (item instanceof Map) {
+                    // New format: already a map
+                    entry = new HashMap<>((Map<String, Object>) item);
+                } else {
+                    continue;
+                }
+
+                // Only add valid entries
+                if (entry.containsKey("userId") && entry.get("userId") != null) {
+                    mutableWaitingList.add(entry);
+                }
             }
 
             // Check if current user is already in list
@@ -285,26 +342,5 @@ public class EventFragmentEntrant extends Fragment {
         });
     }
 
-    /**
-     * Generate QR code bitmap from event ID
-     */
-    private Bitmap generateQRCode(String eventId) throws WriterException {
-        String qrContent = "event://" + eventId;
-        int size = 500;
 
-        BitMatrix bitMatrix = new MultiFormatWriter().encode(
-                qrContent,
-                BarcodeFormat.QR_CODE,
-                size,
-                size
-        );
-
-        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565);
-        for (int x = 0; x < size; x++) {
-            for (int y = 0; y < size; y++) {
-                bitmap.setPixel(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
-            }
-        }
-        return bitmap;
-    }
 }
