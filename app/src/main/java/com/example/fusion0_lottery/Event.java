@@ -1,5 +1,8 @@
 package com.example.fusion0_lottery;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Event model class for storing event information in Firebase Firestore
  */
@@ -25,6 +28,8 @@ public class Event {
     private Integer numberOfWinners;
     private String posterImage;
     private String organizerName;
+    private List<String> waitingList;
+    private List<Map<String, Object>> winnersList;
 
     // Empty constructor required for Firebase
     public Event() {
@@ -214,5 +219,21 @@ public class Event {
 
     public void setPosterImage(String posterImage) {
         this.posterImage = posterImage;
+    }
+
+    public List<String> getWaitingList() {
+        return waitingList;
+    }
+
+    public void setWaitingList(List<String> waitingList) {
+        this.waitingList = waitingList;
+    }
+
+    public List<Map<String, Object>> getWinnersList() {
+        return winnersList;
+    }
+
+    public void setWinnersList(List<Map<String, Object>> winnersList) {
+        this.winnersList = winnersList;
     }
 }
