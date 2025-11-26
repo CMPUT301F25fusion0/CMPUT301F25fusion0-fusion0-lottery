@@ -117,11 +117,9 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                     waiting_events.clear();
                     if (queryDocumentSnapshots != null) {
                         for (QueryDocumentSnapshot snapshot : queryDocumentSnapshots) {
-                            // Get waiting list as List of Objects (could be Strings or Maps)
                             List<Object> waitingListData = (List<Object>) snapshot.get("waitingList");
 
                             if (waitingListData != null) {
-                                // Check if current user is in waiting list (handles both String and Map formats)
                                 boolean isInWaitingList = false;
                                 for (Object item : waitingListData) {
                                     if (item instanceof String) {
@@ -150,7 +148,6 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                     updateAdapters();
                 });
 
-        // Selected events listener (keep this as is)
         selectedListener = db.collection("Events")
                 .addSnapshotListener((queryDocumentSnapshots, error) -> {
                     if (error != null) {
