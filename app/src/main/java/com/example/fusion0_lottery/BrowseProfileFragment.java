@@ -167,9 +167,18 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
                             "\nEmail: " + user.getEmail() +
                             "\nRole: " + user.getRole() +
                             "\nPhone: " + user.getPhone_number())
-                    .setPositiveButton("Remove", (dialog, which) -> removeProfile(user))
-                    .setNegativeButton("Cancel", null)
+                    .setPositiveButton("Remove", (dialog, which) ->  confirmDeleteUser(user))
+                    .setNegativeButton("Exit", null)
                     .show();
+    }
+
+    private void confirmDeleteUser(User user) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Remove User?")
+                .setMessage("Are you sure you want to remove this user?")
+                .setPositiveButton("Remove", (dialog, which) -> removeProfile(user))
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void removeProfile(User user) {
@@ -188,7 +197,7 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
                     });
         }
         else {
-            Toast.makeText(getContext(), "You can not delete your own profile!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "You can not remove your own profile!", Toast.LENGTH_SHORT).show();
         }
     }
 }
