@@ -89,7 +89,7 @@ public class FragmentWaitingList extends Fragment {
      *  lists all entrants in the waiting list
      *  allow sorting by name and join date
      *  Handles both String (userId only) and Map (userId with joinedAt) entries
-    */
+     */
     private void loadWaitingList(String eventId) {
         db.collection("Events").document(eventId).get()
                 .addOnSuccessListener(snapshot -> {
@@ -274,8 +274,8 @@ public class FragmentWaitingList extends Fragment {
         for (WaitingListEntrants entry : waitingList) {
             displayList.add(
                     "Name: " + entry.getName() + "\n" +
-                    "Joined: " + entry.getJoinDate() + "\n" +
-                    "Status: " + entry.getStatus()
+                            "Joined: " + entry.getJoinDate() + "\n" +
+                            "Status: " + entry.getStatus()
             );
         }
         return displayList;
@@ -285,7 +285,7 @@ public class FragmentWaitingList extends Fragment {
     /**
      * function to update the waiting list
      * used when trying to sort entrants by name or join date
-    */
+     */
     private void updateListView() {
         ArrayList<String> displayList = getDisplayStrings(waitingList);
         waitingListAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, displayList);
@@ -427,6 +427,3 @@ public class FragmentWaitingList extends Fragment {
         Toast.makeText(getContext(), resultMessage, Toast.LENGTH_LONG).show();
     }
 }
-
-
-

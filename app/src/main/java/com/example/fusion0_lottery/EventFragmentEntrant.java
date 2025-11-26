@@ -1,10 +1,12 @@
 package com.example.fusion0_lottery;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,23 +19,35 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Fragment representing the detailed view of an event for entrants.
+ * Users can view event details, check lottery criteria, see total entrants,
+ * and join or leave the waiting list.
+ */
 public class EventFragmentEntrant extends Fragment {
 
-    private TextView eventNameText, eventDescriptionText, eventInterestsText, eventDateText, eventLocationText;
-    private TextView registrationText, maxEntrantsText, eventPriceText;
+    private TextView eventNameText, eventDescriptionText, eventInterestsText, eventDateText, eventLocationText, totalEntrantsText, lotteryCriteriaText;
+    private TextView registrationText, maxEntrantsText, eventPriceText, qrCodeLabel;
     private Button joinWaitingListButton;
-    private String eventId;
-    private boolean isInWaitingList;
-    private boolean waitingListClosed;
+    private ImageView qrCodeImage;
+    String eventId;
+    boolean isInWaitingList;
 
-    private FirebaseFirestore db;
-    private String currentUserId; // <-- Using UID now
+    boolean waitingListClosed;
+
+    FirebaseFirestore db;
+    String currentUserId; // <-- Using UID now
 
     public EventFragmentEntrant() {}
 
@@ -71,6 +85,15 @@ public class EventFragmentEntrant extends Fragment {
         return fragment;
     }
 
+    /**
+     * Inflates the layout, initializes views, displays event details,
+     * and sets up listeners for back navigation and waiting list actions.
+     *
+     * @param inflater LayoutInflater
+     * @param container ViewGroup container
+     * @param savedInstanceState Bundle of saved state
+     * @return Inflated view
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -88,7 +111,11 @@ public class EventFragmentEntrant extends Fragment {
         registrationText = view.findViewById(R.id.eventEndDate);
         maxEntrantsText = view.findViewById(R.id.eventEntrants);
         eventPriceText = view.findViewById(R.id.eventPrice);
+        totalEntrantsText = view.findViewById(R.id.textTotalEntrants);
+        lotteryCriteriaText = view.findViewById(R.id.textLotteryCriteria);
         joinWaitingListButton = view.findViewById(R.id.buttonJoinWaitingList);
+        qrCodeImage = view.findViewById(R.id.eventQrCode);
+        qrCodeLabel = view.findViewById(R.id.qrCodeLabel);
         joinWaitingListButton.setVisibility(View.INVISIBLE);
 
         if (getArguments() != null) {
@@ -109,6 +136,36 @@ public class EventFragmentEntrant extends Fragment {
 
             maxEntrantsText.setText("Max Entrants: " + getArguments().getLong("maxEntrants"));
             eventPriceText.setText("Price: $" + getArguments().getDouble("price"));
+
+            // Listen for live updates of total entrants
+            db.collection("Events").document(eventId)
+                    .addSnapshotListener((snapshot, e) -> {
+                        if (snapshot != null && snapshot.exists()) {
+                            List<String> waitingList = (List<String>) snapshot.get("waitingList");
+                            int total = waitingList != null ? waitingList.size() : 0;
+                            long maxEntrantsVal = getArguments().getLong("maxEntrants");
+                            totalEntrantsText.setText("Total Entrants: " + total + " / " + maxEntrantsVal);
+                        }
+                    });
+
+
+            // Fetch and display lottery selection criteria
+            db.collection("Events").document(eventId)
+                    .get()
+                    .addOnSuccessListener(snapshot -> {
+                        if (snapshot != null && snapshot.exists()) {
+                            String criteria = snapshot.getString("lotteryCriteria");
+                            if (criteria != null && !criteria.isEmpty()) {
+                                lotteryCriteriaText.setText("Lottery Criteria: " + criteria);
+                            } else {
+                                lotteryCriteriaText.setText("Lottery Criteria: Random selection after registration closes.");
+                            }
+
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        lotteryCriteriaText.setText("Lottery Criteria: (Unavailable)");
+                    });
 
             // Fetch latest waiting list and remove deleted users before showing button
             db.collection("Events").document(eventId).get()
@@ -199,7 +256,11 @@ public class EventFragmentEntrant extends Fragment {
         return view;
     }
 
-    private void toggleWaitingList() {
+    /**
+     * Toggles the current user's membership in the waiting list.
+     * Handles old/new waiting list formats, checks max entrants, and updates Firestore.
+     */
+    void toggleWaitingList() {
         if (waitingListClosed) {
             Toast.makeText(getContext(), "The waiting list is closed. You cannot join this event.", Toast.LENGTH_SHORT).show();
             return;
@@ -210,6 +271,12 @@ public class EventFragmentEntrant extends Fragment {
         eventRef.get().addOnSuccessListener(snapshot -> {
             if (!snapshot.exists()) {
                 Toast.makeText(getContext(), "Event not found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // Fetch and check maxEntrants
+            Long maxEntrants = snapshot.getLong("maxEntrants");
+            if (maxEntrants == null || maxEntrants <= 0) {
+                Toast.makeText(getContext(), "This event cannot accept entrants (max entrants is 0).", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -274,5 +341,6 @@ public class EventFragmentEntrant extends Fragment {
                             Toast.makeText(getContext(), "Error updating waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         });
     }
+
 
 }
