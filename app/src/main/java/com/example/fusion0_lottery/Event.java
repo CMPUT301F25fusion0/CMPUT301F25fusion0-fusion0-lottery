@@ -1,5 +1,6 @@
 package com.example.fusion0_lottery;
 
+import com.google.firebase.Timestamp;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +23,7 @@ public class Event {
     private String registrationEnd;
     private String qrCodeUrl; // URL to the generated QR code
     private String lotteryCriteria;
+    private boolean requiresGeolocation; // Whether event requires location from entrants
 
     private Integer waitingListCount;
     private Integer userSelectedCount;
@@ -31,6 +33,7 @@ public class Event {
     private String organizerName;
     private List<Object> waitingList;
     private List<Map<String, Object>> winnersList;
+
 
     // Empty constructor required for Firebase
     public Event() {
@@ -239,11 +242,20 @@ public class Event {
     public void setWinnersList(List<Map<String, Object>> winnersList) {
         this.winnersList = winnersList;
     }
+
     public String getLotteryCriteria() {
         return lotteryCriteria;
     }
 
     public void setLotteryCriteria(String lotteryCriteria) {
         this.lotteryCriteria = lotteryCriteria;
+    }
+
+    public boolean isRequiresGeolocation() {
+        return requiresGeolocation;
+    }
+
+    public void setRequiresGeolocation(boolean requiresGeolocation) {
+        this.requiresGeolocation = requiresGeolocation;
     }
 }

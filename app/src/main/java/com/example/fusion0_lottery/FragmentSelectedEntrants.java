@@ -83,7 +83,7 @@ public class FragmentSelectedEntrants extends Fragment {
     /**
      *  function to get all entrants the winners list for an event
      *  find all entrants in the winners list (selected) and display them
-     *  same functionality loadWaitingList function in FragmentWaitingList but for winners
+     *  same functionality as loadWaitingList function in FragmentWaitingList but for winners
      */
     private void loadWinnersList() {
         db.collection("Events").document(eventId).get()
@@ -92,7 +92,6 @@ public class FragmentSelectedEntrants extends Fragment {
                         Toast.makeText(getContext(), "Event not found", Toast.LENGTH_SHORT).show();
                         return;
                     }
-
                     List<Map<String, Object>> winnersListEntrants = (List<Map<String, Object>>) snapshot.get("winnersList");
 
                     if (winnersListEntrants == null || winnersListEntrants.isEmpty()) {
@@ -107,32 +106,35 @@ public class FragmentSelectedEntrants extends Fragment {
 
                     winnersList.clear();
 
+                    List<com.google.android.gms.tasks.Task<DocumentSnapshot>> tasks = new ArrayList<>();
+
                     for (Map<String, Object> entrant : winnersListEntrants) {
                         String userId = (String) entrant.get("userId");
-                        db.collection("Users").document(userId).get()
-                                .addOnSuccessListener(userSnap -> {
-                                    if (userSnap.exists()) {
-                                        String name = userSnap.getString("name");
-                                        String status = userSnap.getString("status");
-                                        if (status == null) {
-                                            status = "Pending";
-                                        }
-                                        winnersList.add(new LotteryWinners(name, status));
-                                        updateWinnersListDisplay(winnersList);
-                                    }
-                                })
-                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load user: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                        tasks.add(db.collection("Users").document(userId).get());
                     }
 
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Failed to load winners list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
+                            .addOnSuccessListener(results -> {
+                                for (Object obj : results) {
+                                    DocumentSnapshot userSnap = (DocumentSnapshot) obj;
+                                    String name = userSnap.getString("name");
+                                    String status = userSnap.getString("status");
+                                    if (status == null) {
+                                        status = "Pending";
+                                    }
+                                    winnersList.add(new LotteryWinners(name, status));
+                                }
+                                updateWinnersListDisplay(winnersList);
+                            })
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(getContext(), "Failed loading users: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                });
     }
 
     /**
      * function to redraw and select entrants from waiting list if there are entrants who declined
      * go through all selected entrants and see if there are any status = Declined
-     * for every decline, redraw in the waiting list and update winners list
+     * for every decline, remove them from winners list redraw in the waiting list and update winners list
      */
     private void redrawWinners() {
         db.collection("Events").document(eventId).get()
@@ -163,47 +165,69 @@ public class FragmentSelectedEntrants extends Fragment {
 
                     com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
                             .addOnSuccessListener(results -> {
-                                int declinedCount = 0;
+
+                                // separate the declined and non declined winners
+                                List<Map<String, Object>> nonDeclinedWinners = new ArrayList<>();
+                                List<Map<String, Object>> declinedWinners = new ArrayList<>();
+                                int currentEntrantIndex = 0;
                                 for (Object obj : results) {
                                     DocumentSnapshot userSnap = (DocumentSnapshot) obj;
+                                    Map<String, Object> currentEntrant = entrantWinners.get(currentEntrantIndex);
                                     if (userSnap.exists()) {
                                         String status = userSnap.getString("status");
-                                        if (status.equals("Declined")) {
-                                            declinedCount++;
+                                        // if status = Declined, add to declined winners,
+                                        if (status == null) {
+                                            status = "Pending";
                                         }
+                                        if (status.equals("Declined")) {
+                                            declinedWinners.add(currentEntrant);
+                                        }
+                                        else {
+                                            nonDeclinedWinners.add(currentEntrant);
+                                        }
+                                        currentEntrantIndex++;
                                     }
                                 }
 
-                                if (declinedCount == 0) {
+                                // if there is no declined winners, no redraws take place
+                                if (declinedWinners.isEmpty()) {
                                     Toast.makeText(getContext(), "No redraws can be made", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
 
+                                // redraw until waiting list is empty or until all declined winners are replaced
                                 int numberOfRedraws = 0;
-                                if (declinedCount > waitingList.size()) {
+                                if (declinedWinners.size() > waitingList.size()) {
                                     numberOfRedraws = waitingList.size();
                                 }
                                 else {
-                                    numberOfRedraws = declinedCount;
+                                    numberOfRedraws = declinedWinners.size();
                                 }
                                 List<Map<String, Object>> tempList = new ArrayList<>(waitingList);
-                                List<Map<String, Object>> newWinners = new ArrayList<>();
-
+                                List<Map<String, Object>> redrawWinners = new ArrayList<>();
                                 Random random = new Random();
+                                // redraw from waiting list, add to winners, and remove that winner from waiting list
                                 for (int i = 0; i < numberOfRedraws; i++) {
                                     int index = random.nextInt(tempList.size());
-                                    newWinners.add(tempList.get(index));
+                                    redrawWinners.add(tempList.get(index));
                                     tempList.remove(index);
                                 }
 
+                                // update winners list to include only Accepted/Pending winner entrants
+                                List<Map<String, Object>> updatedWinnersList = new ArrayList<>();
+                                updatedWinnersList.addAll(nonDeclinedWinners);
+                                updatedWinnersList.addAll(redrawWinners);
+                                // updatedWinnersList.addAll(declinedWinners);
+
+                                // update firestore
                                 Map<String, Object> updates = new HashMap<>();
                                 updates.put("waitingList", tempList);
-                                updates.put("winnersList", newWinners);
+                                updates.put("winnersList", updatedWinnersList);
 
                                 db.collection("Events").document(eventId)
                                         .update(updates)
                                         .addOnSuccessListener(v -> {
-                                            Toast.makeText(getContext(), "Selected " + newWinners.size() + " winners", Toast.LENGTH_LONG).show();
+                                            Toast.makeText(getContext(), "Selected " + updatedWinnersList.size() + " winners", Toast.LENGTH_LONG).show();
                                             loadWinnersList();
                                         })
                                         .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show());
@@ -233,7 +257,7 @@ public class FragmentSelectedEntrants extends Fragment {
 
         for (LotteryWinners w : winnersList) {
             displayList.add("Name: " + w.getName() + "\n" +
-                            "Status: " + w.getStatus()
+                    "Status: " + w.getStatus()
             );
         }
         winnersAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, displayList);

@@ -1,6 +1,9 @@
 package com.example.fusion0_lottery;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +12,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -48,6 +54,10 @@ public class EventFragmentEntrant extends Fragment {
 
     FirebaseFirestore db;
     String currentUserId; // <-- Using UID now
+
+    // Location permission request code
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
+    private boolean pendingJoinWithLocation = false;
 
     public EventFragmentEntrant() {}
 
@@ -273,7 +283,34 @@ public class EventFragmentEntrant extends Fragment {
                 Toast.makeText(getContext(), "Event not found", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // Fetch and check maxEntrants
+
+            // Check if event requires geolocation
+            Boolean requiresGeolocation = snapshot.getBoolean("requiresGeolocation");
+
+            // If not already in waiting list and event requires location, check permissions
+            if (!isInWaitingList && requiresGeolocation != null && requiresGeolocation) {
+                if (!hasLocationPermission()) {
+                    // Request permission and set flag to join after permission granted
+                    pendingJoinWithLocation = true;
+                    requestLocationPermission();
+                    return;
+                } else {
+                    // Has permission, save location and proceed with join
+                    saveUserLocationAndJoinWaitingList(snapshot);
+                    return;
+                }
+            }
+
+            // If leaving or doesn't require geolocation, proceed normally
+            proceedWithToggleWaitingList(snapshot);
+        });
+    }
+
+    /**
+     * Proceeds with joining/leaving the waiting list without geolocation requirements
+     */
+    private void proceedWithToggleWaitingList(DocumentSnapshot snapshot) {
+        // Fetch and check maxEntrants
             Long maxEntrants = snapshot.getLong("maxEntrants");
             if (maxEntrants == null || maxEntrants <= 0) {
                 Toast.makeText(getContext(), "This event cannot accept entrants (max entrants is 0).", Toast.LENGTH_SHORT).show();
@@ -335,12 +372,126 @@ public class EventFragmentEntrant extends Fragment {
                 Toast.makeText(getContext(), "You joined the waiting list", Toast.LENGTH_SHORT).show();
             }
 
-            // Update Firestore
+            // Update Firestore with event reference from snapshot
+            DocumentReference eventRef = snapshot.getReference();
             eventRef.update("waitingList", mutableWaitingList)
                     .addOnFailureListener(e ->
                             Toast.makeText(getContext(), "Error updating waiting list: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-        });
     }
 
+    /**
+     * Check if location permission is granted
+     */
+    private boolean hasLocationPermission() {
+        if (getContext() == null) return false;
+        return ContextCompat.checkSelfPermission(getContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * Request location permission from user
+     */
+    private void requestLocationPermission() {
+        if (getActivity() == null) return;
+        ActivityCompat.requestPermissions(getActivity(),
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                LOCATION_PERMISSION_REQUEST_CODE);
+    }
+
+    /**
+     * Handle permission request result
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, proceed with joining if pending
+                if (pendingJoinWithLocation) {
+                    pendingJoinWithLocation = false;
+                    // Re-trigger the join process
+                    toggleWaitingList();
+                }
+            } else {
+                // Permission denied
+                Toast.makeText(getContext(),
+                        "Location permission is required to join this event",
+                        Toast.LENGTH_LONG).show();
+                pendingJoinWithLocation = false;
+            }
+        }
+    }
+
+    /**
+     * Save user's current location to Firebase and join waiting list
+     * For simplicity, we'll use a mock location or last known location
+     * In production, you'd use FusedLocationProviderClient for accurate location
+     */
+    private void saveUserLocationAndJoinWaitingList(DocumentSnapshot snapshot) {
+        if (getContext() == null) return;
+
+        try {
+            // Try to get location using LocationManager
+            android.location.LocationManager locationManager =
+                    (android.location.LocationManager) getContext().getSystemService(android.content.Context.LOCATION_SERVICE);
+
+            if (locationManager != null && hasLocationPermission()) {
+                // Check if we have permission (double check)
+                if (ActivityCompat.checkSelfPermission(getContext(),
+                        Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+                    // Try to get last known location
+                    Location lastLocation = locationManager.getLastKnownLocation(
+                            android.location.LocationManager.GPS_PROVIDER);
+
+                    if (lastLocation == null) {
+                        lastLocation = locationManager.getLastKnownLocation(
+                                android.location.LocationManager.NETWORK_PROVIDER);
+                    }
+
+                    if (lastLocation != null) {
+                        // Save location to user document
+                        Map<String, Object> locationData = new HashMap<>();
+                        locationData.put("latitude", lastLocation.getLatitude());
+                        locationData.put("longitude", lastLocation.getLongitude());
+                        locationData.put("timestamp", com.google.firebase.Timestamp.now());
+
+                        db.collection("Users").document(currentUserId)
+                                .update("location", locationData)
+                                .addOnSuccessListener(aVoid -> {
+                                    // Location saved, now proceed with joining waiting list
+                                    proceedWithToggleWaitingList(snapshot);
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(getContext(),
+                                            "Error saving location: " + e.getMessage(),
+                                            Toast.LENGTH_SHORT).show();
+                                });
+                    } else {
+                        // No location available, but still allow joining
+                        Toast.makeText(getContext(),
+                                "Could not get current location. Joining without location data.",
+                                Toast.LENGTH_SHORT).show();
+                        proceedWithToggleWaitingList(snapshot);
+                    }
+                }
+            } else {
+                // LocationManager not available
+                Toast.makeText(getContext(),
+                        "Location services not available. Joining without location data.",
+                        Toast.LENGTH_SHORT).show();
+                proceedWithToggleWaitingList(snapshot);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(),
+                    "Error accessing location: " + e.getMessage(),
+                    Toast.LENGTH_SHORT).show();
+            // Still allow joining even if location fails
+            proceedWithToggleWaitingList(snapshot);
+        }
+    }
 
 }

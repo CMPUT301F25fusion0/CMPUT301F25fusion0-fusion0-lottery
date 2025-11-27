@@ -14,7 +14,7 @@
         android:id="@+id/titleText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Selected Entrants"
+        android:text="Final List"
         android:textSize="22sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -49,29 +49,6 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:orientation="vertical">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="2"
-            android:layout_marginBottom="8dp">
-
-            <Button
-                android:id="@+id/sendNotificationButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Send Notification"
-                android:layout_marginRight="6dp"/>
-
-            <Button
-                android:id="@+id/redrawButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Redraw"/>
-        </LinearLayout>
 
         <Button
             android:id="@+id/backButton"

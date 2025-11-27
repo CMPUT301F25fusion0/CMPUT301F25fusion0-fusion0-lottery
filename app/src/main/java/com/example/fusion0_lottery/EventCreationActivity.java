@@ -44,7 +44,7 @@ public class EventCreationActivity extends AppCompatActivity {
 
     private TextInputEditText registrationStartInput, registrationEndInput;
     private Button uploadPosterButton, createEventButton, cancelButton;
-    private CheckBox generateQrCheckbox;
+    private CheckBox generateQrCheckbox, requireGeolocationCheckbox;
     private ImageView posterImageView;
 
     // Firebase instances
@@ -98,6 +98,7 @@ public class EventCreationActivity extends AppCompatActivity {
         createEventButton = findViewById(R.id.createEventButton);
         cancelButton = findViewById(R.id.cancelButton);
         generateQrCheckbox = findViewById(R.id.generateQrCheckbox);
+        requireGeolocationCheckbox = findViewById(R.id.requireGeolocationCheckbox);
 
         posterImageView = findViewById(R.id.posterImageView);
         lotteryCriteriaInput = findViewById(R.id.lotteryCriteriaInput);
@@ -350,9 +351,10 @@ public class EventCreationActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentReference -> {
                     // create the event ID
                     createdEventId = documentReference.getId();
-                    // Update event ID and QR code setting
+                    // Update event ID, QR code setting, and geolocation requirement
                     documentReference.update("eventId", createdEventId,
-                            "hasQrCode", generateQrCheckbox.isChecked());
+                            "hasQrCode", generateQrCheckbox.isChecked(),
+                            "requiresGeolocation", requireGeolocationCheckbox.isChecked());
 
                     if (posterImageUri != null) {
                         // upload the poster first then save the event
@@ -412,9 +414,10 @@ public class EventCreationActivity extends AppCompatActivity {
                     // Store the document ID
                     createdEventId = documentReference.getId();
 
-                    // Update the event with its ID and QR code enabled flag
+                    // Update the event with its ID, QR code enabled flag, and geolocation requirement
                     documentReference.update("eventId", createdEventId,
-                            "hasQrCode", generateQrCheckbox.isChecked());
+                            "hasQrCode", generateQrCheckbox.isChecked(),
+                            "requiresGeolocation", requireGeolocationCheckbox.isChecked());
 
                     Toast.makeText(this, "Event created successfully!", Toast.LENGTH_SHORT).show();
                     finish();

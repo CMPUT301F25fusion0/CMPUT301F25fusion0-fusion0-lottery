@@ -149,4 +149,69 @@ public class EventTest {
         assertNull(event.getEventId());
         assertNull(event.getLotteryCriteria());
     }
+
+    /**
+     * Test requiresGeolocation setter and getter.
+     */
+    @Test
+    public void testRequiresGeolocation() {
+        Event event = new Event();
+
+        // Default should be false
+        assertFalse(event.isRequiresGeolocation());
+
+        // Set to true
+        event.setRequiresGeolocation(true);
+        assertTrue(event.isRequiresGeolocation());
+
+        // Set to false
+        event.setRequiresGeolocation(false);
+        assertFalse(event.isRequiresGeolocation());
+    }
+
+    /**
+     * Test event creation with geolocation requirement.
+     */
+    @Test
+    public void testEventWithGeolocationRequirement() {
+        Event event = new Event(
+                "Test Event with Location",
+                "Sports",
+                "Event requiring location",
+                "2025-01-01",
+                "2025-01-02",
+                "14:00",
+                10.0,
+                "Test Location",
+                "2024-12-01",
+                "2024-12-31",
+                100,
+                1,
+                1,
+                1,
+                5,
+                "Location required for entry"
+        );
+
+        // Set geolocation requirement
+        event.setRequiresGeolocation(true);
+
+        // Verify
+        assertEquals("Test Event with Location", event.getEventName());
+        assertEquals("Location required for entry", event.getLotteryCriteria());
+        assertTrue(event.isRequiresGeolocation());
+    }
+
+    /**
+     * Test event without geolocation requirement.
+     */
+    @Test
+    public void testEventWithoutGeolocationRequirement() {
+        Event event = new Event();
+        event.setEventName("Non-Location Event");
+        event.setRequiresGeolocation(false);
+
+        assertEquals("Non-Location Event", event.getEventName());
+        assertFalse(event.isRequiresGeolocation());
+    }
 }
