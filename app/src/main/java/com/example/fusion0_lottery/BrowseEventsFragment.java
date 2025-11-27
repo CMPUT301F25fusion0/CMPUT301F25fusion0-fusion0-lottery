@@ -1,6 +1,9 @@
 package com.example.fusion0_lottery;
 
 import android.os.Bundle;
+
+import androidx.fragment.app.Fragment;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -91,8 +94,30 @@ public class BrowseEventsFragment extends Fragment {
         new AlertDialog.Builder(requireContext())
                 .setTitle(event.getEventName())
                 .setMessage(message)
-                .setPositiveButton("OK", null)
+                .setPositiveButton("Remove", (dialogue, which) -> confirmDeleteEvent(event))
+                .setNegativeButton("Exit", null)
                 .show();
+    }
+
+    private void confirmDeleteEvent(Event event) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Remove Event?")
+                .setMessage("Are you sure you want to remove this event?")
+                .setPositiveButton("Remove", (dialog, which) -> removeEvent(event))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void removeEvent(Event event) {
+        db.collection("Events").document(event.getEventId()).delete()
+                .addOnSuccessListener(aVoid -> {
+                    eventList.remove(event);
+                    adapter.updateList(eventList);
+                    Toast.makeText(requireContext(), "Event removed", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     /** 🧭 FILTER DIALOG **/
@@ -135,6 +160,7 @@ public class BrowseEventsFragment extends Fragment {
     private void setupBottomNavigation() {
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
+
             if (itemId == R.id.nav_profiles) {
                 navigateToFragment(new BrowseProfileFragment());
                 return true;
