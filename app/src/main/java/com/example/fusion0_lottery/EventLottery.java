@@ -143,18 +143,6 @@ public class EventLottery extends Fragment {
             });
         }
 
-        // Spinner
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                getContext(),
-                R.array.interests_array,
-                android.R.layout.simple_spinner_item
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerInterest.setAdapter(adapter);
-        if (selectedInterest != null) {
-            int position = adapter.getPosition(selectedInterest);
-            if (position >= 0) spinnerInterest.setSelection(position);
-        }
 
         // Pre-fill date buttons
         if (selectedStartDate != null) buttonStartDate.setText("Start: " + selectedStartDate);
