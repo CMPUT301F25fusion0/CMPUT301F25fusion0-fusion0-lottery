@@ -1,5 +1,6 @@
 package com.example.fusion0_lottery;
 
+import com.google.firebase.Timestamp;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +33,7 @@ public class Event {
     private String organizerName;
     private List<Object> waitingList;
     private List<Map<String, Object>> winnersList;
+
 
     // Empty constructor required for Firebase
     public Event() {
@@ -240,6 +242,7 @@ public class Event {
     public void setWinnersList(List<Map<String, Object>> winnersList) {
         this.winnersList = winnersList;
     }
+
     public String getLotteryCriteria() {
         return lotteryCriteria;
     }
