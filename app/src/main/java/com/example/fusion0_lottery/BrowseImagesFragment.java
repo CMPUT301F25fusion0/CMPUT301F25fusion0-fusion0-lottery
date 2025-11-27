@@ -1,22 +1,18 @@
 package com.example.fusion0_lottery;
 
 import android.os.Bundle;
-
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
-
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +25,6 @@ public class BrowseImagesFragment extends Fragment {
     private Button remove_btn;
     private ImageBrowserAdapter adapter;
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -38,6 +33,7 @@ public class BrowseImagesFragment extends Fragment {
         eventList = new ArrayList<>();
         selected_event_id = new ArrayList<>();
         View view = inflater.inflate(R.layout.fragment_browse_images, container, false);
+
         bottomNavigation = view.findViewById(R.id.bottom_navigation);
         recyclerView = view.findViewById(R.id.recycler_images);
         remove_btn = view.findViewById(R.id.remove_btn);
@@ -46,11 +42,14 @@ public class BrowseImagesFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new ImageBrowserAdapter(eventList, selected_event_id, getContext());
         recyclerView.setAdapter(adapter);
+
         loadImages();
-        bottom_navigation();
-        remove_btn.setOnClickListener(v -> removeSelectedImages() );
+        setupBottomNavigation();
+
+        remove_btn.setOnClickListener(v -> removeSelectedImages());
         return view;
     }
+
     private void loadImages() {
         eventList.clear();
 
@@ -60,22 +59,20 @@ public class BrowseImagesFragment extends Fragment {
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         Event event = doc.toObject(Event.class);
                         event.setEventId(doc.getId());
-
-                        if (event.getPosterImage() != null && !event.getPosterImage().isEmpty()) {
-                            eventList.add(event);
-                        }
+                        eventList.add(event); // Add all events, poster may be null
                     }
                     adapter.notifyDataSetChanged();
 
                     if (eventList.isEmpty()) {
-                        Toast.makeText(getContext(), "No images found", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "No events found", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Error loading images: " + e.getMessage(),
+                    Toast.makeText(getContext(), "Error loading events: " + e.getMessage(),
                             Toast.LENGTH_SHORT).show();
                 });
     }
+
     private void removeSelectedImages() {
         if (selected_event_id.isEmpty()) {
             Toast.makeText(getContext(), "No images selected", Toast.LENGTH_SHORT).show();
@@ -85,36 +82,36 @@ public class BrowseImagesFragment extends Fragment {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Remove Images")
                 .setMessage("Remove " + selected_event_id.size() + " selected image(s)?")
-                .setPositiveButton("Remove", (dialog, which) -> {
-                    deleteImagesFromFirebase();
-                })
+                .setPositiveButton("Remove", (dialog, which) -> replaceWithDefaultPoster())
                 .setNegativeButton("Cancel", null)
                 .show();
     }
-    private void deleteImagesFromFirebase() {
-        int totalToDelete = selected_event_id.size();
-        int[] deletedCount = {0};
+
+    private void replaceWithDefaultPoster() {
+        int totalToUpdate = selected_event_id.size();
+        int[] updatedCount = {0};
 
         for (String eventId : selected_event_id) {
             db.collection("Events").document(eventId)
-                    .update("posterImage", null)
+                    .update("posterImage", "default_poster") // just store a key or keep null
                     .addOnSuccessListener(aVoid -> {
-                        deletedCount[0]++;
-                        if (deletedCount[0] == totalToDelete) {
-                            Toast.makeText(getContext(), "Images removed successfully",
+                        updatedCount[0]++;
+                        if (updatedCount[0] == totalToUpdate) {
+                            Toast.makeText(getContext(), "Images replaced with default poster",
                                     Toast.LENGTH_SHORT).show();
                             selected_event_id.clear();
                             loadImages();
                         }
                     })
                     .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Error removing image: " + e.getMessage(),
+                        Toast.makeText(getContext(), "Error updating image: " + e.getMessage(),
                                 Toast.LENGTH_SHORT).show();
                     });
         }
     }
 
-    private void bottom_navigation() {
+
+    private void setupBottomNavigation() {
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
 
