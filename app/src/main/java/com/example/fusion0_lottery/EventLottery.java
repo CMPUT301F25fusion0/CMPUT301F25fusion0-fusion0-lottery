@@ -121,9 +121,9 @@ public class EventLottery extends Fragment {
         buttonEndDate       = view.findViewById(R.id.buttonEndDate);
         buttonClearFilters  = view.findViewById(R.id.buttonClearFilters);
 
-        if (buttonBack != null) {
-            buttonBack.setOnClickListener(v -> getParentFragmentManager().popBackStack());
-        }
+        buttonBack.setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).replaceFragment(new FragmentRoleSelection());
+        });
         if (toolbar != null) {
             toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
         }
@@ -205,6 +205,7 @@ public class EventLottery extends Fragment {
                     if (eventSnapshot.exists()) {
                         String eventName   = eventSnapshot.getString("eventName");
                         String description = eventSnapshot.getString("description");
+                        String interests   = eventSnapshot.getString("interests");
                         String startDate   = eventSnapshot.getString("startDate");
                         String location    = eventSnapshot.getString("location");
                         String regStart    = eventSnapshot.getString("registrationStart");
@@ -230,6 +231,7 @@ public class EventLottery extends Fragment {
                                                 currentUserId,
                                                 eventName != null ? eventName : "No Name",
                                                 description != null ? description : "No Description",
+                                                interests != null ? interests : "None",
                                                 startDate != null ? startDate : "No Date",
                                                 location != null ? location : "No Location",
                                                 isOnWaitlist,
@@ -446,6 +448,7 @@ public class EventLottery extends Fragment {
 
                             String eventNameStr     = eventSnapshot.getString("eventName");
                             String eventDescStr     = eventSnapshot.getString("description");
+                            String eventInterests   = eventSnapshot.getString("interests");
                             String eventStartDateStr= eventSnapshot.getString("startDate");
                             String eventLocationStr = eventSnapshot.getString("location");
                             String regStart         = eventSnapshot.getString("registrationStart");
@@ -474,6 +477,7 @@ public class EventLottery extends Fragment {
                                                     currentUserId,
                                                     eventNameStr != null ? eventNameStr : "No Name",
                                                     eventDescStr != null ? eventDescStr : "No Description",
+                                                    eventInterests != null ? eventInterests : "None",
                                                     eventStartDateStr != null ? eventStartDateStr : "No Date",
                                                     eventLocationStr != null ? eventLocationStr : "No Location",
                                                     isOnWaitlist,

@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
                                 } else if ("Organizer".equalsIgnoreCase(role)) {
                                     replaceFragment(new FragmentOrganizer());
                                 } else if("Admin".equalsIgnoreCase((role))) {
-                                    replaceFragment(new FragmentAdmin());
+                                    replaceFragment(new BrowseEventsFragment());
                                 } else {
                                     replaceFragment(new FragmentRoleSelection());
                                 }

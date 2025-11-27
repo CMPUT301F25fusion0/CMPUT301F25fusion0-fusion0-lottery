@@ -28,6 +28,7 @@ public class FragmentEditEventTest {
     private EditText locationInput;
     private EditText priceInput;
     private EditText maxEntrantsInput;
+    private EditText lotteryCriteriaInput;
 
     @Before
     public void setUp() {
@@ -45,31 +46,16 @@ public class FragmentEditEventTest {
         locationInput = new EditText(context);
         priceInput = new EditText(context);
         maxEntrantsInput = new EditText(context);
+        lotteryCriteriaInput = new EditText(context);
 
         // Three dummy EditTexts for the first 3 params of testingEdit (they are unused)
         EditText dummy1 = new EditText(context);
         EditText dummy2 = new EditText(context);
         EditText dummy3 = new EditText(context);
 
-        // Match the exact parameter order of your helper:
-        //
-        // void testingEdit(
-        //   EditText title1, EditText text, EditText editText,
-        //   EditText title, EditText desc, EditText start, EditText end,
-        //   EditText time, EditText location, EditText price, EditText max, EditText interests)
-        //
-        fragment.testingEdit(
-                dummy1, dummy2, dummy3,         // title1, text, editText (unused)
-                titleInput,                     // title
-                descInput,                      // desc
-                startDateInput,                 // start
-                endDateInput,                   // end
-                timeInput,                      // time
-                locationInput,                  // location
-                priceInput,                     // price
-                maxEntrantsInput,               // max
-                interestsInput                  // interests
-        );
+        // Assign all fields to the fragment using testingEdit
+        fragment.testingEdit(dummy1, dummy2, dummy3, titleInput, descInput, startDateInput, endDateInput,
+                timeInput, locationInput, priceInput, maxEntrantsInput, interestsInput, lotteryCriteriaInput);
     }
 
     /**
@@ -86,6 +72,7 @@ public class FragmentEditEventTest {
         locationInput.setText("Outside");
         priceInput.setText("0.0");
         maxEntrantsInput.setText("100");
+        lotteryCriteriaInput.setText("Criteria");
 
         assertTrue(fragment.validateInputs());
         assertTrue(fragment.editThenSave());
@@ -106,6 +93,7 @@ public class FragmentEditEventTest {
         locationInput.setText("Outside");
         priceInput.setText("0.0");
         maxEntrantsInput.setText("100");
+        lotteryCriteriaInput.setText("Criteria");
 
         assertFalse(fragment.validateInputs());
         assertFalse(fragment.editThenSave());
@@ -125,6 +113,7 @@ public class FragmentEditEventTest {
         locationInput.setText("");
         priceInput.setText("");
         maxEntrantsInput.setText("");
+        lotteryCriteriaInput.setText("");
 
         assertFalse(fragment.validateInputs());
         assertFalse(fragment.editThenSave());

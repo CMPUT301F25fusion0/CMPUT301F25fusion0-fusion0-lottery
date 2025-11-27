@@ -104,6 +104,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Price: "
+                android:layout_marginBottom="8dp" />
+            <TextView
+                android:id="@+id/eventLotteryCriteria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Lottery Criteria: "
                 android:layout_marginBottom="16dp" />
 
             <TextView
@@ -115,7 +121,9 @@
                 android:textSize="16sp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
-                android:visibility="gone" />
+                />
+
+
 
             <ImageView
                 android:id="@+id/eventQrCode"
@@ -125,7 +133,6 @@
                 android:scaleType="fitCenter"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="24dp"
-                android:visibility="gone"
                 android:contentDescription="Event QR Code" />
 
             <LinearLayout

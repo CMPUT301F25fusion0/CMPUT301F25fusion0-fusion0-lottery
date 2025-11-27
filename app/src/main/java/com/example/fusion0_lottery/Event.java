@@ -1,5 +1,8 @@
 package com.example.fusion0_lottery;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Event model class for storing event information in Firebase Firestore
  */
@@ -18,11 +21,16 @@ public class Event {
     private String registrationStart;
     private String registrationEnd;
     private String qrCodeUrl; // URL to the generated QR code
+    private String lotteryCriteria;
 
     private Integer waitingListCount;
     private Integer userSelectedCount;
     private Integer userEnrolledCount;
     private Integer numberOfWinners;
+    private String posterImage;
+    private String organizerName;
+    private List<Object> waitingList;
+    private List<Map<String, Object>> winnersList;
 
     // Empty constructor required for Firebase
     public Event() {
@@ -32,7 +40,7 @@ public class Event {
     public Event(String eventName, String interests, String description, String startDate, String endDate,
                  String time, double price, String location, String registrationStart,
                  String registrationEnd, Integer maxEntrants, Integer waitingListCount,
-                 Integer userSelectedCount, Integer userEnrolledCount, Integer numberOfWinners) {
+                 Integer userSelectedCount, Integer userEnrolledCount, Integer numberOfWinners, String lotteryCriteria) {
         this.eventName = eventName;
         this.interests = interests;
         this.description = description;
@@ -48,6 +56,7 @@ public class Event {
         this.userSelectedCount = userSelectedCount;
         this.userEnrolledCount = userEnrolledCount;
         this.numberOfWinners = numberOfWinners;
+        this.lotteryCriteria = lotteryCriteria;
     }
 
     public Event(String eventName, String description, String startDate, String endDate, String time, double price, String location, String registrationStart, String registrationEnd, Integer maxEntrants, int i, int i1, int i2) {
@@ -198,4 +207,43 @@ public class Event {
         this.numberOfWinners = numberOfWinners;
     }
 
+    public String getOrganizerName() {
+        return organizerName;
+    }
+
+    public void setOrganizerName(String organizerName) {
+        this.organizerName = organizerName;
+    }
+
+    public String getPosterImage() {
+        return posterImage;
+    }
+
+    public void setPosterImage(String posterImage) {
+        this.posterImage = posterImage;
+    }
+
+    public List<Object> getWaitingList() {
+        return waitingList;
+    }
+
+    public void setWaitingList(List<Object> waitingList) {
+        this.waitingList = waitingList;
+    }
+
+
+    public List<Map<String, Object>> getWinnersList() {
+        return winnersList;
+    }
+
+    public void setWinnersList(List<Map<String, Object>> winnersList) {
+        this.winnersList = winnersList;
+    }
+    public String getLotteryCriteria() {
+        return lotteryCriteria;
+    }
+
+    public void setLotteryCriteria(String lotteryCriteria) {
+        this.lotteryCriteria = lotteryCriteria;
+    }
 }

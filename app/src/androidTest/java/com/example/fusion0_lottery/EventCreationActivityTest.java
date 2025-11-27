@@ -58,6 +58,9 @@ public class EventCreationActivityTest {
         Espresso.onView(ViewMatchers.withId(R.id.priceInput))
                 .check(ViewAssertions.matches(ViewMatchers.isDisplayed()));
 
+        Espresso.onView(ViewMatchers.withId(R.id.winnerInput))
+                .check(ViewAssertions.matches(ViewMatchers.isDisplayed()));
+
         scenario.close();
     }
 
@@ -183,6 +186,26 @@ public class EventCreationActivityTest {
 
         Espresso.onView(ViewMatchers.withId(R.id.priceInput))
                 .check(ViewAssertions.matches(ViewMatchers.withText(testPrice)));
+
+        scenario.close();
+    }
+
+    /**
+     * Test typing into number of winners input field.
+     */
+    @Test
+    public void testNumberOfWinnersInput() {
+        Intent intent = new Intent(ApplicationProvider.getApplicationContext(), EventCreationActivity.class);
+        ActivityScenario<EventCreationActivity> scenario = ActivityScenario.launch(intent);
+
+        String testNumberOfWinners = "10";
+
+        Espresso.onView(ViewMatchers.withId(R.id.winnerInput))
+                .perform(ViewActions.typeText(testNumberOfWinners))
+                .perform(ViewActions.closeSoftKeyboard());
+
+        Espresso.onView(ViewMatchers.withId(R.id.winnerInput))
+                .check(ViewAssertions.matches(ViewMatchers.withText(testNumberOfWinners)));
 
         scenario.close();
     }

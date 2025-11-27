@@ -40,7 +40,7 @@ public class EventCreationActivity extends AppCompatActivity {
 
     // UI Elements - all the input fields from the layout
     private TextInputEditText eventNameInput, interestInput, descriptionInput, startDateInput, endDateInput;
-    private TextInputEditText timeInput, priceInput, locationInput, maxEntrantsInput, winnerInput;
+    private TextInputEditText timeInput, priceInput, locationInput, maxEntrantsInput, winnerInput, lotteryCriteriaInput;
 
     private TextInputEditText registrationStartInput, registrationEndInput;
     private Button uploadPosterButton, createEventButton, cancelButton;
@@ -100,6 +100,8 @@ public class EventCreationActivity extends AppCompatActivity {
         generateQrCheckbox = findViewById(R.id.generateQrCheckbox);
 
         posterImageView = findViewById(R.id.posterImageView);
+        lotteryCriteriaInput = findViewById(R.id.lotteryCriteriaInput);
+
     }
 
     /**
@@ -254,6 +256,10 @@ public class EventCreationActivity extends AppCompatActivity {
             Toast.makeText(this, "Please select registration end date", Toast.LENGTH_SHORT).show();
             return false;
         }
+        if (lotteryCriteriaInput.getText().toString().trim().isEmpty()) {
+            Toast.makeText(this, "Please enter criteria or guidelines for this event", Toast.LENGTH_SHORT).show();
+            return false;
+        }
 
         // Validate dates - end date should be after start date
         if (!validateDateOrder(startDateInput.getText().toString(), endDateInput.getText().toString())) {
@@ -323,6 +329,8 @@ public class EventCreationActivity extends AppCompatActivity {
         String location = locationInput.getText().toString().trim();
         String registrationStart = registrationStartInput.getText().toString().trim();
         String registrationEnd = registrationEndInput.getText().toString().trim();
+        String lotteryCriteria = lotteryCriteriaInput.getText().toString().trim();
+
 
         // Max entrants is optional
         Integer maxEntrants = null;
@@ -331,7 +339,8 @@ public class EventCreationActivity extends AppCompatActivity {
         }
         // Create Event object
         Event event = new Event(eventName, interests, description, startDate, endDate, time,
-                price, location, registrationStart, registrationEnd, maxEntrants, 0, 0, 0, numberOfWinners);
+                price, location, registrationStart, registrationEnd, maxEntrants,
+                0, 0, 0, numberOfWinners, lotteryCriteria);
 
         // First save event to Firestore
         db.collection("Events")
@@ -341,7 +350,9 @@ public class EventCreationActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentReference -> {
                     // create the event ID
                     createdEventId = documentReference.getId();
-                    documentReference.update("eventId", createdEventId);
+                    // Update event ID and QR code setting
+                    documentReference.update("eventId", createdEventId,
+                            "hasQrCode", generateQrCheckbox.isChecked());
 
                     if (posterImageUri != null) {
                         // upload the poster first then save the event

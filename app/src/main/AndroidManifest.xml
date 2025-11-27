@@ -25,12 +25,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Fusion0_lottery">
 
-        <!-- AndroidManifest.xml inside <application> -->
+        <!-- QR scanner (internal activity; no intent-filter, so exported can be false) -->
         <activity
             android:name=".QRScannerActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.Fusion0_lottery"/>
+            android:exported="false" />
 
         <!-- Event creation screen -->
         <activity
