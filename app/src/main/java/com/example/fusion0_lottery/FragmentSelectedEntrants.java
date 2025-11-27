@@ -343,7 +343,8 @@ public class FragmentSelectedEntrants extends Fragment {
 
                     // Create notification data
                     Map<String, Object> notification = new HashMap<>();
-                    notification.put("message", message);
+                    notification.put("title", "Message from Organizer - " + eventName);
+                    notification.put("body", message);
                     notification.put("eventId", eventId);
                     notification.put("eventName", eventName);
                     notification.put("timestamp", System.currentTimeMillis());
@@ -357,7 +358,7 @@ public class FragmentSelectedEntrants extends Fragment {
 
                     for (String userId : userIds) {
                         db.collection("Users").document(userId)
-                                .collection("notifications").add(notification)
+                                .collection("Notifications").add(notification)
                                 .addOnSuccessListener(docRef -> {
                                     successCount[0]++;
                                     if (successCount[0] + failCount[0] == totalUsers) {
@@ -458,7 +459,8 @@ public class FragmentSelectedEntrants extends Fragment {
 
                     // Create notification data
                     Map<String, Object> notification = new HashMap<>();
-                    notification.put("message", message);
+                    notification.put("title", "Message from Organizer - " + eventName);
+                    notification.put("body", message);
                     notification.put("eventId", eventId);
                     notification.put("eventName", eventName);
                     notification.put("timestamp", System.currentTimeMillis());
@@ -470,7 +472,7 @@ public class FragmentSelectedEntrants extends Fragment {
 
                     for (String userId : userIds) {
                         db.collection("Users").document(userId)
-                                .collection("notifications").add(notification)
+                                .collection("Notifications").add(notification)
                                 .addOnSuccessListener(docRef -> {
                                     successCount[0]++;
                                     if (successCount[0] + failCount[0] == totalUsers) {

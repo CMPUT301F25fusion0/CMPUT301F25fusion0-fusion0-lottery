@@ -232,9 +232,15 @@ public class FragmentWaitingList extends Fragment {
                     for (int i = 0; i < numberRandomWinners; i++) {
                         // get a random entrant via indexing, add to winners list, remove from waiting list after adding to winners list
                         int index = random.nextInt(tempList.size());
-                        chosenWinners.add(tempList.get(index));
+                        Map<String, Object> winner = tempList.get(index);
+                        // Add status field to winner
+                        winner.put("status", "Pending");
+                        chosenWinners.add(winner);
                         tempList.remove(index);
                     }
+
+                    String eventName = snapshot.getString("eventName");
+
                     Map<String, Object> updates = new HashMap<>();
                     updates.put("waitingList", tempList);
                     updates.put("winnersList", chosenWinners);
@@ -243,6 +249,10 @@ public class FragmentWaitingList extends Fragment {
                             .update(updates)
                             .addOnSuccessListener(v -> {
                                 Toast.makeText(getContext(), "Selected " + chosenWinners.size() + " winners", Toast.LENGTH_LONG).show();
+
+                                // Send notifications to selected winners
+                                sendNotificationsToWinners(chosenWinners, eventName != null ? eventName : "Event");
+
                                 loadWaitingList(eventId);
                             })
                             .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show());
@@ -384,7 +394,8 @@ public class FragmentWaitingList extends Fragment {
 
                     // Create notification data
                     Map<String, Object> notification = new HashMap<>();
-                    notification.put("message", message);
+                    notification.put("title", "Update for " + eventName);
+                    notification.put("body", message);
                     notification.put("eventId", eventId);
                     notification.put("eventName", eventName);
                     notification.put("timestamp", System.currentTimeMillis());
@@ -397,7 +408,7 @@ public class FragmentWaitingList extends Fragment {
 
                     for (String userId : userIds) {
                         db.collection("Users").document(userId)
-                                .collection("notifications").add(notification)
+                                .collection("Notifications").add(notification)
                                 .addOnSuccessListener(docRef -> {
                                     successCount[0]++;
                                     if (successCount[0] + failCount[0] == totalUsers) {
@@ -427,6 +438,38 @@ public class FragmentWaitingList extends Fragment {
             resultMessage = "Sent to " + successCount + " user(s), failed for " + failCount + " user(s)";
         }
         Toast.makeText(getContext(), resultMessage, Toast.LENGTH_LONG).show();
+    }
+
+    /**
+     * Send notifications to selected winners
+     * @param winners List of winners (each containing userId)
+     * @param eventName Name of the event
+     */
+    private void sendNotificationsToWinners(List<Map<String, Object>> winners, String eventName) {
+        if (winners == null || winners.isEmpty()) {
+            return;
+        }
+
+        // Create notification data
+        Map<String, Object> notification = new HashMap<>();
+        notification.put("title", "You've Been Selected!");
+        notification.put("body", "Congratulations! You've been selected for " + eventName + ". Please accept or decline your invitation.");
+        notification.put("eventId", eventId);
+        notification.put("eventName", eventName);
+        notification.put("timestamp", System.currentTimeMillis());
+        notification.put("type", "winner_selection");
+
+        // Send notification to each winner
+        for (Map<String, Object> winner : winners) {
+            String userId = (String) winner.get("userId");
+            if (userId != null && !userId.isEmpty()) {
+                db.collection("Users").document(userId)
+                        .collection("Notifications").add(notification)
+                        .addOnFailureListener(e -> {
+                            // Silent failure for individual notifications
+                        });
+            }
+        }
     }
 
     /**
