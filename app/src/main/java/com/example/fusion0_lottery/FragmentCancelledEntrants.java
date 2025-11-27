@@ -360,13 +360,14 @@ public class FragmentCancelledEntrants extends Fragment {
                     if (eventName == null) {
                         eventName = "Event";
                     }
+                    final String finalEventName = eventName;
 
                     // Create notification data
                     Map<String, Object> notification = new HashMap<>();
-                    notification.put("title", "Update from Organizer - " + eventName);
+                    notification.put("title", "Update from Organizer - " + finalEventName);
                     notification.put("body", message);
                     notification.put("eventId", eventId);
-                    notification.put("eventName", eventName);
+                    notification.put("eventName", finalEventName);
                     notification.put("timestamp", System.currentTimeMillis());
                     notification.put("type", "cancelled_entrant_notification");
 
@@ -374,12 +375,27 @@ public class FragmentCancelledEntrants extends Fragment {
                     int totalUsers = cancelledList.size();
                     final int[] successCount = {0};
                     final int[] failCount = {0};
-
                     for (CancelledEntrant entrant : cancelledList) {
-                        db.collection("Users").document(entrant.getUserId())
+                        String userId = entrant.getUserId();
+                        String recipientName = entrant.getName() != null ? entrant.getName() : "Unknown User";
+
+                        db.collection("Users").document(userId)
                                 .collection("Notifications").add(notification)
                                 .addOnSuccessListener(docRef -> {
                                     successCount[0]++;
+
+                                    // Log to centralized NotificationLogs for admin
+                                    NotificationLogger.logNotification(
+                                            userId,
+                                            recipientName,
+                                            eventId,
+                                            finalEventName,
+                                            "cancelled_entrant_notification",
+                                            message,
+                                            "Update from Organizer - " + finalEventName,
+                                            docRef.getId()
+                                    );
+
                                     if (successCount[0] + failCount[0] == totalUsers) {
                                         showNotificationResult(successCount[0], failCount[0]);
                                     }

@@ -578,10 +578,38 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
         notification.put("timestamp", System.currentTimeMillis());
         notification.put("type", "winner_selection");
 
-        db.collection("Users").document(userId)
-                .collection("Notifications").add(notification)
+        // Fetch recipient name first
+        db.collection("Users").document(userId).get()
+                .addOnSuccessListener(userDoc -> {
+                    String recipientName = userDoc.getString("name");
+                    if (recipientName == null) {
+                        recipientName = "Unknown User";
+                    }
+
+                    String finalRecipientName = recipientName;
+
+                    db.collection("Users").document(userId)
+                            .collection("Notifications").add(notification)
+                            .addOnSuccessListener(docRef -> {
+                                // Log to centralized NotificationLogs for admin
+                                NotificationLogger.logNotification(
+                                        userId,
+                                        finalRecipientName,
+                                        eventId,
+                                        eventName,
+                                        "winner_selection",
+                                        "Congratulations! You've been selected for " + eventName + ". Please accept or decline your invitation.",
+                                        "You've Been Selected!",
+                                        docRef.getId()
+
+                                );
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("MyEventsActivity", "Failed to send notification to winner: " + e.getMessage());
+                            });
+                })
                 .addOnFailureListener(e -> {
-                    Log.e("MyEventsActivity", "Failed to send notification to winner: " + e.getMessage());
+                    Log.e("MyEventsActivity", "Failed to fetch user data: " + e.getMessage());
                 });
     }
 }
