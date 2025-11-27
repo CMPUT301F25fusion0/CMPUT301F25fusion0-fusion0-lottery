@@ -1,5 +1,6 @@
 package com.example.fusion0_lottery;
 
+import com.google.firebase.Timestamp;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +22,8 @@ public class Event {
     private String registrationStart;
     private String registrationEnd;
     private String qrCodeUrl; // URL to the generated QR code
+    private String lotteryCriteria;
+    private boolean requiresGeolocation; // Whether event requires location from entrants
 
     private Integer waitingListCount;
     private Integer userSelectedCount;
@@ -28,8 +31,9 @@ public class Event {
     private Integer numberOfWinners;
     private String posterImage;
     private String organizerName;
-    private List<String> waitingList;
+    private List<Object> waitingList;
     private List<Map<String, Object>> winnersList;
+
 
     // Empty constructor required for Firebase
     public Event() {
@@ -39,7 +43,7 @@ public class Event {
     public Event(String eventName, String interests, String description, String startDate, String endDate,
                  String time, double price, String location, String registrationStart,
                  String registrationEnd, Integer maxEntrants, Integer waitingListCount,
-                 Integer userSelectedCount, Integer userEnrolledCount, Integer numberOfWinners) {
+                 Integer userSelectedCount, Integer userEnrolledCount, Integer numberOfWinners, String lotteryCriteria) {
         this.eventName = eventName;
         this.interests = interests;
         this.description = description;
@@ -55,6 +59,7 @@ public class Event {
         this.userSelectedCount = userSelectedCount;
         this.userEnrolledCount = userEnrolledCount;
         this.numberOfWinners = numberOfWinners;
+        this.lotteryCriteria = lotteryCriteria;
     }
 
     public Event(String eventName, String description, String startDate, String endDate, String time, double price, String location, String registrationStart, String registrationEnd, Integer maxEntrants, int i, int i1, int i2) {
@@ -221,13 +226,14 @@ public class Event {
         this.posterImage = posterImage;
     }
 
-    public List<String> getWaitingList() {
+    public List<Object> getWaitingList() {
         return waitingList;
     }
 
-    public void setWaitingList(List<String> waitingList) {
+    public void setWaitingList(List<Object> waitingList) {
         this.waitingList = waitingList;
     }
+
 
     public List<Map<String, Object>> getWinnersList() {
         return winnersList;
@@ -235,5 +241,21 @@ public class Event {
 
     public void setWinnersList(List<Map<String, Object>> winnersList) {
         this.winnersList = winnersList;
+    }
+
+    public String getLotteryCriteria() {
+        return lotteryCriteria;
+    }
+
+    public void setLotteryCriteria(String lotteryCriteria) {
+        this.lotteryCriteria = lotteryCriteria;
+    }
+
+    public boolean isRequiresGeolocation() {
+        return requiresGeolocation;
+    }
+
+    public void setRequiresGeolocation(boolean requiresGeolocation) {
+        this.requiresGeolocation = requiresGeolocation;
     }
 }

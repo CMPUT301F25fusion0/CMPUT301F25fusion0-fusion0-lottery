@@ -33,15 +33,15 @@ import java.util.List;
  */
 
 public class BrowseProfileFragment extends Fragment implements BrowseProfileAdapter.OnUserActionListener{
-        private RecyclerView profilesRecyclerView;
-        private TextView profileCount;
-        private Spinner roleSpinner;
-        private LinearLayout emptyLayout;
-        private Button applyFilter;
-        private List<User> userList = new ArrayList<>();
-        private FirebaseFirestore db;
-        private BrowseProfileAdapter browseProfileAdapter;
-        private BottomNavigationView bottomNavigation;
+    private RecyclerView profilesRecyclerView;
+    private TextView profileCount;
+    private Spinner roleSpinner;
+    private LinearLayout emptyLayout;
+    private Button applyFilter;
+    private List<User> userList = new ArrayList<>();
+    private FirebaseFirestore db;
+    private BrowseProfileAdapter browseProfileAdapter;
+    private BottomNavigationView bottomNavigation;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -179,6 +179,24 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
                 .setPositiveButton("Remove", (dialog, which) -> removeProfile(user))
                 .setNegativeButton("Cancel", null)
                 .show();
+        new AlertDialog.Builder(requireContext())
+                .setTitle("User Details")
+                .setMessage("Name: " + user.getName() +
+                        "\nEmail: " + user.getEmail() +
+                        "\nRole: " + user.getRole() +
+                        "\nPhone: " + user.getPhone_number())
+                .setPositiveButton("Remove", (dialog, which) ->  confirmDeleteUser(user))
+                .setNegativeButton("Exit", null)
+                .show();
+    }
+
+    private void confirmDeleteUser(User user) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Remove User?")
+                .setMessage("Are you sure you want to remove this user?")
+                .setPositiveButton("Remove", (dialog, which) -> removeProfile(user))
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void removeProfile(User user) {
@@ -200,5 +218,6 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
             Toast.makeText(getContext(), "You can not remove your own profile!", Toast.LENGTH_SHORT).show();
         }
     }
+
 }
   

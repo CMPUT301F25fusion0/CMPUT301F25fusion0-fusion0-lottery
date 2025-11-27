@@ -33,7 +33,7 @@ public class FragmentSignUp extends Fragment {
     private static final List<String> ADMIN_EMAILS = Arrays.asList(
             "mersimoy@ualberta.ca",
             "thi2@ualberta.ca",
-            "@ualberta.ca",
+            "bbhoomi@ualberta.ca",
             "@ualberta.ca",
             "@ualberta.ca",
             "@ualberta.ca"

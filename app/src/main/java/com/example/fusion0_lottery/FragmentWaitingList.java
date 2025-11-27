@@ -33,7 +33,7 @@ public class FragmentWaitingList extends Fragment {
 
     private ListView waitingListView;
     private TextView emptyText;
-    private Button backButton, refreshButton, notifyWaitListButton, drawWinnersButton;
+    private Button backButton, refreshButton, notifyWaitListButton, drawWinnersButton, mapViewButton;
 
     private Spinner sortFilter;
 
@@ -57,6 +57,7 @@ public class FragmentWaitingList extends Fragment {
         refreshButton = view.findViewById(R.id.refreshButton);
         sortFilter = view.findViewById(R.id.sortFilter);
         drawWinnersButton = view.findViewById(R.id.drawWinnersButton);
+        mapViewButton = view.findViewById(R.id.mapViewButton);
 
         waitingList = new ArrayList<>();
         db = FirebaseFirestore.getInstance();
@@ -81,6 +82,7 @@ public class FragmentWaitingList extends Fragment {
         });
 
         drawWinnersButton.setOnClickListener(v -> drawRandomWinners());
+        mapViewButton.setOnClickListener(v -> openMapView());
         return view;
     }
 
@@ -89,7 +91,7 @@ public class FragmentWaitingList extends Fragment {
      *  lists all entrants in the waiting list
      *  allow sorting by name and join date
      *  Handles both String (userId only) and Map (userId with joinedAt) entries
-    */
+     */
     private void loadWaitingList(String eventId) {
         db.collection("Events").document(eventId).get()
                 .addOnSuccessListener(snapshot -> {
@@ -274,8 +276,8 @@ public class FragmentWaitingList extends Fragment {
         for (WaitingListEntrants entry : waitingList) {
             displayList.add(
                     "Name: " + entry.getName() + "\n" +
-                    "Joined: " + entry.getJoinDate() + "\n" +
-                    "Status: " + entry.getStatus()
+                            "Joined: " + entry.getJoinDate() + "\n" +
+                            "Status: " + entry.getStatus()
             );
         }
         return displayList;
@@ -285,7 +287,7 @@ public class FragmentWaitingList extends Fragment {
     /**
      * function to update the waiting list
      * used when trying to sort entrants by name or join date
-    */
+     */
     private void updateListView() {
         ArrayList<String> displayList = getDisplayStrings(waitingList);
         waitingListAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, displayList);
@@ -426,7 +428,24 @@ public class FragmentWaitingList extends Fragment {
         }
         Toast.makeText(getContext(), resultMessage, Toast.LENGTH_LONG).show();
     }
+
+    /**
+     * Open the map view fragment to display entrant locations
+     */
+    private void openMapView() {
+        // Create new MapViewFragment
+        FragmentMapView mapViewFragment = new FragmentMapView();
+
+        // Pass event ID to the fragment
+        Bundle args = new Bundle();
+        args.putString("eventId", eventId);
+        mapViewFragment.setArguments(args);
+
+        // Navigate to the map view fragment
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, mapViewFragment)
+                .addToBackStack(null)
+                .commit();
+    }
 }
-
-
-

@@ -44,7 +44,7 @@ public class ManageEvents extends Fragment {
     private TabLayout tabLayout;
     private ImageView eventPosterImage, qrCodeImage;
     private TextView manageEventTitle, eventDescriptionText, eventInterests,
-            eventTime, eventLocation, eventRegistration, eventMaxEntrants, eventPrice, qrCodeLabel;
+            eventTime, eventLocation, eventRegistration, eventMaxEntrants, eventPrice, qrCodeLabel, eventLotteryCriteria;
 
     private Button editEventButton, updatePosterButton, notifyWaitlistButton, exportCsvButton;
     private Button backToEventsButton;
@@ -72,6 +72,8 @@ public class ManageEvents extends Fragment {
         eventRegistration = view.findViewById(R.id.eventRegistration);
         eventMaxEntrants = view.findViewById(R.id.eventMaxEntrants);
         eventPrice = view.findViewById(R.id.eventPrice);
+        eventLotteryCriteria = view.findViewById(R.id.eventLotteryCriteria);
+
 
 
         editEventButton = view.findViewById(R.id.editEventButton);
@@ -127,8 +129,6 @@ public class ManageEvents extends Fragment {
                     ((MainActivity) requireActivity()).replaceFragment(fragmentSelectedEntrants);
                 }
 
-                /*
-
                 else if (title.equals("Final List")) {
                     FragmentFinalList fragmentFinalList = new FragmentFinalList();
                     Bundle args = new Bundle();
@@ -138,6 +138,7 @@ public class ManageEvents extends Fragment {
                 }
 
 
+                /*
                 else if (title.equals("Cancelled Entrants")) { }
                     FragmentSelectedEntrants fragmentCancelledEntrants = new FragmentCancelledEntrants();
                     Bundle args = new Bundle();
@@ -228,6 +229,15 @@ public class ManageEvents extends Fragment {
                         byte[] imageBytes = Base64.decode(poster, Base64.DEFAULT);
                         Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
                         eventPosterImage.setImageBitmap(bitmap);
+                    }
+
+                    // Set lottery criteria
+                    String lotteryCriteria = event.getLotteryCriteria();
+                    if (lotteryCriteria != null && !lotteryCriteria.isEmpty()) {
+                        eventLotteryCriteria.setText("Lottery Criteria: " + lotteryCriteria);
+                        eventLotteryCriteria.setVisibility(View.VISIBLE);
+                    } else {
+                        eventLotteryCriteria.setVisibility(View.GONE);
                     }
 
                     // Generate and display QR code if enabled

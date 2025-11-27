@@ -20,12 +20,15 @@
         app:titleTextColor="@android:color/white"
         app:menu="@menu/event_lottery_menu" />
 
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical"
         android:padding="16dp">
+
+
         <!-- Filter Section -->
         <LinearLayout
             android:id="@+id/filterSection"
@@ -45,20 +48,26 @@
                 android:textStyle="bold"
                 android:paddingBottom="8dp" />
 
-            <!-- Interest Spinner -->
+            <!-- Interest Keyword Input -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Select Interest"
+                android:text="Enter Interest Keywords"
                 android:textSize="16sp"
                 android:layout_marginTop="4dp"
                 android:paddingBottom="4dp" />
 
-            <Spinner
-                android:id="@+id/spinnerInterest"
+            <EditText
+                android:id="@+id/inputInterestKeywords"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:prompt="@string/select_interest" />
+                android:hint="e.g. AI, coding, sports"
+                android:padding="8dp"
+                android:inputType="text"
+                android:background="@android:drawable/edit_text"
+                android:drawableStart="@android:drawable/ic_menu_search"
+                android:drawablePadding="8dp"/>
+
 
             <!-- Availability Filter -->
             <TextView
@@ -130,6 +139,16 @@
             android:layout_height="wrap_content"
             android:text="📷 SCAN QR Code"
             android:layout_gravity="center" />
+        <Button
+            android:id="@+id/buttonBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← Back"
+            android:textSize="16sp"
+            android:layout_marginBottom="12dp"
+            android:layout_marginTop="12dp"
+            android:layout_gravity="start" />
+
 
 
     </LinearLayout>

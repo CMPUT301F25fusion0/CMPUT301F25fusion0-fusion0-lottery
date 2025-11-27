@@ -2,42 +2,140 @@ package com.example.fusion0_lottery;
 
 import android.os.Bundle;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-/**
- * This is a default menu fragment for the admin once they log in.
- * They are able to click buttons to see all users and events from here
- * NOTE: Currently (as of Nov 19) you have to have access to admin, you must
- * go onto firestore database on the web and change your role to "Admin"
- * under your device ID.
- */
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
 public class BrowseEventsFragment extends Fragment {
 
     private FirebaseFirestore db;
     private BottomNavigationView bottomNavigation;
+    private RecyclerView recyclerView;
+    private BrowseEventAdapter adapter;
+    private List<Event> eventList = new ArrayList<>();
+    private Button buttonFilter;
+
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_browse_events, container, false);
+
+        db = FirebaseFirestore.getInstance();
+        recyclerView = view.findViewById(R.id.eventsContainer);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        adapter = new BrowseEventAdapter(eventList, this::showEventDetailsDialog);
+        recyclerView.setAdapter(adapter);
+
+        buttonFilter = view.findViewById(R.id.button_filter);
+        buttonFilter.setOnClickListener(v -> showFilterDialog());
+
         bottomNavigation = view.findViewById(R.id.bottom_navigation);
         bottomNavigation.setSelectedItemId(R.id.nav_events);
-        bottom_navigation();
+        setupBottomNavigation();
+
+        loadEvents();
+
         return view;
     }
 
-    private void bottom_navigation() {
+    private void loadEvents() {
+        db.collection("Events").get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    eventList.clear();
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        Event event = doc.toObject(Event.class);
+                        if (event != null) {
+                            event.setEventId(doc.getId());
+                            eventList.add(event);
+                        }
+                    }
+                    adapter.updateList(eventList);
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Failed to load events: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
+    }
+
+    private void showEventDetailsDialog(Event event) {
+        String message = "Description: " + (event.getDescription() != null ? event.getDescription() : "N/A") +
+                "\n\nLocation: " + (event.getLocation() != null ? event.getLocation() : "N/A") +
+                "\n\nStart Date: " + event.getStartDate() +
+                "\nEnd Date: " + event.getEndDate() +
+                "\n\nRegistration: " + event.getRegistrationStart() + " - " + event.getRegistrationEnd() +
+                "\n\nMax Entrants: " + (event.getMaxEntrants() != null ? event.getMaxEntrants() : 0) +
+                "\nNumber of Winners: " + (event.getNumberOfWinners() != null ? event.getNumberOfWinners() : 0) +
+                "\n\nPrice: $" + event.getPrice() +
+                "\nInterests: " + (event.getInterests() != null ? event.getInterests() : "N/A");
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle(event.getEventName())
+                .setMessage(message)
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
+    /** 🧭 FILTER DIALOG **/
+    private void showFilterDialog() {
+        String[] options = {"All Events", "Active Events", "Inactive Events"};
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Filter Events")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) { // All Events
+                        adapter.updateList(eventList);
+                    } else if (which == 1) { // Active
+                        adapter.updateList(getFilteredList(true));
+                    } else if (which == 2) { // Inactive
+                        adapter.updateList(getFilteredList(false));
+                    }
+                })
+                .show();
+    }
+
+    /** Returns filtered list based on active/inactive **/
+    private List<Event> getFilteredList(boolean active) {
+        List<Event> filtered = new ArrayList<>();
+        Date today = new Date();
+
+        for (Event e : eventList) {
+            try {
+                Date endDate = dateFormat.parse(e.getEndDate());
+                if (endDate != null) {
+                    boolean isActive = !today.after(endDate); // active if today <= endDate
+                    if (isActive == active) filtered.add(e);
+                }
+            } catch (ParseException ex) {
+                ex.printStackTrace();
+            }
+        }
+        return filtered;
+    }
+
+    private void setupBottomNavigation() {
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
 

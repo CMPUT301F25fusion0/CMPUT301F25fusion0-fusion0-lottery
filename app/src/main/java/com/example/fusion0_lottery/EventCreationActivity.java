@@ -40,11 +40,11 @@ public class EventCreationActivity extends AppCompatActivity {
 
     // UI Elements - all the input fields from the layout
     private TextInputEditText eventNameInput, interestInput, descriptionInput, startDateInput, endDateInput;
-    private TextInputEditText timeInput, priceInput, locationInput, maxEntrantsInput, winnerInput;
+    private TextInputEditText timeInput, priceInput, locationInput, maxEntrantsInput, winnerInput, lotteryCriteriaInput;
 
     private TextInputEditText registrationStartInput, registrationEndInput;
     private Button uploadPosterButton, createEventButton, cancelButton;
-    private CheckBox generateQrCheckbox;
+    private CheckBox generateQrCheckbox, requireGeolocationCheckbox;
     private ImageView posterImageView;
 
     // Firebase instances
@@ -98,8 +98,11 @@ public class EventCreationActivity extends AppCompatActivity {
         createEventButton = findViewById(R.id.createEventButton);
         cancelButton = findViewById(R.id.cancelButton);
         generateQrCheckbox = findViewById(R.id.generateQrCheckbox);
+        requireGeolocationCheckbox = findViewById(R.id.requireGeolocationCheckbox);
 
         posterImageView = findViewById(R.id.posterImageView);
+        lotteryCriteriaInput = findViewById(R.id.lotteryCriteriaInput);
+
     }
 
     /**
@@ -254,6 +257,10 @@ public class EventCreationActivity extends AppCompatActivity {
             Toast.makeText(this, "Please select registration end date", Toast.LENGTH_SHORT).show();
             return false;
         }
+        if (lotteryCriteriaInput.getText().toString().trim().isEmpty()) {
+            Toast.makeText(this, "Please enter criteria or guidelines for this event", Toast.LENGTH_SHORT).show();
+            return false;
+        }
 
         // Validate dates - end date should be after start date
         if (!validateDateOrder(startDateInput.getText().toString(), endDateInput.getText().toString())) {
@@ -323,6 +330,8 @@ public class EventCreationActivity extends AppCompatActivity {
         String location = locationInput.getText().toString().trim();
         String registrationStart = registrationStartInput.getText().toString().trim();
         String registrationEnd = registrationEndInput.getText().toString().trim();
+        String lotteryCriteria = lotteryCriteriaInput.getText().toString().trim();
+
 
         // Max entrants is optional
         Integer maxEntrants = null;
@@ -331,7 +340,8 @@ public class EventCreationActivity extends AppCompatActivity {
         }
         // Create Event object
         Event event = new Event(eventName, interests, description, startDate, endDate, time,
-                price, location, registrationStart, registrationEnd, maxEntrants, 0, 0, 0, numberOfWinners);
+                price, location, registrationStart, registrationEnd, maxEntrants,
+                0, 0, 0, numberOfWinners, lotteryCriteria);
 
         // First save event to Firestore
         db.collection("Events")
@@ -341,9 +351,10 @@ public class EventCreationActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentReference -> {
                     // create the event ID
                     createdEventId = documentReference.getId();
-                    // Update event ID and QR code setting
+                    // Update event ID, QR code setting, and geolocation requirement
                     documentReference.update("eventId", createdEventId,
-                            "hasQrCode", generateQrCheckbox.isChecked());
+                            "hasQrCode", generateQrCheckbox.isChecked(),
+                            "requiresGeolocation", requireGeolocationCheckbox.isChecked());
 
                     if (posterImageUri != null) {
                         // upload the poster first then save the event
@@ -403,9 +414,10 @@ public class EventCreationActivity extends AppCompatActivity {
                     // Store the document ID
                     createdEventId = documentReference.getId();
 
-                    // Update the event with its ID and QR code enabled flag
+                    // Update the event with its ID, QR code enabled flag, and geolocation requirement
                     documentReference.update("eventId", createdEventId,
-                            "hasQrCode", generateQrCheckbox.isChecked());
+                            "hasQrCode", generateQrCheckbox.isChecked(),
+                            "requiresGeolocation", requireGeolocationCheckbox.isChecked());
 
                     Toast.makeText(this, "Event created successfully!", Toast.LENGTH_SHORT).show();
                     finish();

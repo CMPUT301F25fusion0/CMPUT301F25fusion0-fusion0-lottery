@@ -9,8 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,17 +36,21 @@ import java.util.Locale;
  *
  * Fragment that displays events available to users in the lottery system.
  * Users can filter events by interest and date, view details, and join/leave waiting lists.
- * Also supports QR code scanning for quick event access.
+ * Supports QR code scanning for quick event access.
  */
 
 public class EventLottery extends Fragment {
 
+    /** Container layout for displaying event cards. */
     private LinearLayout eventsContainer;
 
+    /** Buttons for navigation, filtering, date selection, and QR scanning. */
     private Button buttonBack, buttonApplyFilters, buttonStartDate, buttonEndDate, buttonClearFilters, scan_qr;
-    private Spinner spinnerInterest;
+
     private FirebaseFirestore db;
     private String userEmail;
+    private EditText inputInterestKeywords;
+
 
     private static final int QR_SCAN_REQUEST_CODE = 100;
     private BottomNavigationView bottomNavigationView;
@@ -57,6 +61,11 @@ public class EventLottery extends Fragment {
 
     public EventLottery() {}
 
+    /**
+     * Creates a new instance of EventLottery fragment with the provided user email.
+     * @param userEmail The email of the current user.
+     * @return A new EventLottery fragment instance.
+     */
     public static EventLottery newInstance(String userEmail) {
         EventLottery fragment = new EventLottery();
         Bundle args = new Bundle();
@@ -65,6 +74,9 @@ public class EventLottery extends Fragment {
         return fragment;
     }
 
+    /**
+     * Inflates the fragment layout, initializes views, sets up event listeners, and loads events.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -74,14 +86,23 @@ public class EventLottery extends Fragment {
 
         eventsContainer = view.findViewById(R.id.eventsContainer);
 
+        buttonBack = view.findViewById(R.id.buttonBack);
+        buttonBack.setOnClickListener(v -> {
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, new FragmentRoleSelection())
+                    .commit();
+        });
+
+        // Initialize UI elements
         scan_qr = view.findViewById(R.id.scan_qr);
-        spinnerInterest     = view.findViewById(R.id.spinnerInterest);
         buttonApplyFilters  = view.findViewById(R.id.buttonApplyFilters);
         buttonStartDate     = view.findViewById(R.id.buttonStartDate);
         buttonEndDate       = view.findViewById(R.id.buttonEndDate);
         buttonClearFilters  = view.findViewById(R.id.buttonClearFilters);
         bottomNavigationView = view.findViewById(R.id.bottom_navigation);
         setupBottomNavigation();
+        inputInterestKeywords = view.findViewById(R.id.inputInterestKeywords);
 
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         if (toolbar != null) {
@@ -124,6 +145,7 @@ public class EventLottery extends Fragment {
 
         db = FirebaseFirestore.getInstance();
 
+        // Load arguments if any
         if (getArguments() != null) {
             userEmail = getArguments().getString("userEmail");
             selectedInterest = getArguments().getString("selectedInterest", "All");
@@ -137,18 +159,8 @@ public class EventLottery extends Fragment {
                 startActivityForResult(intent, QR_SCAN_REQUEST_CODE);
             });
         }
-        // Spinner
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                getContext(),
-                R.array.interests_array,
-                android.R.layout.simple_spinner_item
-        );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerInterest.setAdapter(adapter);
-        if (selectedInterest != null) {
-            int position = adapter.getPosition(selectedInterest);
-            if (position >= 0) spinnerInterest.setSelection(position);
-        }
+        inputInterestKeywords = view.findViewById(R.id.inputInterestKeywords);
+
 
         // Pre-fill date buttons
         if (selectedStartDate != null) buttonStartDate.setText("Start: " + selectedStartDate);
@@ -158,9 +170,10 @@ public class EventLottery extends Fragment {
         buttonEndDate.setOnClickListener(v -> showDatePicker(false));
 
         buttonApplyFilters.setOnClickListener(v -> {
-            selectedInterest = spinnerInterest.getSelectedItem().toString();
+            selectedInterest = inputInterestKeywords.getText().toString().trim();
             applyFilters();
         });
+
 
         buttonClearFilters.setOnClickListener(v -> clearFilters());
 
@@ -302,16 +315,22 @@ public class EventLottery extends Fragment {
         dialog.show();
     }
 
+    /** Load all events (then show them). */
     private void loadEvents() {
         db.collection("Events")
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    Log.d("EventLottery", "Number of events fetched: " + queryDocumentSnapshots.size());
-                    if (queryDocumentSnapshots.isEmpty()) {
+                .addOnSuccessListener(q -> {
+                    Log.d("EventLottery", "Number of events fetched: " + q.size());
+                    if (q.isEmpty()) {
                         Toast.makeText(getContext(), "No events found.", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    displayEvents(queryDocumentSnapshots.getDocuments());
+                    // Only show events the user can still join
+                    List<DocumentSnapshot> joinable = new ArrayList<>();
+                    for (DocumentSnapshot doc : q.getDocuments()) {
+                        if (canJoinWaitingList(doc)) joinable.add(doc);
+                    }
+                    displayEvents(joinable);
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Error loading events: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -334,11 +353,25 @@ public class EventLottery extends Fragment {
 
                     for (DocumentSnapshot event : queryDocumentSnapshots.getDocuments()) {
                         // Interest filter
-                        if (!selectedInterest.equals("All")) {
-                            String eventInterest = event.getString("interests");
-                            if (eventInterest == null || !selectedInterest.equalsIgnoreCase(eventInterest.trim()))
-                                continue;
+                        if (selectedInterest != null && !selectedInterest.isEmpty()) {
+                            String[] keywords = selectedInterest.toLowerCase(Locale.ROOT).split(",\\s*"); // split by comma + optional space
+
+                            String eventName = (event.getString("eventName") != null) ? event.getString("eventName").toLowerCase(Locale.ROOT) : "";
+                            String description = (event.getString("description") != null) ? event.getString("description").toLowerCase(Locale.ROOT) : "";
+                            String interests = (event.getString("interests") != null) ? event.getString("interests").toLowerCase(Locale.ROOT) : "";
+                            String location = (event.getString("location") != null) ? event.getString("location").toLowerCase(Locale.ROOT) : "";
+
+                            boolean matches = false;
+                            for (String keyword : keywords) {
+                                if (eventName.contains(keyword) || description.contains(keyword) || interests.contains(keyword) || location.contains(keyword)) {
+                                    matches = true;
+                                    break;
+                                }
+                            }
+
+                            if (!matches) continue; // skip event if no keyword matches
                         }
+
 
                         // Date window (optional)
                         if (selectedStartDate != null || selectedEndDate != null) {
@@ -371,16 +404,27 @@ public class EventLottery extends Fragment {
 
     /** Reset filters and reload. */
     private void clearFilters() {
-        selectedInterest = "All";
+        // Reset all filter variables
+        selectedInterest = "";
         selectedStartDate = null;
         selectedEndDate = null;
 
-        spinnerInterest.setSelection(0);
-        buttonStartDate.setText("Start: All");
-        buttonEndDate.setText("End: All");
+        // Clear the keyword input field
+        if (inputInterestKeywords != null) {
+            inputInterestKeywords.setText("");
+            inputInterestKeywords.setHint("e.g. AI, coding, sports");
+        }
 
+        // Reset the date buttons to default text
+        buttonStartDate.setText("Select Start Date");
+        buttonEndDate.setText("Select End Date");
+
+        // Reload all events
         loadEvents();
+
+        Toast.makeText(getContext(), "Filters cleared", Toast.LENGTH_SHORT).show();
     }
+
 
     /** Can user still join? date + cap check. */
     private boolean canJoinWaitingList(DocumentSnapshot eventDoc) {

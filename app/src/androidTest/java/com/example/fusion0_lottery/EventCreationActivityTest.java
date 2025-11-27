@@ -223,4 +223,59 @@ public class EventCreationActivityTest {
 
         scenario.close();
     }
+
+    /**
+     * Test that geolocation requirement checkbox is displayed.
+     */
+    @Test
+    public void testGeolocationCheckboxDisplayed() {
+        Intent intent = new Intent(ApplicationProvider.getApplicationContext(), EventCreationActivity.class);
+        ActivityScenario<EventCreationActivity> scenario = ActivityScenario.launch(intent);
+
+        Espresso.onView(ViewMatchers.withId(R.id.requireGeolocationCheckbox))
+                .check(ViewAssertions.matches(ViewMatchers.isDisplayed()));
+
+        scenario.close();
+    }
+
+    /**
+     * Test that geolocation checkbox can be toggled.
+     */
+    @Test
+    public void testGeolocationCheckboxToggle() {
+        Intent intent = new Intent(ApplicationProvider.getApplicationContext(), EventCreationActivity.class);
+        ActivityScenario<EventCreationActivity> scenario = ActivityScenario.launch(intent);
+
+        // Initially unchecked
+        Espresso.onView(ViewMatchers.withId(R.id.requireGeolocationCheckbox))
+                .check(ViewAssertions.matches(ViewMatchers.isNotChecked()));
+
+        // Click to check
+        Espresso.onView(ViewMatchers.withId(R.id.requireGeolocationCheckbox))
+                .perform(ViewActions.click());
+
+        // Verify it's checked
+        Espresso.onView(ViewMatchers.withId(R.id.requireGeolocationCheckbox))
+                .check(ViewAssertions.matches(ViewMatchers.isChecked()));
+
+        scenario.close();
+    }
+
+    /**
+     * Test that geolocation checkbox is displayed above QR checkbox.
+     */
+    @Test
+    public void testGeolocationCheckboxPlacement() {
+        Intent intent = new Intent(ApplicationProvider.getApplicationContext(), EventCreationActivity.class);
+        ActivityScenario<EventCreationActivity> scenario = ActivityScenario.launch(intent);
+
+        // Both checkboxes should be visible
+        Espresso.onView(ViewMatchers.withId(R.id.requireGeolocationCheckbox))
+                .check(ViewAssertions.matches(ViewMatchers.isDisplayed()));
+
+        Espresso.onView(ViewMatchers.withId(R.id.generateQrCheckbox))
+                .check(ViewAssertions.matches(ViewMatchers.isDisplayed()));
+
+        scenario.close();
+    }
 }

@@ -14,36 +14,20 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-
 import java.util.List;
 
-/**
- * Adapter for displaying event images in RecyclerView with selection capability
- */
 public class ImageBrowserAdapter extends RecyclerView.Adapter<ImageBrowserAdapter.ImageViewHolder> {
 
     private List<Event> events;
     private List<String> selectedEventIds;
     private Context context;
 
-    /**
-     * Constructor for ImageBrowseAdapter
-     * @param events list of events with poster images
-     * @param selectedEventIds list of selected event IDs for deletion
-     * @param context context for loading images
-     */
     public ImageBrowserAdapter(List<Event> events, List<String> selectedEventIds, Context context) {
         this.events = events;
         this.selectedEventIds = selectedEventIds;
         this.context = context;
     }
 
-    /**
-     * Creates new ViewHolder for RecyclerView
-     * @param parent The ViewGroup into which the new View will be added
-     * @param viewType The view type of the new View
-     * @return a new ImageViewHolder
-     */
     @NonNull
     @Override
     public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -52,77 +36,74 @@ public class ImageBrowserAdapter extends RecyclerView.Adapter<ImageBrowserAdapte
         return new ImageViewHolder(view);
     }
 
-    /**
-     * Binds event data to the ViewHolder
-     * @param holder The ViewHolder to update
-     * @param position The position of the item in the data set
-     */
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
         Event event = events.get(position);
 
-
+        // Set event details
         holder.eventName.setText(event.getEventName() != null ? event.getEventName() : "No Name");
+        holder.startDate.setText("Start: " + (event.getStartDate() != null ? event.getStartDate() : "Unknown"));
+        holder.time.setText("Time: " + (event.getTime() != null ? event.getTime() : "Unknown"));
+        holder.description.setText(event.getDescription() != null ? event.getDescription() : "");
 
-        String organizerText = "Organizer: " +
-                (event.getOrganizerName() != null ? event.getOrganizerName() : "Unknown");
-        holder.organizer_name.setText(organizerText);
-
-        if (event.getPosterImage() != null && !event.getPosterImage().isEmpty()) {
+        // Determine if default poster should be displayed
+        boolean isDefaultPoster = false;
+        if (event.getPosterImage() == null || event.getPosterImage().isEmpty() ||
+                event.getPosterImage().equals("default_poster")) {
+            holder.poster.setImageResource(R.drawable.default_poster);
+            isDefaultPoster = true;
+        } else {
             try {
                 byte[] decodedBytes = Base64.decode(event.getPosterImage(), Base64.DEFAULT);
                 Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
                 holder.poster.setImageBitmap(bitmap);
             } catch (Exception e) {
-                holder.poster.setImageResource(R.drawable.ic_launcher_background);
+                holder.poster.setImageResource(R.drawable.default_poster);
+                isDefaultPoster = true;
             }
-        } else {
-            holder.poster.setImageResource(R.drawable.ic_launcher_background);
         }
 
+        // Checkbox handling
         holder.checkbox.setChecked(selectedEventIds.contains(event.getEventId()));
+        holder.checkbox.setEnabled(!isDefaultPoster); // Disable if default poster
 
+        final boolean finalIsDefaultPoster = isDefaultPoster; // Needed for lambda
         holder.checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                if (!selectedEventIds.contains(event.getEventId())) {
-                    selectedEventIds.add(event.getEventId());
+            if (!finalIsDefaultPoster) {
+                if (isChecked) {
+                    if (!selectedEventIds.contains(event.getEventId())) {
+                        selectedEventIds.add(event.getEventId());
+                    }
+                } else {
+                    selectedEventIds.remove(event.getEventId());
                 }
-            } else {
-                selectedEventIds.remove(event.getEventId());
             }
         });
 
         holder.itemView.setOnClickListener(v -> {
-            holder.checkbox.setChecked(!holder.checkbox.isChecked());
+            if (!finalIsDefaultPoster) {
+                holder.checkbox.setChecked(!holder.checkbox.isChecked());
+            }
         });
     }
 
-    /**
-     * Returns the total number of items in the data set
-     * @return the total number of items
-     */
     @Override
     public int getItemCount() {
         return events.size();
     }
 
-    /**
-     * ViewHolder for image browse items
-     */
     public static class ImageViewHolder extends RecyclerView.ViewHolder {
         ImageView poster;
-        TextView eventName;
-        TextView organizer_name;
+        TextView eventName, startDate, time, description;
         CheckBox checkbox;
-        /**
-         * Constructor for ImageViewHolder
-         * @param itemView the view of the image item
-         */
+
         public ImageViewHolder(@NonNull View itemView) {
             super(itemView);
             poster = itemView.findViewById(R.id.poster);
             eventName = itemView.findViewById(R.id.event_name);
-            organizer_name = itemView.findViewById(R.id.organizer_name);
+            startDate = itemView.findViewById(R.id.start_date);
+            time = itemView.findViewById(R.id.time);
+            description = itemView.findViewById(R.id.description);
             checkbox = itemView.findViewById(R.id.checkbox);
         }
     }
