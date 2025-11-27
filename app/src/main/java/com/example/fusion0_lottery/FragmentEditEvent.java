@@ -160,8 +160,15 @@ public class FragmentEditEvent extends Fragment {
                         "price", doublePrice,
                         "maxEntrants", intMaxEntrants
                 )
-                .addOnSuccessListener(aVoid -> {Toast.makeText(requireContext(), "Event updated!", Toast.LENGTH_SHORT).show();
-                    ((MainActivity) requireActivity()).replaceFragment(new ManageEvents());
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(requireContext(), "Event updated!", Toast.LENGTH_SHORT).show();
+
+                    // Return to ManageEvents with the eventId so it shows the updated event
+                    ManageEvents manageEventsFragment = new ManageEvents();
+                    Bundle args = new Bundle();
+                    args.putString("eventId", eventId);
+                    manageEventsFragment.setArguments(args);
+                    ((MainActivity) requireActivity()).replaceFragment(manageEventsFragment);
                 })
                 .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
