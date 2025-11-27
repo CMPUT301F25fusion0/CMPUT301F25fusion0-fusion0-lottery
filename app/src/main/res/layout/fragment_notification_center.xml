@@ -10,7 +10,7 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <!-- Purple banner toolbar -->
+        <!-- Purple banner toolbar, same as Edit Profile -->
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -22,13 +22,13 @@
             app:title="Notifications"
             app:titleTextColor="@android:color/white" />
 
-        <!-- On/Off toggle: user story = notify when NOT selected -->
+        <!-- On/Off toggle (acceptance criterion #1/#2) -->
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switch_notifications"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Notify me when I am NOT selected for an event" />
+            android:text="Notify me when I’m chosen for an event" />
 
         <!-- Notifications list -->
         <LinearLayout

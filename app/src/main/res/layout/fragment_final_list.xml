@@ -51,6 +51,20 @@
         android:orientation="vertical">
 
         <Button
+            android:id="@+id/exportButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Export Final List"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/sendNotificationButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Send Notification to Final List"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
             android:id="@+id/backButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -33,7 +33,7 @@ public class FragmentWaitingList extends Fragment {
 
     private ListView waitingListView;
     private TextView emptyText;
-    private Button backButton, refreshButton, notifyWaitListButton, drawWinnersButton;
+    private Button backButton, refreshButton, notifyWaitListButton, drawWinnersButton, mapViewButton;
 
     private Spinner sortFilter;
 
@@ -57,6 +57,7 @@ public class FragmentWaitingList extends Fragment {
         refreshButton = view.findViewById(R.id.refreshButton);
         sortFilter = view.findViewById(R.id.sortFilter);
         drawWinnersButton = view.findViewById(R.id.drawWinnersButton);
+        mapViewButton = view.findViewById(R.id.mapViewButton);
 
         waitingList = new ArrayList<>();
         db = FirebaseFirestore.getInstance();
@@ -81,6 +82,7 @@ public class FragmentWaitingList extends Fragment {
         });
 
         drawWinnersButton.setOnClickListener(v -> drawRandomWinners());
+        mapViewButton.setOnClickListener(v -> openMapView());
         return view;
     }
 
@@ -425,5 +427,25 @@ public class FragmentWaitingList extends Fragment {
             resultMessage = "Sent to " + successCount + " user(s), failed for " + failCount + " user(s)";
         }
         Toast.makeText(getContext(), resultMessage, Toast.LENGTH_LONG).show();
+    }
+
+    /**
+     * Open the map view fragment to display entrant locations
+     */
+    private void openMapView() {
+        // Create new MapViewFragment
+        FragmentMapView mapViewFragment = new FragmentMapView();
+
+        // Pass event ID to the fragment
+        Bundle args = new Bundle();
+        args.putString("eventId", eventId);
+        mapViewFragment.setArguments(args);
+
+        // Navigate to the map view fragment
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, mapViewFragment)
+                .addToBackStack(null)
+                .commit();
     }
 }
