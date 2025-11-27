@@ -179,24 +179,6 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
                 .setPositiveButton("Remove", (dialog, which) -> removeProfile(user))
                 .setNegativeButton("Cancel", null)
                 .show();
-        new AlertDialog.Builder(requireContext())
-                .setTitle("User Details")
-                .setMessage("Name: " + user.getName() +
-                        "\nEmail: " + user.getEmail() +
-                        "\nRole: " + user.getRole() +
-                        "\nPhone: " + user.getPhone_number())
-                .setPositiveButton("Remove", (dialog, which) ->  confirmDeleteUser(user))
-                .setNegativeButton("Exit", null)
-                .show();
-    }
-
-    private void confirmDeleteUser(User user) {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Remove User?")
-                .setMessage("Are you sure you want to remove this user?")
-                .setPositiveButton("Remove", (dialog, which) -> removeProfile(user))
-                .setNegativeButton("Cancel", null)
-                .show();
     }
 
     private void removeProfile(User user) {

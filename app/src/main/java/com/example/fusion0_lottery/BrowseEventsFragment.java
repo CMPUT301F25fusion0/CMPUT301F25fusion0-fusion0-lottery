@@ -94,8 +94,30 @@ public class BrowseEventsFragment extends Fragment {
         new AlertDialog.Builder(requireContext())
                 .setTitle(event.getEventName())
                 .setMessage(message)
-                .setPositiveButton("OK", null)
+                .setPositiveButton("Remove", (dialogue, which) -> confirmDeleteEvent(event))
+                .setNegativeButton("Exit", null)
                 .show();
+    }
+
+    private void confirmDeleteEvent(Event event) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Remove Event?")
+                .setMessage("Are you sure you want to remove this event?")
+                .setPositiveButton("Remove", (dialog, which) -> removeEvent(event))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void removeEvent(Event event) {
+        db.collection("Events").document(event.getEventId()).delete()
+                .addOnSuccessListener(aVoid -> {
+                    eventList.remove(event);
+                    adapter.updateList(eventList);
+                    Toast.makeText(requireContext(), "Event removed", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
     /** 🧭 FILTER DIALOG **/
@@ -164,39 +186,4 @@ public class BrowseEventsFragment extends Fragment {
                     .commit();
         }
     }
-
-    /*
-    public void onEventClicked(Event event) {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Event Details")
-                .setMessage("Name: " + event.getEventName() +
-                        "\nDescription: " + event.getDescription())
-                .setPositiveButton("Remove", (dialog, which) ->  confirmDelete(event))
-                .setNegativeButton("Exit", null)
-                .show();
-    }
-
-    private void confirmDeleteEvent(Event event) {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Remove Event?")
-                .setMessage("Are you sure you want to remove this event?")
-                .setPositiveButton("Remove", (dialog, which) -> removeEvent(event))
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    private void removeEvent(Event event) {
-         db.collection("Events").document(event.getEventId()).delete()
-                    .addOnSuccessListener(aVoid -> {
-                        eventList.remove(event);
-                        browseEventAdapter.updateList(eventList);
-                        updateUI();
-                        Toast.makeText(requireContext(), "Event removed", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
-        }
-
-     */
-    }
+}
