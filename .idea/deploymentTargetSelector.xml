@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-11-27T01:16:43.627790Z">
+        <DropdownSelection timestamp="2025-11-27T01:46:43.241130Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=/Users/tnxuyen/.android/avd/EntrantPhone.avd" />
