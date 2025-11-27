@@ -30,15 +30,16 @@ import java.util.Map;
 /**
  * Fragment to display cancelled/declined entrants
  * Includes entrants who declined invitations and those cancelled by organizer
+ * Allows organizer to restore or permanently remove entrants
  */
 public class FragmentCancelledEntrants extends Fragment {
 
-    private ListView winnersListView;
+    private ListView cancelledListView;
     private TextView emptyText;
     private Button backButton, sendNotificationButton;
-    private ArrayList<LotteryWinners> cancelledList;
+    private ArrayList<CancelledEntrant> cancelledList;
 
-    private ArrayAdapter<String> winnersAdapter;
+    private ArrayAdapter<String> cancelledAdapter;
     private Spinner sortFilter;
 
     private FirebaseFirestore db;
@@ -53,7 +54,7 @@ public class FragmentCancelledEntrants extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_selected_entrants, container, false);
 
-        winnersListView = view.findViewById(R.id.winnerListView);
+        cancelledListView = view.findViewById(R.id.winnerListView);
         emptyText = view.findViewById(R.id.emptyText);
         backButton = view.findViewById(R.id.backButton);
         sendNotificationButton = view.findViewById(R.id.sendNotificationButton);
@@ -69,6 +70,15 @@ public class FragmentCancelledEntrants extends Fragment {
 
         sendNotificationButton.setOnClickListener(v -> showNotificationDialog());
         backButton.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
+
+        // Click to show restore options
+        cancelledListView.setOnItemClickListener((parent, v, position, id) -> {
+            if (position < cancelledList.size()) {
+                CancelledEntrant entrant = cancelledList.get(position);
+                showRestoreDialog(entrant, position);
+            }
+        });
+
         sortFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -95,7 +105,7 @@ public class FragmentCancelledEntrants extends Fragment {
                     }
 
                     cancelledList.clear();
-                    ArrayList<String> allCancelledUserIds = new ArrayList<>();
+                    Map<String, String> userReasons = new HashMap<>(); // userId -> reason
 
                     // Get declined users from winnersList
                     List<Map<String, Object>> winnersListEntrants = (List<Map<String, Object>>) snapshot.get("winnersList");
@@ -104,8 +114,8 @@ public class FragmentCancelledEntrants extends Fragment {
                             String status = (String) entrant.get("status");
                             if ("Declined".equals(status)) {
                                 String userId = (String) entrant.get("userId");
-                                if (userId != null && !allCancelledUserIds.contains(userId)) {
-                                    allCancelledUserIds.add(userId);
+                                if (userId != null) {
+                                    userReasons.put(userId, "Declined invitation");
                                 }
                             }
                         }
@@ -115,20 +125,20 @@ public class FragmentCancelledEntrants extends Fragment {
                     List<String> cancelledUsers = (List<String>) snapshot.get("cancelledUsers");
                     if (cancelledUsers != null) {
                         for (String userId : cancelledUsers) {
-                            if (userId != null && !allCancelledUserIds.contains(userId)) {
-                                allCancelledUserIds.add(userId);
+                            if (userId != null && !userReasons.containsKey(userId)) {
+                                userReasons.put(userId, "Cancelled by organizer");
                             }
                         }
                     }
 
-                    if (allCancelledUserIds.isEmpty()) {
-                        winnersListView.setVisibility(View.GONE);
+                    if (userReasons.isEmpty()) {
+                        cancelledListView.setVisibility(View.GONE);
                         emptyText.setVisibility(View.VISIBLE);
                         emptyText.setText("No cancelled entrants");
                         return;
                     }
 
-                    loadUserDetails(allCancelledUserIds);
+                    loadUserDetails(new ArrayList<>(userReasons.keySet()), userReasons);
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(getContext(), "Failed to load event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
@@ -137,7 +147,7 @@ public class FragmentCancelledEntrants extends Fragment {
     /**
      * Load user details for all cancelled entrants
      */
-    private void loadUserDetails(List<String> userIds) {
+    private void loadUserDetails(List<String> userIds, Map<String, String> reasons) {
         final int[] loadedCount = {0};
 
         for (String userId : userIds) {
@@ -147,14 +157,19 @@ public class FragmentCancelledEntrants extends Fragment {
 
                         if (userSnap.exists()) {
                             String name = userSnap.getString("name");
-                            cancelledList.add(new LotteryWinners(
+                            String email = userSnap.getString("email");
+                            String reason = reasons.get(userId);
+
+                            cancelledList.add(new CancelledEntrant(
+                                    userId,
                                     name != null ? name : "Unknown",
-                                    "Cancelled"
+                                    email != null ? email : "No email",
+                                    reason != null ? reason : "Unknown reason"
                             ));
                         }
 
                         if (loadedCount[0] == userIds.size()) {
-                            winnersListView.setVisibility(View.VISIBLE);
+                            cancelledListView.setVisibility(View.VISIBLE);
                             emptyText.setVisibility(View.GONE);
                             updateCancelledListDisplay();
                         }
@@ -163,7 +178,7 @@ public class FragmentCancelledEntrants extends Fragment {
                         loadedCount[0]++;
                         if (loadedCount[0] == userIds.size()) {
                             if (cancelledList.isEmpty()) {
-                                winnersListView.setVisibility(View.GONE);
+                                cancelledListView.setVisibility(View.GONE);
                                 emptyText.setVisibility(View.VISIBLE);
                             } else {
                                 updateCancelledListDisplay();
@@ -174,7 +189,7 @@ public class FragmentCancelledEntrants extends Fragment {
     }
 
     /**
-     * Update ListView display
+     * Update ListView display with name, email, and cancellation reason
      */
     private void updateCancelledListDisplay() {
         if (sortFilter.getSelectedItemPosition() == 0) {
@@ -184,14 +199,122 @@ public class FragmentCancelledEntrants extends Fragment {
 
         ArrayList<String> displayList = new ArrayList<>();
 
-        for (LotteryWinners entry : cancelledList) {
-            displayList.add("Name: " + entry.getName() + "\n" +
-                    "Status: " + entry.getStatus()
+        for (CancelledEntrant entrant : cancelledList) {
+            displayList.add(
+                    "Name: " + entrant.getName() + "\n" +
+                    "Email: " + entrant.getEmail() + "\n" +
+                    "Reason: " + entrant.getReason()
             );
         }
 
-        winnersAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, displayList);
-        winnersListView.setAdapter(winnersAdapter);
+        cancelledAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, displayList);
+        cancelledListView.setAdapter(cancelledAdapter);
+    }
+
+    /**
+     * Show dialog with options to restore or permanently remove entrant
+     */
+    private void showRestoreDialog(CancelledEntrant entrant, int position) {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Manage Cancelled Entrant")
+                .setMessage(entrant.getName() + "\n" + entrant.getEmail() + "\n\n" +
+                        "Reason: " + entrant.getReason())
+                .setPositiveButton("Restore to Waiting List", (dialog, which) -> restoreToWaitingList(entrant, position))
+                .setNeutralButton("Remove Permanently", (dialog, which) -> removePermanently(entrant, position))
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
+    }
+
+    /**
+     * Restore entrant to waiting list
+     */
+    private void restoreToWaitingList(CancelledEntrant entrant, int position) {
+        db.collection("Events").document(eventId).get()
+                .addOnSuccessListener(snapshot -> {
+                    if (!snapshot.exists()) {
+                        Toast.makeText(getContext(), "Event not found", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // Get current lists
+                    List<Object> waitingList = (List<Object>) snapshot.get("waitingList");
+                    List<Map<String, Object>> winnersList = (List<Map<String, Object>>) snapshot.get("winnersList");
+                    List<String> cancelledUsers = (List<String>) snapshot.get("cancelledUsers");
+
+                    if (waitingList == null) waitingList = new ArrayList<>();
+                    if (winnersList == null) winnersList = new ArrayList<>();
+                    if (cancelledUsers == null) cancelledUsers = new ArrayList<>();
+
+                    // Remove from declined/cancelled
+                    winnersList.removeIf(entry -> entrant.getUserId().equals(entry.get("userId")));
+                    cancelledUsers.remove(entrant.getUserId());
+
+                    // Add to waiting list
+                    Map<String, Object> waitingEntry = new HashMap<>();
+                    waitingEntry.put("userId", entrant.getUserId());
+                    waitingEntry.put("joinedAt", System.currentTimeMillis());
+                    waitingList.add(waitingEntry);
+
+                    // Update Firebase
+                    db.collection("Events").document(eventId)
+                            .update(
+                                    "waitingList", waitingList,
+                                    "winnersList", winnersList,
+                                    "cancelledUsers", cancelledUsers
+                            )
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(getContext(), entrant.getName() + " restored to waiting list", Toast.LENGTH_SHORT).show();
+                                loadCancelledEntrants(); // Refresh
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(getContext(), "Failed to restore: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    /**
+     * Permanently remove entrant from all lists
+     */
+    private void removePermanently(CancelledEntrant entrant, int position) {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Confirm Permanent Removal")
+                .setMessage("Are you sure you want to permanently remove " + entrant.getName() + "? This cannot be undone.")
+                .setPositiveButton("Remove", (dialog, which) -> {
+                    db.collection("Events").document(eventId).get()
+                            .addOnSuccessListener(snapshot -> {
+                                if (!snapshot.exists()) return;
+
+                                List<Map<String, Object>> winnersList = (List<Map<String, Object>>) snapshot.get("winnersList");
+                                List<String> cancelledUsers = (List<String>) snapshot.get("cancelledUsers");
+
+                                if (winnersList == null) winnersList = new ArrayList<>();
+                                if (cancelledUsers == null) cancelledUsers = new ArrayList<>();
+
+                                // Remove from all lists
+                                winnersList.removeIf(entry -> entrant.getUserId().equals(entry.get("userId")));
+                                cancelledUsers.remove(entrant.getUserId());
+
+                                db.collection("Events").document(eventId)
+                                        .update(
+                                                "winnersList", winnersList,
+                                                "cancelledUsers", cancelledUsers
+                                        )
+                                        .addOnSuccessListener(aVoid -> {
+                                            Toast.makeText(getContext(), entrant.getName() + " removed permanently", Toast.LENGTH_SHORT).show();
+                                            loadCancelledEntrants();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Toast.makeText(getContext(), "Failed to remove: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        });
+                            });
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
     }
 
     /**
@@ -238,38 +361,6 @@ public class FragmentCancelledEntrants extends Fragment {
                         eventName = "Event";
                     }
 
-                    // Collect all cancelled user IDs
-                    ArrayList<String> allCancelledUserIds = new ArrayList<>();
-
-                    // From winnersList (Declined)
-                    List<Map<String, Object>> winnersListEntrants = (List<Map<String, Object>>) snapshot.get("winnersList");
-                    if (winnersListEntrants != null) {
-                        for (Map<String, Object> entrant : winnersListEntrants) {
-                            String status = (String) entrant.get("status");
-                            if ("Declined".equals(status)) {
-                                String userId = (String) entrant.get("userId");
-                                if (userId != null && !allCancelledUserIds.contains(userId)) {
-                                    allCancelledUserIds.add(userId);
-                                }
-                            }
-                        }
-                    }
-
-                    // From cancelledUsers list
-                    List<String> cancelledUsers = (List<String>) snapshot.get("cancelledUsers");
-                    if (cancelledUsers != null) {
-                        for (String userId : cancelledUsers) {
-                            if (userId != null && !allCancelledUserIds.contains(userId)) {
-                                allCancelledUserIds.add(userId);
-                            }
-                        }
-                    }
-
-                    if (allCancelledUserIds.isEmpty()) {
-                        Toast.makeText(getContext(), "No cancelled entrants to notify", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
                     // Create notification data
                     Map<String, Object> notification = new HashMap<>();
                     notification.put("title", "Update from Organizer - " + eventName);
@@ -280,12 +371,12 @@ public class FragmentCancelledEntrants extends Fragment {
                     notification.put("type", "cancelled_entrant_notification");
 
                     // Send to all cancelled entrants
-                    int totalUsers = allCancelledUserIds.size();
+                    int totalUsers = cancelledList.size();
                     final int[] successCount = {0};
                     final int[] failCount = {0};
 
-                    for (String userId : allCancelledUserIds) {
-                        db.collection("Users").document(userId)
+                    for (CancelledEntrant entrant : cancelledList) {
+                        db.collection("Users").document(entrant.getUserId())
                                 .collection("Notifications").add(notification)
                                 .addOnSuccessListener(docRef -> {
                                     successCount[0]++;

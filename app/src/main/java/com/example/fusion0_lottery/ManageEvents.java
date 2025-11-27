@@ -108,6 +108,7 @@ public class ManageEvents extends Fragment {
         tabLayout.addTab(tabLayout.newTab().setText("Waiting List"));
         tabLayout.addTab(tabLayout.newTab().setText("Selected Entrants"));
         tabLayout.addTab(tabLayout.newTab().setText("Final List"));
+        tabLayout.addTab(tabLayout.newTab().setText("Cancelled"));
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -137,15 +138,13 @@ public class ManageEvents extends Fragment {
                     ((MainActivity) requireActivity()).replaceFragment(fragmentFinalList);
                 }
 
-
-                /*
-                else if (title.equals("Cancelled Entrants")) { }
-                    FragmentSelectedEntrants fragmentCancelledEntrants = new FragmentCancelledEntrants();
+                else if (title.equals("Cancelled")) {
+                    FragmentCancelledEntrants fragmentCancelledEntrants = new FragmentCancelledEntrants();
                     Bundle args = new Bundle();
                     args.putString("eventId", eventId);
                     fragmentCancelledEntrants.setArguments(args);
                     ((MainActivity) requireActivity()).replaceFragment(fragmentCancelledEntrants);
-                */
+                }
             }
 
 
