@@ -23,6 +23,7 @@ public class Event {
     private String registrationEnd;
     private String qrCodeUrl; // URL to the generated QR code
     private String lotteryCriteria;
+    private boolean requiresGeolocation; // Whether event requires location from entrants
 
     private Integer waitingListCount;
     private Integer userSelectedCount;
@@ -248,5 +249,13 @@ public class Event {
 
     public void setLotteryCriteria(String lotteryCriteria) {
         this.lotteryCriteria = lotteryCriteria;
+    }
+
+    public boolean isRequiresGeolocation() {
+        return requiresGeolocation;
+    }
+
+    public void setRequiresGeolocation(boolean requiresGeolocation) {
+        this.requiresGeolocation = requiresGeolocation;
     }
 }

@@ -227,13 +227,23 @@
             android:layout_marginBottom="12dp"
             android:contentDescription="Event Poster Preview"/>
 
+        <!-- Geolocation Requirement Checkbox -->
+        <CheckBox
+            android:id="@+id/requireGeolocationCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Require Location from Entrants"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:checked="false"/>
+
         <!-- QR Code Generation Checkbox -->
         <CheckBox
             android:id="@+id/generateQrCheckbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Generate QR Code for this event"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:checked="true"/>
 
