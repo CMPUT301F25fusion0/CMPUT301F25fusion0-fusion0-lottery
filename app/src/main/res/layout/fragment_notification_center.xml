@@ -30,6 +30,15 @@
             android:layout_marginTop="16dp"
             android:text="Notify me when I’m chosen for an event" />
 
+        <!-- Clear All Button -->
+        <Button
+            android:id="@+id/clearAllButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Clear All Notifications"
+            android:backgroundTint="@android:color/holo_red_dark" />
+
         <!-- Notifications list -->
         <LinearLayout
             android:id="@+id/notificationsContainer"
