@@ -129,8 +129,6 @@ public class ManageEvents extends Fragment {
                     ((MainActivity) requireActivity()).replaceFragment(fragmentSelectedEntrants);
                 }
 
-                /*
-
                 else if (title.equals("Final List")) {
                     FragmentFinalList fragmentFinalList = new FragmentFinalList();
                     Bundle args = new Bundle();
@@ -140,6 +138,7 @@ public class ManageEvents extends Fragment {
                 }
 
 
+                /*
                 else if (title.equals("Cancelled Entrants")) { }
                     FragmentSelectedEntrants fragmentCancelledEntrants = new FragmentCancelledEntrants();
                     Bundle args = new Bundle();
