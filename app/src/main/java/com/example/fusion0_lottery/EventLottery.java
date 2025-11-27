@@ -115,7 +115,6 @@ public class EventLottery extends Fragment {
         eventsContainer     = view.findViewById(R.id.eventsContainer);
         buttonBack          = view.findViewById(R.id.buttonBack);
         scan_qr             = view.findViewById(R.id.scan_qr);
-        spinnerInterest     = view.findViewById(R.id.spinnerInterest);
         buttonApplyFilters  = view.findViewById(R.id.buttonApplyFilters);
         buttonStartDate     = view.findViewById(R.id.buttonStartDate);
         buttonEndDate       = view.findViewById(R.id.buttonEndDate);
