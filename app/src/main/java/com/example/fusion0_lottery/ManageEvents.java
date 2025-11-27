@@ -78,7 +78,7 @@ public class ManageEvents extends Fragment {
 
         editEventButton = view.findViewById(R.id.editEventButton);
         updatePosterButton = view.findViewById(R.id.updatePosterButton);
-        notifyWaitlistButton = view.findViewById(R.id.notifyWaitlistButton);
+        //notifyWaitlistButton = view.findViewById(R.id.notifyWaitlistButton);
         exportCsvButton = view.findViewById(R.id.exportCsvButton);
         backToEventsButton = view.findViewById(R.id.backToEventsButton);
 
