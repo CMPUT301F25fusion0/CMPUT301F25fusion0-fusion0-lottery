@@ -7,11 +7,24 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+/**
+ * MainActivity serves as the host activity for the app.
+ * <p>
+ * It handles user authentication, role-based navigation, and fragment management.
+ * Depending on the current user's role (Entrant, Organizer, Admin), it loads the corresponding fragment.
+ */
 public class MainActivity extends AppCompatActivity {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
+    /**
+     * Called when the activity is first created.
+     * <p>
+     * Initializes Firebase instances and determines which fragment to display based on user login status and role.
+     *
+     * @param savedInstanceState Bundle containing saved state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +63,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Replaces the current fragment with the specified fragment.
+     * <p>
+     * Adds the transaction to the back stack so the user can navigate back.
+     *
+     * @param fragment Fragment to display
+     */
     public void replaceFragment(androidx.fragment.app.Fragment fragment) {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, fragment)
