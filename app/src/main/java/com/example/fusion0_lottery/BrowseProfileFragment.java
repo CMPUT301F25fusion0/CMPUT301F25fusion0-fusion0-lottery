@@ -27,6 +27,8 @@ import java.util.List;
 /**
  * This fragment is used for browsing user profiles in the admin dashboard
  * provides functionality to view all users and filter them by role
+ *  AI Assistance Reference: for method structure optimization, code structure
+ *  Date: 2025-11-21, DeepSeek AI
  */
 
 public class BrowseProfileFragment extends Fragment implements BrowseProfileAdapter.OnUserActionListener{

@@ -31,6 +31,9 @@ import java.util.Random;
  * It allows users to accept or decline events from selected list
  * and view event details and leave waiting list from waiting list
  * user will be replaced by random selection from waiting lists
+ *
+ * AI Assistance Reference: for method structure optimization, code structure
+ * Date: 2025-11-20, DeepSeek AI
  */
 
 public class MyEventsActivity extends AppCompatActivity implements MyEventAdapter.OnEventActionListener {
@@ -267,6 +270,11 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
         declineInvitation(eventId, position);
     }
 
+    /**
+     * processes invitation decline with confirmation dialog
+     * @param eventId the id of the event being declined
+     * @param position the position of event being declined
+     */
     private void declineInvitation(String eventId, int position) {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String eventName = selected_event.get(position).getEventName();
@@ -348,6 +356,12 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                 })
                 .show();
     }
+
+    /**
+     * processes invitation acceptance with confirmation dialog
+     * @param eventId  the id of the event being accepted
+     * @param position position the position of event being accepted
+     */
     private void acceptInvitation(String eventId, int position) {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String eventName = selected_event.get(position).getEventName();
@@ -400,7 +414,6 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                 })
                 .show();
     }
-
     private void openEventDetails(String eventId) {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
