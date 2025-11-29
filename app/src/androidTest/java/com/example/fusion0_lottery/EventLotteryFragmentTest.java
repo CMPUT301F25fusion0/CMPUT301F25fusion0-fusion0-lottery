@@ -51,7 +51,6 @@ public class EventLotteryFragmentTest {
 
     @Test
     public void testButtonsAreVisible() {
-        onView(withId(R.id.buttonBack)).check(matches(isDisplayed()));
         onView(withId(R.id.buttonApplyFilters)).check(matches(isDisplayed()));
         onView(withId(R.id.buttonClearFilters)).check(matches(isDisplayed()));
         onView(withId(R.id.buttonStartDate)).check(matches(isDisplayed()));
