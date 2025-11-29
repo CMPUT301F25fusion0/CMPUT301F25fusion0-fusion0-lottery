@@ -20,6 +20,12 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This fragment displays a list of event images from firestore
+ * Allows admins to view,and delete inappropriate images
+ * AI Assistance Reference: for method structure optimization, code structure
+ * Date: 2025-11-21, DeepSeek AI
+ */
 public class BrowseImagesFragment extends Fragment {
     private BottomNavigationView bottomNavigation;
     private RecyclerView recyclerView;
