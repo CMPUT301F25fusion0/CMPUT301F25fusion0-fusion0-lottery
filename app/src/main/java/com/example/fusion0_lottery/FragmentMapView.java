@@ -14,6 +14,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -24,13 +31,17 @@ import java.util.Map;
  * Fragment to display entrant locations on a map view
  * Shows both a map visualization and a list of locations
  */
-public class FragmentMapView extends Fragment {
+public class FragmentMapView extends Fragment implements OnMapReadyCallback {
 
     private TextView eventNameText, emptyLocationText;
     private ListView locationListView;
     private Button backButton;
+    private MapView mapView;
+    private GoogleMap googleMap;
 
     private ArrayList<String> locationDisplayList;
+    private ArrayList<LatLng> locationCoordinates;
+    private ArrayList<String> locationNames;
     private ArrayAdapter<String> locationAdapter;
     private FirebaseFirestore db;
     private String eventId;
@@ -50,7 +61,14 @@ public class FragmentMapView extends Fragment {
         backButton = view.findViewById(R.id.backButton);
 
         locationDisplayList = new ArrayList<>();
+        locationCoordinates = new ArrayList<>();
+        locationNames = new ArrayList<>();
         db = FirebaseFirestore.getInstance();
+
+        // Initialize MapView
+        mapView = view.findViewById(R.id.mapView);
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
 
         // Get event ID from arguments
         if (getArguments() != null) {
@@ -62,6 +80,21 @@ public class FragmentMapView extends Fragment {
         backButton.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
 
         return view;
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap map) {
+        googleMap = map;
+
+        // Configure map settings
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+        googleMap.getUiSettings().setZoomGesturesEnabled(true);
+        googleMap.getUiSettings().setScrollGesturesEnabled(true);
+
+        // Add markers if locations are already loaded
+        if (!locationCoordinates.isEmpty()) {
+            addMarkersToMap();
+        }
     }
 
     /**
@@ -111,6 +144,8 @@ public class FragmentMapView extends Fragment {
      */
     private void loadUserLocations(List<Object> waitingListData) {
         locationDisplayList.clear();
+        locationCoordinates.clear();
+        locationNames.clear();
 
         // Extract user IDs
         ArrayList<String> userIds = new ArrayList<>();
@@ -178,10 +213,13 @@ public class FragmentMapView extends Fragment {
 
                                 if (latitude != null && longitude != null) {
                                     usersWithLocation[0]++;
+                                    String userName = name != null ? name : "Unknown User";
                                     String locationStr = String.format("%s\nLat: %.6f, Lon: %.6f",
-                                            name != null ? name : "Unknown User",
-                                            latitude, longitude);
+                                            userName, latitude, longitude);
+
                                     locationDisplayList.add(locationStr);
+                                    locationCoordinates.add(new LatLng(latitude, longitude));
+                                    locationNames.add(userName);
                                 }
                             }
                         }
@@ -192,6 +230,7 @@ public class FragmentMapView extends Fragment {
                                 showEmptyState("No location data available from entrants");
                             } else {
                                 updateLocationList();
+                                addMarkersToMap();
                             }
                         }
                     })
@@ -202,6 +241,7 @@ public class FragmentMapView extends Fragment {
                                 showEmptyState("No location data available from entrants");
                             } else {
                                 updateLocationList();
+                                addMarkersToMap();
                             }
                         }
                     });
@@ -227,5 +267,90 @@ public class FragmentMapView extends Fragment {
         locationListView.setVisibility(View.GONE);
         emptyLocationText.setVisibility(View.VISIBLE);
         emptyLocationText.setText(message);
+    }
+
+    /**
+     * Add markers to the Google Map for all loaded locations
+     */
+    private void addMarkersToMap() {
+        if (googleMap == null || locationCoordinates.isEmpty()) {
+            return;
+        }
+
+        googleMap.clear();
+
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+
+        for (int i = 0; i < locationCoordinates.size(); i++) {
+            LatLng position = locationCoordinates.get(i);
+            String name = locationNames.get(i);
+
+            googleMap.addMarker(new MarkerOptions()
+                    .position(position)
+                    .title(name));
+
+            boundsBuilder.include(position);
+        }
+
+        // Adjust camera to show all markers
+        try {
+            LatLngBounds bounds = boundsBuilder.build();
+            int padding = 100;
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
+        } catch (IllegalStateException e) {
+            // In case of a single marker or other bounds issues, just zoom to the first marker
+            if (!locationCoordinates.isEmpty()) {
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(locationCoordinates.get(0), 10));
+            }
+        }
+    }
+
+    // MapView lifecycle methods
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mapView != null) {
+            mapView.onResume();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mapView != null) {
+            mapView.onPause();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mapView != null) {
+            mapView.onDestroy();
+        }
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        if (mapView != null) {
+            mapView.onLowMemory();
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mapView != null) {
+            mapView.onStart();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mapView != null) {
+            mapView.onStop();
+        }
     }
 }

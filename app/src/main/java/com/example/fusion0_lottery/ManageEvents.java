@@ -224,11 +224,21 @@ public class ManageEvents extends Fragment {
 
                     // load poster from Base64
                     String poster = DocumentSnapshot.getString("posterImage");
-                    if (poster != null && !poster.isEmpty()) {
-                        byte[] imageBytes = Base64.decode(poster, Base64.DEFAULT);
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-                        eventPosterImage.setImageBitmap(bitmap);
+
+                    if (poster != null && !poster.trim().isEmpty() && !poster.equals("default_poster")) {
+                        try {
+                            byte[] imageBytes = Base64.decode(poster, Base64.DEFAULT);
+                            Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                            eventPosterImage.setImageBitmap(bitmap);
+                        } catch (IllegalArgumentException e) {
+                            // if not a valid Base64 string, show default image
+                            eventPosterImage.setImageResource(R.drawable.default_poster);
+                        }
+                    } else {
+                        // if poster is null, empty, or default marker
+                        eventPosterImage.setImageResource(R.drawable.default_poster);
                     }
+
 
                     // Set lottery criteria
                     String lotteryCriteria = event.getLotteryCriteria();

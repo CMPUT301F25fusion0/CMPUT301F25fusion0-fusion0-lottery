@@ -391,13 +391,14 @@ public class FragmentWaitingList extends Fragment {
                     if (eventName == null) {
                         eventName = "Event";
                     }
+                    final String finalEventName = eventName;
 
                     // Create notification data
                     Map<String, Object> notification = new HashMap<>();
-                    notification.put("title", "Update for " + eventName);
+                    notification.put("title", "Update for " + finalEventName);
                     notification.put("body", message);
                     notification.put("eventId", eventId);
-                    notification.put("eventName", eventName);
+                    notification.put("eventName", finalEventName);
                     notification.put("timestamp", System.currentTimeMillis());
                     notification.put("type", "waiting_list_update");
 
@@ -407,13 +408,45 @@ public class FragmentWaitingList extends Fragment {
                     final int[] failCount = {0};
 
                     for (String userId : userIds) {
-                        db.collection("Users").document(userId)
-                                .collection("Notifications").add(notification)
-                                .addOnSuccessListener(docRef -> {
-                                    successCount[0]++;
-                                    if (successCount[0] + failCount[0] == totalUsers) {
-                                        showNotificationResult(successCount[0], failCount[0]);
+                        // Fetch user data first to get recipient name
+                        db.collection("Users").document(userId).get()
+                                .addOnSuccessListener(userDoc -> {
+                                    String recipientName = userDoc.getString("name");
+                                    if (recipientName == null) {
+                                        recipientName = "Unknown User";
                                     }
+
+                                    String finalRecipientName = recipientName;
+
+                                    // Send notification to user
+                                    db.collection("Users").document(userId)
+                                            .collection("Notifications").add(notification)
+                                            .addOnSuccessListener(docRef -> {
+                                                successCount[0]++;
+
+                                                // Log to centralized NotificationLogs for admin
+                                                android.util.Log.d("FragmentWaitingList", "About to log notification for user: " + userId);
+                                                NotificationLogger.logNotification(
+                                                        userId,
+                                                        finalRecipientName,
+                                                        eventId,
+                                                        finalEventName,
+                                                        "waiting_list_update",
+                                                        message,
+                                                        "Update for " + finalEventName,
+                                                        docRef.getId()
+                                                );
+
+                                                if (successCount[0] + failCount[0] == totalUsers) {
+                                                    showNotificationResult(successCount[0], failCount[0]);
+                                                }
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                failCount[0]++;
+                                                if (successCount[0] + failCount[0] == totalUsers) {
+                                                    showNotificationResult(successCount[0], failCount[0]);
+                                                }
+                                            });
                                 })
                                 .addOnFailureListener(e -> {
                                     failCount[0]++;

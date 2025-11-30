@@ -31,6 +31,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Fusion0_lottery">
+
+        <!-- Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyB7illKQnS4GX60s-B9jmJeGVDNJ-0-bLw."/>
+
         <activity android:name=".MyEventsActivity"
             android:exported="false"/>
         <activity

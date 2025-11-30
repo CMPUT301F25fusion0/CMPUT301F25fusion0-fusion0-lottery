@@ -340,13 +340,14 @@ public class FragmentSelectedEntrants extends Fragment {
                     if (eventName == null) {
                         eventName = "Event";
                     }
+                    final String finalEventName = eventName;
 
                     // Create notification data
                     Map<String, Object> notification = new HashMap<>();
-                    notification.put("title", "Message from Organizer - " + eventName);
+                    notification.put("title", "Message from Organizer - " + finalEventName);
                     notification.put("body", message);
                     notification.put("eventId", eventId);
-                    notification.put("eventName", eventName);
+                    notification.put("eventName", finalEventName);
                     notification.put("timestamp", System.currentTimeMillis());
                     notification.put("type", "winner_notification");
 
@@ -357,13 +358,46 @@ public class FragmentSelectedEntrants extends Fragment {
                     final ArrayList<String> failedUserIds = new ArrayList<>();
 
                     for (String userId : userIds) {
-                        db.collection("Users").document(userId)
-                                .collection("Notifications").add(notification)
-                                .addOnSuccessListener(docRef -> {
-                                    successCount[0]++;
-                                    if (successCount[0] + failCount[0] == totalUsers) {
-                                        showNotificationResult(successCount[0], failCount[0], failedUserIds);
+                        // Fetch user data first to get recipient name
+                        db.collection("Users").document(userId).get()
+                                .addOnSuccessListener(userDoc -> {
+                                    String recipientName = userDoc.getString("name");
+                                    if (recipientName == null) {
+                                        recipientName = "Unknown User";
                                     }
+
+                                    String finalRecipientName = recipientName;
+
+                                    // Send notification to user
+                                    db.collection("Users").document(userId)
+                                            .collection("Notifications").add(notification)
+                                            .addOnSuccessListener(docRef -> {
+                                                successCount[0]++;
+
+                                                // Log to centralized NotificationLogs for admin
+                                                NotificationLogger.logNotification(
+                                                        userId,
+                                                        finalRecipientName,
+                                                        eventId,
+                                                        finalEventName,
+                                                        "winner_notification",
+                                                        message,
+                                                        "Message from Organizer - " + finalEventName,
+                                                        docRef.getId()
+
+                                                );
+
+                                                if (successCount[0] + failCount[0] == totalUsers) {
+                                                    showNotificationResult(successCount[0], failCount[0], failedUserIds);
+                                                }
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                failCount[0]++;
+                                                failedUserIds.add(userId);
+                                                if (successCount[0] + failCount[0] == totalUsers) {
+                                                    showNotificationResult(successCount[0], failCount[0], failedUserIds);
+                                                }
+                                            });
                                 })
                                 .addOnFailureListener(e -> {
                                     failCount[0]++;

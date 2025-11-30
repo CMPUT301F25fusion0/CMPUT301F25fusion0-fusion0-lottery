@@ -27,6 +27,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Fragment to display and manage all events.
+ * <p>
+ * Users can view event details, filter events by status (active/inactive),
+ * and remove events. Supports bottom navigation to other app sections.
+ */
 public class BrowseEventsFragment extends Fragment {
 
     private FirebaseFirestore db;
@@ -38,6 +44,10 @@ public class BrowseEventsFragment extends Fragment {
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
+    /**
+     * Inflates the fragment layout, initializes RecyclerView, bottom navigation, filter button,
+     * and loads all events from Firestore.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -62,6 +72,7 @@ public class BrowseEventsFragment extends Fragment {
         return view;
     }
 
+    /** Loads all events from Firestore and updates the RecyclerView. */
     private void loadEvents() {
         db.collection("Events").get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -80,6 +91,11 @@ public class BrowseEventsFragment extends Fragment {
                 );
     }
 
+    /**
+     * Shows an AlertDialog with full details of a selected event.
+     *
+     * @param event Event whose details are displayed.
+     */
     private void showEventDetailsDialog(Event event) {
         String message = "Description: " + (event.getDescription() != null ? event.getDescription() : "N/A") +
                 "\n\nLocation: " + (event.getLocation() != null ? event.getLocation() : "N/A") +
@@ -99,6 +115,7 @@ public class BrowseEventsFragment extends Fragment {
                 .show();
     }
 
+    /** Shows a confirmation dialog before removing an event. */
     private void confirmDeleteEvent(Event event) {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Remove Event?")
@@ -108,6 +125,11 @@ public class BrowseEventsFragment extends Fragment {
                 .show();
     }
 
+    /**
+     * Deletes the selected event from Firestore and updates the RecyclerView.
+     *
+     * @param event Event to remove.
+     */
     private void removeEvent(Event event) {
         db.collection("Events").document(event.getEventId()).delete()
                 .addOnSuccessListener(aVoid -> {
@@ -120,7 +142,7 @@ public class BrowseEventsFragment extends Fragment {
                 });
     }
 
-    /** 🧭 FILTER DIALOG **/
+    /** Shows a filter dialog for displaying all, active, or inactive events. */
     private void showFilterDialog() {
         String[] options = {"All Events", "Active Events", "Inactive Events"};
 
@@ -138,7 +160,12 @@ public class BrowseEventsFragment extends Fragment {
                 .show();
     }
 
-    /** Returns filtered list based on active/inactive **/
+    /**
+     * Returns a filtered list of events based on active/inactive status.
+     *
+     * @param active true for active events, false for inactive
+     * @return List of filtered events
+     */
     private List<Event> getFilteredList(boolean active) {
         List<Event> filtered = new ArrayList<>();
         Date today = new Date();
@@ -157,6 +184,7 @@ public class BrowseEventsFragment extends Fragment {
         return filtered;
     }
 
+    /** Sets up bottom navigation and handles fragment switching. */
     private void setupBottomNavigation() {
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -177,6 +205,7 @@ public class BrowseEventsFragment extends Fragment {
         });
     }
 
+    /** Replaces the current fragment with the given fragment. */
     private void navigateToFragment(Fragment fragment) {
         if (getActivity() != null) {
             getActivity().getSupportFragmentManager()
