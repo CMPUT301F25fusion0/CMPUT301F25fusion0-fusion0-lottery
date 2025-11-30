@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-11-30T19:28:17.059136Z">
+        <DropdownSelection timestamp="2025-11-30T20:14:14.671062Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=/Users/tnxuyen/.android/avd/EntrantPhone.avd" />
@@ -15,12 +15,12 @@
           <targets>
             <Target type="DEFAULT_BOOT">
               <handle>
-                <DeviceId pluginId="LocalEmulator" identifier="path=/Users/tnxuyen/.android/avd/Pixel_9a.avd" />
+                <DeviceId pluginId="LocalEmulator" identifier="path=/Users/tnxuyen/.android/avd/Medium_Phone.avd" />
               </handle>
             </Target>
             <Target type="DEFAULT_BOOT">
               <handle>
-                <DeviceId pluginId="LocalEmulator" identifier="path=/Users/tnxuyen/.android/avd/Medium_Phone.avd" />
+                <DeviceId pluginId="LocalEmulator" identifier="path=/Users/tnxuyen/.android/avd/Pixel_9a.avd" />
               </handle>
             </Target>
             <Target type="DEFAULT_BOOT">
