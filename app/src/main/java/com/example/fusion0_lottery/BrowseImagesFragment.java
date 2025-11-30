@@ -20,7 +20,6 @@ import java.util.List;
 
 /**
  * Fragment for browsing event posters.
- * <p>
  * Only events with a real poster image (not null, not empty, not "default_poster") are displayed.
  * Admins can select events and remove their posters. After removal, events with removed posters
  * disappear from this view.
@@ -36,7 +35,6 @@ public class BrowseImagesFragment extends Fragment {
 
     /**
      * Inflates the fragment's layout and initializes UI components.
-     * <p>
      * Sets up the RecyclerView and its adapter, loads only events with actual poster images,
      * configures bottom navigation, and sets the click listener for the remove button.
      *
@@ -53,7 +51,6 @@ public class BrowseImagesFragment extends Fragment {
         eventList = new ArrayList<>();
         selected_event_id = new ArrayList<>();
         View view = inflater.inflate(R.layout.fragment_browse_images, container, false);
-
         bottomNavigation = view.findViewById(R.id.bottom_navigation);
         recyclerView = view.findViewById(R.id.recycler_images);
         remove_btn = view.findViewById(R.id.remove_btn);
@@ -72,7 +69,6 @@ public class BrowseImagesFragment extends Fragment {
 
     /**
      * Loads events from Firestore that have actual poster images.
-     * <p>
      * Events with null, empty, or default posters are ignored.
      * Updates the RecyclerView adapter after loading.
      */
@@ -86,7 +82,6 @@ public class BrowseImagesFragment extends Fragment {
                         Event event = doc.toObject(Event.class);
                         event.setEventId(doc.getId());
 
-                        // Only include events with actual poster image
                         if (event.getPosterImage() != null &&
                                 !event.getPosterImage().trim().isEmpty() &&
                                 !event.getPosterImage().equals("default_poster")) {
@@ -102,19 +97,12 @@ public class BrowseImagesFragment extends Fragment {
                 .addOnFailureListener(e ->
                         Toast.makeText(getContext(), "Error loading events: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
-
-    /**
-     * Opens a confirmation dialog to remove selected poster images.
-     * <p>
-     * If confirmed, calls replaceWithDefaultPoster() to update Firestore.
-     */
     private void removeSelectedImages() {
         if (selected_event_id.isEmpty()) {
             Toast.makeText(getContext(), "No images selected", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Simple confirmation dialog
         new AlertDialog.Builder(requireContext())
                 .setTitle("Remove Images")
                 .setMessage("Do you want to remove " + selected_event_id.size() + " selected image(s)?")
@@ -125,7 +113,6 @@ public class BrowseImagesFragment extends Fragment {
 
     /**
      * Replaces selected poster images in Firestore with "default_poster".
-     * <p>
      * Refreshes the event list after completion to remove updated events from view.
      */
     private void replaceWithDefaultPoster() {
@@ -154,7 +141,6 @@ public class BrowseImagesFragment extends Fragment {
 
     /**
      * Sets up the bottom navigation view for the fragment.
-     * <p>
      * Handles navigation to Profiles, Events, Images, and Logs fragments.
      */
     private void setupBottomNavigation() {

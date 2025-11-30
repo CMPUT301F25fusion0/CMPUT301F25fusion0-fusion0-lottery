@@ -35,7 +35,7 @@
         <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAsurWbIiQFZZFoQ_xor0Y2lTqQBSf-NdE"/>
+            android:value="AIzaSyB7illKQnS4GX60s-B9jmJeGVDNJ-0-bLw."/>
 
         <activity android:name=".MyEventsActivity"
             android:exported="false"/>
