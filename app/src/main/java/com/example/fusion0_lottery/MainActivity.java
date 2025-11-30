@@ -1,6 +1,11 @@
 package com.example.fusion0_lottery;
 
+import static android.content.Intent.getIntent;
+
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -34,6 +39,24 @@ public class MainActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
 
         if (savedInstanceState == null) {
+            check_user_role();
+        }
+    }
+
+    /**
+     * Called when a new Intent is delivered to this activity while it is running.
+     * @param intent The new intent that was started for the activity
+     */
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
+
+    /**
+     * Determines the current user's role and navigates to the appropriate fragment.
+     *
+     */
+    private void check_user_role() {
             if (auth.getCurrentUser() != null) {
                 String device_id = auth.getCurrentUser().getUid();
 
@@ -57,10 +80,9 @@ public class MainActivity extends AppCompatActivity {
                                 replaceFragment(new FragmentSignUp());
                             }
                         });
-            } else {
+                } else {
                 replaceFragment(new FragmentSignUp());
             }
-        }
     }
 
     /**
