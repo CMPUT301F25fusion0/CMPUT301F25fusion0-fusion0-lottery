@@ -23,11 +23,11 @@ public class UserTest {
     @Test
     void testUserNumber(){
         User user = mockUser();
-        assertEquals("587-111-1111", user.getPhone());
+        assertEquals("587-111-1111", user.getPhone_number());
     }
     @Test
     void testUserDeviceId(){
         User user = mockUser();
-        assertEquals("123456", user.getDeviceId());
+        assertEquals("123456", user.getDevice_id());
     }
 }

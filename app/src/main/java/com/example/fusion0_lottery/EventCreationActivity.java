@@ -368,6 +368,7 @@ public class EventCreationActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error creating event: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    finish(); // Close activity on error
                 });
     }
 
@@ -396,11 +397,13 @@ public class EventCreationActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(this, "Error uploading poster: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        finish(); // Close activity even if poster upload fails
                     });
 
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Error processing poster image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            finish(); // Close activity even if there's an exception
         }
     }
 

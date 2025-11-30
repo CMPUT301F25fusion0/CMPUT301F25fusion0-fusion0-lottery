@@ -22,16 +22,54 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 
 /**
- * Displays the event details for Organizers
- * - Code for lines 49 to 52 was inspired by
- *      Dhara Bhavsar on StackOverflow at
- *      https://stackoverflow.com/a/49822393,
- *      published April 13 2018
+ * Fragment for displaying detailed event information to organizers.
+ *
+ * <p>This fragment presents a comprehensive view of an event's details including
+ * name, description, dates, location, pricing, and registration information. It also
+ * generates and displays a QR code for the event if QR code functionality is enabled.</p>
+ *
+ * <p><b>Key Responsibilities:</b></p>
+ * <ul>
+ *   <li>Display event details retrieved from Firestore</li>
+ *   <li>Generate and display QR codes for event registration</li>
+ *   <li>Provide navigation back to previous screens via toolbar</li>
+ *   <li>Handle both events with and without QR code functionality</li>
+ * </ul>
+ *
+ * <p><b>Design Pattern:</b> This fragment follows the MVC pattern where Firestore
+ * serves as the model, the fragment acts as controller, and XML layout as view.</p>
+ *
+ * <p><b>Outstanding Issues:</b> None currently identified.</p>
+ *
+ * @see Event
+ * @see ManageEvents
+ *
+ * @version 1.0
+ * @since 2024-11-30
+ *
+ * Code Attribution:
+ * - Code for lines 49 to 52 was inspired by Dhara Bhavsar on StackOverflow at
+ *   https://stackoverflow.com/a/49822393, published April 13 2018
  */
 public class EventFragmentOrganizer extends Fragment {
 
+    /**
+     * Default constructor required for fragment instantiation.
+     */
     public EventFragmentOrganizer() {}
 
+    /**
+     * Creates and initializes the event detail view for organizers.
+     *
+     * <p>This method inflates the layout, retrieves the event ID from arguments,
+     * fetches event data from Firestore, and displays all event information including
+     * QR code generation if applicable.</p>
+     *
+     * @param inflater The LayoutInflater object to inflate views in the fragment
+     * @param container The parent view that this fragment's UI will be attached to
+     * @param savedInstanceState Previously saved state of the fragment, if any
+     * @return The root View for the fragment's UI
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -119,7 +157,14 @@ public class EventFragmentOrganizer extends Fragment {
     }
 
     /**
-     * Generate QR code bitmap from event ID
+     * Generates a QR code bitmap image from an event ID.
+     *
+     * <p>This method creates a square QR code containing the event URI scheme
+     * (event://eventId) which can be scanned by attendees to join the event.</p>
+     *
+     * @param eventId The unique identifier of the event
+     * @return A Bitmap containing the generated QR code
+     * @throws WriterException If QR code generation fails
      */
     private Bitmap generateQRCode(String eventId) throws WriterException {
         String qrContent = "event://" + eventId;
