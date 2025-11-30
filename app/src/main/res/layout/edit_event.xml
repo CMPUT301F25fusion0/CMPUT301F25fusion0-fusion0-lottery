@@ -85,6 +85,25 @@
             android:inputType="number"
             android:padding="8dp" />
 
+        <EditText
+            android:id="@+id/editLotteryCriteria"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Lottery Criteria"
+            android:inputType="textMultiLine"
+            android:minLines="2"
+            android:gravity="top"
+            android:padding="8dp" />
+
+        <!-- 🔙 Back Button -->
+        <Button
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← Back"
+            android:layout_gravity="start"
+            android:layout_marginBottom="16dp" />
+
         <Button
             android:id="@+id/saveEventButton"
             android:layout_width="match_parent"

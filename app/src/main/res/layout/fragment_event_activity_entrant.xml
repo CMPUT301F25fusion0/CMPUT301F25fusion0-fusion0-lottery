@@ -112,6 +112,25 @@
                 android:layout_marginBottom="8dp"
                 android:id="@+id/qrCodeLabel"
                 android:visibility="gone"/>
+            <TextView
+                android:id="@+id/textTotalEntrants"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Total Entrants: 0"
+                android:textSize="16sp"
+                android:padding="8dp"
+                android:textColor="@android:color/black" />
+
+            <TextView
+                android:id="@+id/textLotteryCriteria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Lottery Criteria: "
+                android:textSize="16sp"
+                android:padding="8dp"
+                android:textColor="@android:color/black" />
+
+
 
             <ImageView
                 android:id="@+id/eventQrCode"

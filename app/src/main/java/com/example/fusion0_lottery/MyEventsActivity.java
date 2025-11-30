@@ -166,7 +166,10 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                             if (winnersList != null) {
                                 for (Map<String, Object> winner : winnersList) {
                                     String winnerUserId = (String) winner.get("userId");
-                                    if (currentUserId.equals(winnerUserId)) {
+                                    String status = (String) winner.get("status");
+
+                                    // Only show events where user is selected and status is "Pending"
+                                    if (currentUserId.equals(winnerUserId) && "Pending".equals(status)) {
                                         Event event = snapshot.toObject(Event.class);
                                         event.setEventId(snapshot.getId());
                                         selected_event.add(event);
@@ -318,6 +321,8 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                                             newWinner.put("status", "Pending");
                                             winnersList.add(newWinner);
 
+                                            String eventNameForNotif = eventName;
+
                                             db.collection("Events").document(eventId)
                                                     .update(
                                                             "winnersList", winnersList,
@@ -325,9 +330,11 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                                                             "cancelledUsers", cancelledUsers
                                                     )
                                                     .addOnSuccessListener(aVoid -> {
-                                                        selected_event.remove(position);
-                                                        selectedAdapter.notifyItemRemoved(position);
-                                                        Toast.makeText(this, "Invitation declined.", Toast.LENGTH_SHORT).show();
+                                                        // Send notification to new winner
+                                                        sendWinnerNotification(newWinnerId, eventId, eventNameForNotif);
+
+                                                        // Don't remove locally - the snapshot listener will update automatically
+                                                        Toast.makeText(this, "Invitation declined. A new entrant has been selected.", Toast.LENGTH_SHORT).show();
                                                     })
                                                     .addOnFailureListener(e -> {
                                                         Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -339,8 +346,7 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                                                             "cancelledUsers", cancelledUsers
                                                     )
                                                     .addOnSuccessListener(aVoid -> {
-                                                        selected_event.remove(position);
-                                                        selectedAdapter.notifyItemRemoved(position);
+                                                        // Don't remove locally - the snapshot listener will update automatically
                                                         Toast.makeText(this, "Invitation declined.", Toast.LENGTH_SHORT).show();
                                                     })
                                                     .addOnFailureListener(e -> {
@@ -398,8 +404,7 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                                                         "enrolledUsers", enrolledUsers
                                                 )
                                                 .addOnSuccessListener(aVoid -> {
-                                                    selected_event.remove(position);
-                                                    selectedAdapter.notifyItemRemoved(position);
+                                                    // Don't remove locally - the snapshot listener will update automatically
                                                     Toast.makeText(this, "You're enrolled!", Toast.LENGTH_SHORT).show();
                                                 })
                                                 .addOnFailureListener(e -> {
@@ -569,5 +574,55 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
         if (selectedListener != null) {
             selectedListener.remove();
         }
+    }
+
+    /**
+     * Send notification to a newly selected winner
+     * @param userId The user ID of the winner
+     * @param eventId The event ID
+     * @param eventName The event name
+     */
+    private void sendWinnerNotification(String userId, String eventId, String eventName) {
+        Map<String, Object> notification = new HashMap<>();
+        notification.put("title", "You've Been Selected!");
+        notification.put("body", "Congratulations! You've been selected for " + eventName + ". Please accept or decline your invitation.");
+        notification.put("eventId", eventId);
+        notification.put("eventName", eventName);
+        notification.put("timestamp", System.currentTimeMillis());
+        notification.put("type", "winner_selection");
+
+        // Fetch recipient name first
+        db.collection("Users").document(userId).get()
+                .addOnSuccessListener(userDoc -> {
+                    String recipientName = userDoc.getString("name");
+                    if (recipientName == null) {
+                        recipientName = "Unknown User";
+                    }
+
+                    String finalRecipientName = recipientName;
+
+                    db.collection("Users").document(userId)
+                            .collection("Notifications").add(notification)
+                            .addOnSuccessListener(docRef -> {
+                                // Log to centralized NotificationLogs for admin
+                                NotificationLogger.logNotification(
+                                        userId,
+                                        finalRecipientName,
+                                        eventId,
+                                        eventName,
+                                        "winner_selection",
+                                        "Congratulations! You've been selected for " + eventName + ". Please accept or decline your invitation.",
+                                        "You've Been Selected!",
+                                        docRef.getId()
+
+                                );
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("MyEventsActivity", "Failed to send notification to winner: " + e.getMessage());
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("MyEventsActivity", "Failed to fetch user data: " + e.getMessage());
+                });
     }
 }

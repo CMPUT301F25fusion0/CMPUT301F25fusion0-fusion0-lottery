@@ -44,7 +44,7 @@ public class ManageEvents extends Fragment {
     private TabLayout tabLayout;
     private ImageView eventPosterImage, qrCodeImage;
     private TextView manageEventTitle, eventDescriptionText, eventInterests,
-            eventTime, eventLocation, eventRegistration, eventMaxEntrants, eventPrice, qrCodeLabel;
+            eventTime, eventLocation, eventRegistration, eventMaxEntrants, eventPrice, qrCodeLabel, eventLotteryCriteria;
 
     private Button editEventButton, updatePosterButton, notifyWaitlistButton, exportCsvButton;
     private Button backToEventsButton;
@@ -72,11 +72,13 @@ public class ManageEvents extends Fragment {
         eventRegistration = view.findViewById(R.id.eventRegistration);
         eventMaxEntrants = view.findViewById(R.id.eventMaxEntrants);
         eventPrice = view.findViewById(R.id.eventPrice);
+        eventLotteryCriteria = view.findViewById(R.id.eventLotteryCriteria);
+
 
 
         editEventButton = view.findViewById(R.id.editEventButton);
         updatePosterButton = view.findViewById(R.id.updatePosterButton);
-        notifyWaitlistButton = view.findViewById(R.id.notifyWaitlistButton);
+        //notifyWaitlistButton = view.findViewById(R.id.notifyWaitlistButton);
         exportCsvButton = view.findViewById(R.id.exportCsvButton);
         backToEventsButton = view.findViewById(R.id.backToEventsButton);
 
@@ -106,6 +108,7 @@ public class ManageEvents extends Fragment {
         tabLayout.addTab(tabLayout.newTab().setText("Waiting List"));
         tabLayout.addTab(tabLayout.newTab().setText("Selected Entrants"));
         tabLayout.addTab(tabLayout.newTab().setText("Final List"));
+        tabLayout.addTab(tabLayout.newTab().setText("Cancelled"));
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -127,8 +130,6 @@ public class ManageEvents extends Fragment {
                     ((MainActivity) requireActivity()).replaceFragment(fragmentSelectedEntrants);
                 }
 
-                /*
-
                 else if (title.equals("Final List")) {
                     FragmentFinalList fragmentFinalList = new FragmentFinalList();
                     Bundle args = new Bundle();
@@ -137,14 +138,13 @@ public class ManageEvents extends Fragment {
                     ((MainActivity) requireActivity()).replaceFragment(fragmentFinalList);
                 }
 
-
-                else if (title.equals("Cancelled Entrants")) { }
-                    FragmentSelectedEntrants fragmentCancelledEntrants = new FragmentCancelledEntrants();
+                else if (title.equals("Cancelled")) {
+                    FragmentCancelledEntrants fragmentCancelledEntrants = new FragmentCancelledEntrants();
                     Bundle args = new Bundle();
                     args.putString("eventId", eventId);
                     fragmentCancelledEntrants.setArguments(args);
                     ((MainActivity) requireActivity()).replaceFragment(fragmentCancelledEntrants);
-                */
+                }
             }
 
 
@@ -224,10 +224,29 @@ public class ManageEvents extends Fragment {
 
                     // load poster from Base64
                     String poster = DocumentSnapshot.getString("posterImage");
-                    if (poster != null && !poster.isEmpty()) {
-                        byte[] imageBytes = Base64.decode(poster, Base64.DEFAULT);
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-                        eventPosterImage.setImageBitmap(bitmap);
+
+                    if (poster != null && !poster.trim().isEmpty() && !poster.equals("default_poster")) {
+                        try {
+                            byte[] imageBytes = Base64.decode(poster, Base64.DEFAULT);
+                            Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                            eventPosterImage.setImageBitmap(bitmap);
+                        } catch (IllegalArgumentException e) {
+                            // if not a valid Base64 string, show default image
+                            eventPosterImage.setImageResource(R.drawable.default_poster);
+                        }
+                    } else {
+                        // if poster is null, empty, or default marker
+                        eventPosterImage.setImageResource(R.drawable.default_poster);
+                    }
+
+
+                    // Set lottery criteria
+                    String lotteryCriteria = event.getLotteryCriteria();
+                    if (lotteryCriteria != null && !lotteryCriteria.isEmpty()) {
+                        eventLotteryCriteria.setText("Lottery Criteria: " + lotteryCriteria);
+                        eventLotteryCriteria.setVisibility(View.VISIBLE);
+                    } else {
+                        eventLotteryCriteria.setVisibility(View.GONE);
                     }
 
                     // Generate and display QR code if enabled

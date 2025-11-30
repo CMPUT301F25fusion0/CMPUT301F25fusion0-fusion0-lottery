@@ -18,6 +18,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
+
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -32,15 +35,15 @@ import java.util.List;
  */
 
 public class BrowseProfileFragment extends Fragment implements BrowseProfileAdapter.OnUserActionListener{
-        private RecyclerView profilesRecyclerView;
-        private TextView profileCount;
-        private Spinner roleSpinner;
-        private LinearLayout emptyLayout;
-        private Button applyFilter;
-        private List<User> userList = new ArrayList<>();
-        private FirebaseFirestore db;
-        private BrowseProfileAdapter browseProfileAdapter;
-        private BottomNavigationView bottomNavigation;
+    private RecyclerView profilesRecyclerView;
+    private TextView profileCount;
+    private Spinner roleSpinner;
+    private LinearLayout emptyLayout;
+    private Button applyFilter;
+    private List<User> userList = new ArrayList<>();
+    private FirebaseFirestore db;
+    private BrowseProfileAdapter browseProfileAdapter;
+    private BottomNavigationView bottomNavigation;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -160,36 +163,44 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
      */
     @Override
     public void onUserClicked(User user) {
-        if ("Organizer".equals(user.getRole())) {
-            new AlertDialog.Builder(requireContext())
-                    .setTitle("Remove Organizer")
-                    .setMessage("Remove " + user.getName() + "?")
-                    .setPositiveButton("Remove", (dialog, which) -> removeOrganizer(user))
-                    .setNegativeButton("Cancel", null)
-                    .show();
-        } else {
             new AlertDialog.Builder(requireContext())
                     .setTitle("User Details")
                     .setMessage("Name: " + user.getName() +
                             "\nEmail: " + user.getEmail() +
                             "\nRole: " + user.getRole() +
                             "\nPhone: " + user.getPhone_number())
-                    .setPositiveButton("OK", null)
+                    .setPositiveButton("Remove", (dialog, which) ->  confirmDeleteUser(user))
+                    .setNegativeButton("Exit", null)
                     .show();
-        }
     }
 
-    private void removeOrganizer(User organizer) {
-        db.collection("Users").document(organizer.getDevice_id()).delete()
-                .addOnSuccessListener(aVoid -> {
-                    userList.remove(organizer);
-                    browseProfileAdapter.updateList(userList);
-                    updateUI();
-                    Toast.makeText(requireContext(), "Organizer removed", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+    private void confirmDeleteUser(User user) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Remove User?")
+                .setMessage("Are you sure you want to remove this user?")
+                .setPositiveButton("Remove", (dialog, which) -> removeProfile(user))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void removeProfile(User user) {
+        String currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        CollectionReference userRef = db.collection("Users");
+        if (!user.getDevice_id().equals(currentUser)) {
+            userRef.document(user.getDevice_id()).delete()
+                    .addOnSuccessListener(aVoid -> {
+                        userList.remove(user);
+                        browseProfileAdapter.updateList(userList);
+                        updateUI();
+                        Toast.makeText(requireContext(), "User removed", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        }
+        else {
+            Toast.makeText(getContext(), "You can not remove your own profile!", Toast.LENGTH_SHORT).show();
+        }
     }
 
 }

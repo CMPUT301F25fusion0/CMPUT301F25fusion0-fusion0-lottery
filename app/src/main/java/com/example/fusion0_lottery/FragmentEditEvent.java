@@ -23,7 +23,7 @@ import java.util.Locale;
 public class FragmentEditEvent extends Fragment {
 
     private EditText titleInput, eventDescriptionInput, interestsInput, locationInput,
-            startDateInput, endDateInput, timeInput, priceInput, maxEntrantsInput;
+            startDateInput, endDateInput, timeInput, priceInput, maxEntrantsInput, lotteryCriteriaInput;
     private Button saveButton;
 
     FirebaseFirestore db;
@@ -45,8 +45,21 @@ public class FragmentEditEvent extends Fragment {
         priceInput = view.findViewById(R.id.editPrice);
         maxEntrantsInput = view.findViewById(R.id.editMaxEntrants);
         saveButton = view.findViewById(R.id.saveEventButton);
+        lotteryCriteriaInput = view.findViewById(R.id.editLotteryCriteria);
+
 
         db = FirebaseFirestore.getInstance();
+        Button backButton = view.findViewById(R.id.backButton);
+        backButton.setOnClickListener(v -> {
+            // Go back to previous fragment
+            if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                getParentFragmentManager().popBackStack();
+            } else {
+                // Fallback — go to ManageEvents if stack is empty
+                ((MainActivity) requireActivity()).replaceFragment(new ManageEvents());
+            }
+        });
+
 
         startDateInput.setOnClickListener(v -> showDatePicker(startDateInput));
         endDateInput.setOnClickListener(v -> showDatePicker(endDateInput));
@@ -118,6 +131,7 @@ public class FragmentEditEvent extends Fragment {
                     locationInput.setText(event.getLocation());
                     priceInput.setText(String.valueOf(event.getPrice()));
                     maxEntrantsInput.setText(String.valueOf(event.getMaxEntrants()));
+                    lotteryCriteriaInput.setText(event.getLotteryCriteria());
                 })
                 .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed to load event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
@@ -142,11 +156,19 @@ public class FragmentEditEvent extends Fragment {
                         "endDate", endDateInput.getText().toString().trim(),
                         "time", timeInput.getText().toString().trim(),
                         "location", locationInput.getText().toString().trim(),
+                        "lotteryCriteria", lotteryCriteriaInput.getText().toString().trim(),
                         "price", doublePrice,
                         "maxEntrants", intMaxEntrants
                 )
-                .addOnSuccessListener(aVoid -> {Toast.makeText(requireContext(), "Event updated!", Toast.LENGTH_SHORT).show();
-                    ((MainActivity) requireActivity()).replaceFragment(new ManageEvents());
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(requireContext(), "Event updated!", Toast.LENGTH_SHORT).show();
+
+                    // Return to ManageEvents with the eventId so it shows the updated event
+                    ManageEvents manageEventsFragment = new ManageEvents();
+                    Bundle args = new Bundle();
+                    args.putString("eventId", eventId);
+                    manageEventsFragment.setArguments(args);
+                    ((MainActivity) requireActivity()).replaceFragment(manageEventsFragment);
                 })
                 .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
@@ -161,13 +183,30 @@ public class FragmentEditEvent extends Fragment {
                 timeInput.getText().toString().trim().isEmpty() ||
                 locationInput.getText().toString().trim().isEmpty() ||
                 priceInput.getText().toString().trim().isEmpty() ||
-                maxEntrantsInput.getText().toString().trim().isEmpty()) {
+                maxEntrantsInput.getText().toString().trim().isEmpty() ||
+                lotteryCriteriaInput.getText().toString().trim().isEmpty()){
             return false;
         }
         else {
             return true;
         }
     }
+    // Add this inside your FragmentEditEvent class
+    void testingEdit(EditText title1, EditText text, EditText editText, EditText title, EditText desc,
+                     EditText start, EditText end, EditText time, EditText location,
+                     EditText price, EditText max, EditText interests, EditText lottery) {
+        this.titleInput = title;
+        this.eventDescriptionInput = desc;
+        this.startDateInput = start;
+        this.endDateInput = end;
+        this.timeInput = time;
+        this.locationInput = location;
+        this.priceInput = price;
+        this.maxEntrantsInput = max;
+        this.interestsInput = interests;
+        this.lotteryCriteriaInput = lottery; // assign lottery criteria too
+    }
+
 
 
     /**

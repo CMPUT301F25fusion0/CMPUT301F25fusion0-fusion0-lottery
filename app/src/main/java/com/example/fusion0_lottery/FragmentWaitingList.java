@@ -33,7 +33,7 @@ public class FragmentWaitingList extends Fragment {
 
     private ListView waitingListView;
     private TextView emptyText;
-    private Button backButton, refreshButton, notifyWaitListButton, drawWinnersButton;
+    private Button backButton, refreshButton, notifyWaitListButton, drawWinnersButton, mapViewButton;
 
     private Spinner sortFilter;
 
@@ -57,6 +57,7 @@ public class FragmentWaitingList extends Fragment {
         refreshButton = view.findViewById(R.id.refreshButton);
         sortFilter = view.findViewById(R.id.sortFilter);
         drawWinnersButton = view.findViewById(R.id.drawWinnersButton);
+        mapViewButton = view.findViewById(R.id.mapViewButton);
 
         waitingList = new ArrayList<>();
         db = FirebaseFirestore.getInstance();
@@ -81,6 +82,7 @@ public class FragmentWaitingList extends Fragment {
         });
 
         drawWinnersButton.setOnClickListener(v -> drawRandomWinners());
+        mapViewButton.setOnClickListener(v -> openMapView());
         return view;
     }
 
@@ -89,7 +91,7 @@ public class FragmentWaitingList extends Fragment {
      *  lists all entrants in the waiting list
      *  allow sorting by name and join date
      *  Handles both String (userId only) and Map (userId with joinedAt) entries
-    */
+     */
     private void loadWaitingList(String eventId) {
         db.collection("Events").document(eventId).get()
                 .addOnSuccessListener(snapshot -> {
@@ -230,9 +232,15 @@ public class FragmentWaitingList extends Fragment {
                     for (int i = 0; i < numberRandomWinners; i++) {
                         // get a random entrant via indexing, add to winners list, remove from waiting list after adding to winners list
                         int index = random.nextInt(tempList.size());
-                        chosenWinners.add(tempList.get(index));
+                        Map<String, Object> winner = tempList.get(index);
+                        // Add status field to winner
+                        winner.put("status", "Pending");
+                        chosenWinners.add(winner);
                         tempList.remove(index);
                     }
+
+                    String eventName = snapshot.getString("eventName");
+
                     Map<String, Object> updates = new HashMap<>();
                     updates.put("waitingList", tempList);
                     updates.put("winnersList", chosenWinners);
@@ -241,6 +249,10 @@ public class FragmentWaitingList extends Fragment {
                             .update(updates)
                             .addOnSuccessListener(v -> {
                                 Toast.makeText(getContext(), "Selected " + chosenWinners.size() + " winners", Toast.LENGTH_LONG).show();
+
+                                // Send notifications to selected winners
+                                sendNotificationsToWinners(chosenWinners, eventName != null ? eventName : "Event");
+
                                 loadWaitingList(eventId);
                             })
                             .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show());
@@ -274,8 +286,8 @@ public class FragmentWaitingList extends Fragment {
         for (WaitingListEntrants entry : waitingList) {
             displayList.add(
                     "Name: " + entry.getName() + "\n" +
-                    "Joined: " + entry.getJoinDate() + "\n" +
-                    "Status: " + entry.getStatus()
+                            "Joined: " + entry.getJoinDate() + "\n" +
+                            "Status: " + entry.getStatus()
             );
         }
         return displayList;
@@ -285,7 +297,7 @@ public class FragmentWaitingList extends Fragment {
     /**
      * function to update the waiting list
      * used when trying to sort entrants by name or join date
-    */
+     */
     private void updateListView() {
         ArrayList<String> displayList = getDisplayStrings(waitingList);
         waitingListAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, displayList);
@@ -379,12 +391,14 @@ public class FragmentWaitingList extends Fragment {
                     if (eventName == null) {
                         eventName = "Event";
                     }
+                    final String finalEventName = eventName;
 
                     // Create notification data
                     Map<String, Object> notification = new HashMap<>();
-                    notification.put("message", message);
+                    notification.put("title", "Update for " + finalEventName);
+                    notification.put("body", message);
                     notification.put("eventId", eventId);
-                    notification.put("eventName", eventName);
+                    notification.put("eventName", finalEventName);
                     notification.put("timestamp", System.currentTimeMillis());
                     notification.put("type", "waiting_list_update");
 
@@ -394,13 +408,45 @@ public class FragmentWaitingList extends Fragment {
                     final int[] failCount = {0};
 
                     for (String userId : userIds) {
-                        db.collection("Users").document(userId)
-                                .collection("notifications").add(notification)
-                                .addOnSuccessListener(docRef -> {
-                                    successCount[0]++;
-                                    if (successCount[0] + failCount[0] == totalUsers) {
-                                        showNotificationResult(successCount[0], failCount[0]);
+                        // Fetch user data first to get recipient name
+                        db.collection("Users").document(userId).get()
+                                .addOnSuccessListener(userDoc -> {
+                                    String recipientName = userDoc.getString("name");
+                                    if (recipientName == null) {
+                                        recipientName = "Unknown User";
                                     }
+
+                                    String finalRecipientName = recipientName;
+
+                                    // Send notification to user
+                                    db.collection("Users").document(userId)
+                                            .collection("Notifications").add(notification)
+                                            .addOnSuccessListener(docRef -> {
+                                                successCount[0]++;
+
+                                                // Log to centralized NotificationLogs for admin
+                                                android.util.Log.d("FragmentWaitingList", "About to log notification for user: " + userId);
+                                                NotificationLogger.logNotification(
+                                                        userId,
+                                                        finalRecipientName,
+                                                        eventId,
+                                                        finalEventName,
+                                                        "waiting_list_update",
+                                                        message,
+                                                        "Update for " + finalEventName,
+                                                        docRef.getId()
+                                                );
+
+                                                if (successCount[0] + failCount[0] == totalUsers) {
+                                                    showNotificationResult(successCount[0], failCount[0]);
+                                                }
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                failCount[0]++;
+                                                if (successCount[0] + failCount[0] == totalUsers) {
+                                                    showNotificationResult(successCount[0], failCount[0]);
+                                                }
+                                            });
                                 })
                                 .addOnFailureListener(e -> {
                                     failCount[0]++;
@@ -426,7 +472,56 @@ public class FragmentWaitingList extends Fragment {
         }
         Toast.makeText(getContext(), resultMessage, Toast.LENGTH_LONG).show();
     }
+
+    /**
+     * Send notifications to selected winners
+     * @param winners List of winners (each containing userId)
+     * @param eventName Name of the event
+     */
+    private void sendNotificationsToWinners(List<Map<String, Object>> winners, String eventName) {
+        if (winners == null || winners.isEmpty()) {
+            return;
+        }
+
+        // Create notification data
+        Map<String, Object> notification = new HashMap<>();
+        notification.put("title", "You've Been Selected!");
+        notification.put("body", "Congratulations! You've been selected for " + eventName + ". Please accept or decline your invitation.");
+        notification.put("eventId", eventId);
+        notification.put("eventName", eventName);
+        notification.put("timestamp", System.currentTimeMillis());
+        notification.put("type", "winner_selection");
+
+        // Send notification to each winner
+        for (Map<String, Object> winner : winners) {
+            String userId = (String) winner.get("userId");
+            if (userId != null && !userId.isEmpty()) {
+                db.collection("Users").document(userId)
+                        .collection("Notifications").add(notification)
+                        .addOnFailureListener(e -> {
+                            // Silent failure for individual notifications
+                        });
+            }
+        }
+    }
+
+    /**
+     * Open the map view fragment to display entrant locations
+     */
+    private void openMapView() {
+        // Create new MapViewFragment
+        FragmentMapView mapViewFragment = new FragmentMapView();
+
+        // Pass event ID to the fragment
+        Bundle args = new Bundle();
+        args.putString("eventId", eventId);
+        mapViewFragment.setArguments(args);
+
+        // Navigate to the map view fragment
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, mapViewFragment)
+                .addToBackStack(null)
+                .commit();
+    }
 }
-
-
-
