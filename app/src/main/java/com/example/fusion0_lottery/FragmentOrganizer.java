@@ -27,11 +27,38 @@ import java.util.ArrayList;
 
 
 /**
- * A fragment for the Organizer screen
- * - Code from lines 89 to 91 was inspired
- *      by Joao Marcos and Gowthaman M from
- *      StackOverflow, https://stackoverflow.com/a/24555520,
- *      published July 3 2014 and edited February 27 2018
+ * Fragment representing the main Organizer screen in the lottery application.
+ *
+ * <p>This fragment serves as the central hub for event organizers to view and manage
+ * their events. It displays a list of all events in the system with real-time updates
+ * from Firestore, showing event details including waiting list counts, selected entrants,
+ * and enrolled participants.</p>
+ *
+ * <p><b>Key Responsibilities:</b></p>
+ * <ul>
+ *   <li>Display all events from Firestore in real-time using snapshot listeners</li>
+ *   <li>Navigate to event management screens when an event is selected</li>
+ *   <li>Provide access to event creation functionality</li>
+ *   <li>Show event statistics (waiting list, selected, and enrolled counts)</li>
+ * </ul>
+ *
+ * <p><b>Design Pattern:</b> This fragment follows the MVC (Model-View-Controller) pattern
+ * where the fragment acts as the controller, Firestore as the model, and the XML layout
+ * as the view.</p>
+ *
+ * <p><b>Outstanding Issues:</b> None currently identified.</p>
+ *
+ * @see ManageEvents
+ * @see EventCreationActivity
+ * @see Event
+ *
+ * @version 1.0
+ * @since 2024-11-30
+ *
+ * Code Attribution:
+ * - Code from lines 89 to 91 was inspired by Joao Marcos and Gowthaman M from
+ *   StackOverflow, https://stackoverflow.com/a/24555520,
+ *   published July 3 2014 and edited February 27 2018
  */
 public class FragmentOrganizer extends Fragment {
     private Button createNewEvent;
@@ -42,6 +69,18 @@ public class FragmentOrganizer extends Fragment {
 
     private Button backButton;
 
+    /**
+     * Creates and initializes the organizer fragment view.
+     *
+     * <p>This method sets up the event list view with real-time Firestore synchronization,
+     * configures click listeners for event selection and navigation, and initializes
+     * the back button for role selection.</p>
+     *
+     * @param inflater The LayoutInflater object to inflate views in the fragment
+     * @param container The parent view that this fragment's UI will be attached to
+     * @param savedInstanceState Previously saved state of the fragment, if any
+     * @return The root View for the fragment's UI
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

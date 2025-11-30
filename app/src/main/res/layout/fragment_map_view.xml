@@ -31,32 +31,20 @@
             android:layout_marginBottom="16dp"/>
     </LinearLayout>
 
-    <!-- Map Container - Placeholder for Google Maps integration -->
+    <!-- Map Container - Google Maps integration -->
     <FrameLayout
         android:id="@+id/mapContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_below="@id/headerLayout"
         android:layout_above="@id/locationListLabel"
-        android:background="#E0E0E0"
         android:layout_marginBottom="16dp">
 
-        <!-- Placeholder text for map -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Map View\n(Google Maps Integration)"
-            android:textAlignment="center"
-            android:textSize="18sp"
-            android:textColor="#757575"/>
-
-        <!-- This is where the MapView or SupportMapFragment would be added -->
-        <!-- Example: -->
-        <!-- <com.google.android.gms.maps.MapView -->
-        <!--     android:id="@+id/mapView" -->
-        <!--     android:layout_width="match_parent" -->
-        <!--     android:layout_height="match_parent"/> -->
+        <!-- Google Maps MapView -->
+        <com.google.android.gms.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
     </FrameLayout>
 
     <!-- Location List Label -->

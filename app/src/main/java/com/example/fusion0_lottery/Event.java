@@ -24,6 +24,9 @@ public class Event {
     private String qrCodeUrl; // URL to the generated QR code
     private String lotteryCriteria;
     private boolean requiresGeolocation; // Whether event requires location from entrants
+    private boolean hasQrCode; // Whether event has QR code enabled
+    private List<String> cancelledUsers; // List of cancelled user IDs
+    private List<String> enrolledUsers; // List of enrolled user IDs
 
     private Integer waitingListCount;
     private Integer userSelectedCount;
@@ -257,5 +260,29 @@ public class Event {
 
     public void setRequiresGeolocation(boolean requiresGeolocation) {
         this.requiresGeolocation = requiresGeolocation;
+    }
+
+    public boolean isHasQrCode() {
+        return hasQrCode;
+    }
+
+    public void setHasQrCode(boolean hasQrCode) {
+        this.hasQrCode = hasQrCode;
+    }
+
+    public List<String> getCancelledUsers() {
+        return cancelledUsers;
+    }
+
+    public void setCancelledUsers(List<String> cancelledUsers) {
+        this.cancelledUsers = cancelledUsers;
+    }
+
+    public List<String> getEnrolledUsers() {
+        return enrolledUsers;
+    }
+
+    public void setEnrolledUsers(List<String> enrolledUsers) {
+        this.enrolledUsers = enrolledUsers;
     }
 }
