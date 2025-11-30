@@ -31,7 +31,7 @@ import java.util.List;
  * This fragment is used for browsing user profiles in the admin dashboard
  * provides functionality to view all users and filter them by role
  *  AI Assistance Reference: for method structure optimization, code structure
- *  Date: 2025-11-21, DeepSeek AI
+ *  Date: 2025-21-11, DeepSeek AI
  */
 
 public class BrowseProfileFragment extends Fragment implements BrowseProfileAdapter.OnUserActionListener{
@@ -75,6 +75,9 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
         return view;
     }
 
+    /**
+     * Sets up the bottom navigation menu for the admin dashboard.
+     */
     private void bottom_navigation() {
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -95,6 +98,11 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
             return false;
         });
     }
+
+    /**
+     * Navigates to the specified fragment within the main activity container.
+     * @param fragment The fragment to navigate to.
+     */
     private void navigateToFragment(Fragment fragment) {
         if (getActivity() != null) {
             getActivity().getSupportFragmentManager()
@@ -105,13 +113,18 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
         }
     }
 
-
+    /**
+     * Initializes the RecyclerView with a LinearLayoutManager and sets the adapter
+     */
     private void setupRecyclerView() {
         profilesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         browseProfileAdapter = new BrowseProfileAdapter(userList, this);
         profilesRecyclerView.setAdapter(browseProfileAdapter);
     }
 
+    /**
+     * Loads all users from the Firestore database
+     */
     private void loadUsers() {
 
         db.collection("Users")
@@ -130,6 +143,11 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
                     }
                 });
     }
+
+    /**
+     * Filters the displayed users based on the selected role.
+     * @param role The role to filter by. "All" shows all users, any other value filters by exact role match.
+     */
     private void filterUsersByRole(String role) {
         if (role.equals("All")) {
             browseProfileAdapter.updateList(userList);
@@ -144,6 +162,10 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
         }
         updateUI();
     }
+
+    /**
+     * Updates the UI components based on the current user list state.
+     */
     private void updateUI() {
         int count = browseProfileAdapter.getItemCount();
         profileCount.setText("Total: " + count + " profiles");
@@ -174,6 +196,10 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
                     .show();
     }
 
+    /**
+     *  Displays a confirmation dialog before deleting a user.
+     * @param user The User object to be deleted
+     */
     private void confirmDeleteUser(User user) {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Remove User?")
@@ -183,6 +209,10 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
                 .show();
     }
 
+    /**
+     * Removes a user profile from the Firestore database
+     * @param user The User object to be removed from the system
+     */
     private void removeProfile(User user) {
         String currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
         CollectionReference userRef = db.collection("Users");
