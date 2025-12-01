@@ -34,9 +34,6 @@
       <SelectionState runConfigName="EventCreationActivityTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="testFillAllRequiredFields()">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="QRScannerActivityTest">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
