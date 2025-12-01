@@ -166,8 +166,6 @@ public class FragmentSelectedEntrants extends Fragment {
 
                     com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
                             .addOnSuccessListener(results -> {
-
-                                // separate the declined and non declined winners
                                 List<Map<String, Object>> nonDeclinedWinners = new ArrayList<>();
                                 List<Map<String, Object>> declinedWinners = new ArrayList<>();
                                 int currentEntrantIndex = 0;
@@ -190,7 +188,6 @@ public class FragmentSelectedEntrants extends Fragment {
                                     }
                                 }
 
-                                // if there is no declined winners, no redraws take place
                                 if (declinedWinners.isEmpty()) {
                                     Toast.makeText(getContext(), "No redraws can be made", Toast.LENGTH_SHORT).show();
                                     return;
@@ -218,9 +215,7 @@ public class FragmentSelectedEntrants extends Fragment {
                                 List<Map<String, Object>> updatedWinnersList = new ArrayList<>();
                                 updatedWinnersList.addAll(nonDeclinedWinners);
                                 updatedWinnersList.addAll(redrawWinners);
-                                // updatedWinnersList.addAll(declinedWinners);
 
-                                // update firestore
                                 Map<String, Object> updates = new HashMap<>();
                                 updates.put("waitingList", tempList);
                                 updates.put("winnersList", updatedWinnersList);
