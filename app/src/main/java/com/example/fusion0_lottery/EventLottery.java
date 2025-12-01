@@ -9,8 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,53 +19,44 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.ArrayList;
 
 /**
  * EventLottery.java
  *
  * Fragment that displays events available to users in the lottery system.
  * Users can filter events by interest and date, view details, and join/leave waiting lists.
- * Supports QR code scanning for quick event access.
+ * Also supports QR code scanning for quick event access.
  */
-
 public class EventLottery extends Fragment {
 
-    /** Container layout for displaying event cards. */
     private LinearLayout eventsContainer;
-
-    /** Buttons for navigation, filtering, date selection, and QR scanning. */
     private Button buttonBack, buttonApplyFilters, buttonStartDate, buttonEndDate, buttonClearFilters, scan_qr;
+    private Spinner spinnerInterest;
+    private Toolbar toolbar;
 
     private FirebaseFirestore db;
     private String userEmail;
-    private EditText inputInterestKeywords;
-
 
     private static final int QR_SCAN_REQUEST_CODE = 100;
-    private BottomNavigationView bottomNavigationView;
+
     private String selectedInterest = "All";
     private String selectedStartDate = null;
     private String selectedEndDate = null;
+
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
     public EventLottery() {}
 
-    /**
-     * Creates a new instance of EventLottery fragment with the provided user email.
-     * @param userEmail The email of the current user.
-     * @return A new EventLottery fragment instance.
-     */
     public static EventLottery newInstance(String userEmail) {
         EventLottery fragment = new EventLottery();
         Bundle args = new Bundle();
@@ -74,37 +65,16 @@ public class EventLottery extends Fragment {
         return fragment;
     }
 
-    /**
-     * Inflates the fragment layout, initializes views, sets up event listeners, and loads events.
-     */
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_event_lottery, container, false);
 
-        eventsContainer = view.findViewById(R.id.eventsContainer);
-
-        buttonBack = view.findViewById(R.id.buttonBack);
-        buttonBack.setOnClickListener(v -> {
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragment_container, new FragmentRoleSelection())
-                    .commit();
-        });
-
-        // Initialize UI elements
-        scan_qr = view.findViewById(R.id.scan_qr);
-        buttonApplyFilters  = view.findViewById(R.id.buttonApplyFilters);
-        buttonStartDate     = view.findViewById(R.id.buttonStartDate);
-        buttonEndDate       = view.findViewById(R.id.buttonEndDate);
-        buttonClearFilters  = view.findViewById(R.id.buttonClearFilters);
-        bottomNavigationView = view.findViewById(R.id.bottom_navigation);
-        setupBottomNavigation();
-        inputInterestKeywords = view.findViewById(R.id.inputInterestKeywords);
-
-        Toolbar toolbar = view.findViewById(R.id.toolbar);
+        // Toolbar
+        toolbar = view.findViewById(R.id.toolbar);
         if (toolbar != null) {
             toolbar.setTitle("Event Lottery");
             toolbar.getMenu().clear();
@@ -140,18 +110,31 @@ public class EventLottery extends Fragment {
                 return false;
             });
         }
-        toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
 
+        // Views
+        eventsContainer     = view.findViewById(R.id.eventsContainer);
+        buttonBack          = view.findViewById(R.id.buttonBack);
+        scan_qr             = view.findViewById(R.id.scan_qr);
+        buttonApplyFilters  = view.findViewById(R.id.buttonApplyFilters);
+        buttonStartDate     = view.findViewById(R.id.buttonStartDate);
+        buttonEndDate       = view.findViewById(R.id.buttonEndDate);
+        buttonClearFilters  = view.findViewById(R.id.buttonClearFilters);
+
+        buttonBack.setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).replaceFragment(new FragmentRoleSelection());
+        });
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> getParentFragmentManager().popBackStack());
+        }
 
         db = FirebaseFirestore.getInstance();
-
-        // Load arguments if any
         if (getArguments() != null) {
-            userEmail = getArguments().getString("userEmail");
+            userEmail        = getArguments().getString("userEmail");
             selectedInterest = getArguments().getString("selectedInterest", "All");
             selectedStartDate= getArguments().getString("selectedStartDate", null);
             selectedEndDate  = getArguments().getString("selectedEndDate", null);
         }
+
         // QR scan
         if (scan_qr != null) {
             scan_qr.setOnClickListener(v -> {
@@ -159,7 +142,6 @@ public class EventLottery extends Fragment {
                 startActivityForResult(intent, QR_SCAN_REQUEST_CODE);
             });
         }
-        inputInterestKeywords = view.findViewById(R.id.inputInterestKeywords);
 
 
         // Pre-fill date buttons
@@ -170,10 +152,9 @@ public class EventLottery extends Fragment {
         buttonEndDate.setOnClickListener(v -> showDatePicker(false));
 
         buttonApplyFilters.setOnClickListener(v -> {
-            selectedInterest = inputInterestKeywords.getText().toString().trim();
+            selectedInterest = spinnerInterest.getSelectedItem().toString();
             applyFilters();
         });
-
 
         buttonClearFilters.setOnClickListener(v -> clearFilters());
 
@@ -187,53 +168,17 @@ public class EventLottery extends Fragment {
         return view;
     }
 
-    private void setupBottomNavigation() {
-        bottomNavigationView.setOnNavigationItemSelectedListener(menuItem -> {
-            int item_id = menuItem.getItemId();
-
-            if (item_id == R.id.navigation_home){
-                return true;
-            } else if (item_id == R.id.navigation_my_events) {
-                Intent intent = new Intent(getActivity(), MyEventsActivity.class);
-                startActivity(intent);
-                return true;
-            } else if (item_id == R.id.navigation_profile) {
-                if (getActivity() != null) {
-                    getActivity().getSupportFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.fragment_container, new UpdateProfileFragment())
-                            .addToBackStack(null)
-                            .commit();
-                }
-                return false;
-            }
-            return false;
-        });
-        bottomNavigationView.setSelectedItemId(R.id.navigation_home);
-    }
-
-    /**
-     * handles the result from QR code scanning activity.
-     * @param request_code The integer request code originally supplied to
-     *                    startActivityForResult(), allowing you to identify who this
-     *                    result came from.
-     * @param result_code The integer result code returned by the child activity
-     *                   through its setResult().
-     * @param data An Intent, which can return result data to the caller
-     *               (various data can be attached to Intent "extras").
-     *
-     */
     @Override
-    public void onActivityResult(int request_code, int result_code, Intent data){
-        super.onActivityResult(request_code,result_code,data);
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-        if (request_code == QR_SCAN_REQUEST_CODE){
-            if (result_code == getActivity().RESULT_OK && data != null){
-                String event_id = data.getStringExtra("EVENT_ID");
-                if (event_id != null && !event_id.isEmpty()){
-                    eventDetails(event_id);
+        if (requestCode == QR_SCAN_REQUEST_CODE) {
+            if (resultCode == getActivity().RESULT_OK && data != null) {
+                String eventId = data.getStringExtra("EVENT_ID");
+                if (eventId != null && !eventId.isEmpty()) {
+                    eventDetails(eventId);
                 }
-            } else{
+            } else {
                 Toast.makeText(getContext(), "QR scan cancelled", Toast.LENGTH_SHORT).show();
             }
         }
@@ -338,7 +283,6 @@ public class EventLottery extends Fragment {
                 });
     }
 
-
     /** Apply interest/date filters and show. */
     private void applyFilters() {
         db.collection("Events")
@@ -353,25 +297,11 @@ public class EventLottery extends Fragment {
 
                     for (DocumentSnapshot event : queryDocumentSnapshots.getDocuments()) {
                         // Interest filter
-                        if (selectedInterest != null && !selectedInterest.isEmpty()) {
-                            String[] keywords = selectedInterest.toLowerCase(Locale.ROOT).split(",\\s*"); // split by comma + optional space
-
-                            String eventName = (event.getString("eventName") != null) ? event.getString("eventName").toLowerCase(Locale.ROOT) : "";
-                            String description = (event.getString("description") != null) ? event.getString("description").toLowerCase(Locale.ROOT) : "";
-                            String interests = (event.getString("interests") != null) ? event.getString("interests").toLowerCase(Locale.ROOT) : "";
-                            String location = (event.getString("location") != null) ? event.getString("location").toLowerCase(Locale.ROOT) : "";
-
-                            boolean matches = false;
-                            for (String keyword : keywords) {
-                                if (eventName.contains(keyword) || description.contains(keyword) || interests.contains(keyword) || location.contains(keyword)) {
-                                    matches = true;
-                                    break;
-                                }
-                            }
-
-                            if (!matches) continue; // skip event if no keyword matches
+                        if (!selectedInterest.equals("All")) {
+                            String eventInterest = event.getString("interests");
+                            if (eventInterest == null || !selectedInterest.equalsIgnoreCase(eventInterest.trim()))
+                                continue;
                         }
-
 
                         // Date window (optional)
                         if (selectedStartDate != null || selectedEndDate != null) {
@@ -404,27 +334,16 @@ public class EventLottery extends Fragment {
 
     /** Reset filters and reload. */
     private void clearFilters() {
-        // Reset all filter variables
-        selectedInterest = "";
+        selectedInterest = "All";
         selectedStartDate = null;
         selectedEndDate = null;
 
-        // Clear the keyword input field
-        if (inputInterestKeywords != null) {
-            inputInterestKeywords.setText("");
-            inputInterestKeywords.setHint("e.g. AI, coding, sports");
-        }
+        spinnerInterest.setSelection(0);
+        buttonStartDate.setText("Start: All");
+        buttonEndDate.setText("End: All");
 
-        // Reset the date buttons to default text
-        buttonStartDate.setText("Select Start Date");
-        buttonEndDate.setText("Select End Date");
-
-        // Reload all events
         loadEvents();
-
-        Toast.makeText(getContext(), "Filters cleared", Toast.LENGTH_SHORT).show();
     }
-
 
     /** Can user still join? date + cap check. */
     private boolean canJoinWaitingList(DocumentSnapshot eventDoc) {

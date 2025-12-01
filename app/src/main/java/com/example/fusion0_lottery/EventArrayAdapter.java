@@ -10,14 +10,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
-
 
 /**
  * An array adapter helper class
@@ -37,18 +34,25 @@ public class EventArrayAdapter extends ArrayAdapter<Event> {
     }
 
     @NonNull
-    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+    @Override
+    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+
         View view = convertView;
         if (view == null) {
+            // ⭐ Inflate the purple card layout
             view = LayoutInflater.from(context).inflate(R.layout.event_layout, parent, false);
         }
 
+        // Get event
         Event event = events.get(position);
+
+        // ⭐ Match these IDs to event_layout.xml
         TextView eventName = view.findViewById(R.id.eventName);
         TextView eventInterests = view.findViewById(R.id.eventInterests);
-        TextView eventStatus = view.findViewById(R.id.status);
-        TextView eventDrawDate = view.findViewById(R.id.drawDate);
+        TextView eventStatus = view.findViewById(R.id.eventStatus);
+        TextView eventDrawDate = view.findViewById(R.id.eventDrawDate);
 
+        // Set basic fields
         eventName.setText(event.getEventName());
         eventInterests.setText("Interests: " + event.getInterests());
 
@@ -75,6 +79,7 @@ public class EventArrayAdapter extends ArrayAdapter<Event> {
                 }
 
                 eventDrawDate.setText("Draw Date: " + regEndStr);
+
             } catch (ParseException e) {
                 // If the stored date is malformed, don’t crash the app
                 e.printStackTrace();
@@ -85,5 +90,4 @@ public class EventArrayAdapter extends ArrayAdapter<Event> {
 
         return view;
     }
-
 }

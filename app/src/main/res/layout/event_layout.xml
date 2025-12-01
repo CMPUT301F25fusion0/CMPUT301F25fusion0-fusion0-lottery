@@ -1,48 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/eventLayout"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/event_item_bg"
+    android:padding="16dp"
+    android:layout_marginHorizontal="20dp"
+    android:layout_marginTop="12dp"
+    android:layout_marginBottom="12dp">
 
     <TextView
         android:id="@+id/eventName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Event"
-        android:textSize="25sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@color/purpleDark"
+        android:paddingBottom="8dp" />
 
     <TextView
         android:id="@+id/eventInterests"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:text="Interests: "
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/eventName" />
+        android:text="Interests:"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:paddingBottom="6dp" />
 
     <TextView
-        android:id="@+id/status"
+        android:id="@+id/eventStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:text="Status: "
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/eventInterests" />
+        android:text="Status:"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:paddingBottom="6dp" />
 
     <TextView
-        android:id="@+id/drawDate"
+        android:id="@+id/eventDrawDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:text="Draw Date: "
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/status" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:text="Draw Date:"
+        android:textSize="16sp"
+        android:textColor="@android:color/black" />
+
+</LinearLayout>

@@ -5,17 +5,17 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.fusion0_lottery.MainActivityOrganizer">
+    tools:context=".FragmentOrganizer">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
-        android:layout_width="409dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/toolbar"
+        android:background="@color/purplePrimary"
         android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -25,42 +25,52 @@
         android:layout_marginStart="32dp"
         android:layout_marginTop="32dp"
         android:text="My Events"
+        android:textColor="@color/purpleDark"
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     <ListView
         android:id="@+id/eventsOrg"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="32dp"
+        android:layout_width="356dp"
+        android:layout_height="386dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="200dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="140dp"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="12dp"
+        app:layout_constraintBottom_toTopOf="@+id/createEventButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/eventsOrgDesc" />
+        app:layout_constraintTop_toBottomOf="@+id/eventsOrgDesc"
+        app:layout_constraintVertical_bias="0.0" />
 
     <Button
         android:id="@+id/createEventButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="296dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/purple_button"
         android:text="Create New Event"
+        android:textColor="@android:color/white"
         android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/backToRoleButton"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/backToRoleButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="291dp"
+        android:layout_height="63dp"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/purple_button"
         android:text="Back"
+        android:textColor="@android:color/white"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="10dp"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

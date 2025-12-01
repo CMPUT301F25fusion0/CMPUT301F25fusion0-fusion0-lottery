@@ -225,10 +225,15 @@ public class FragmentWaitingList extends Fragment {
 
                     List<Map<String, Object>> tempList = new ArrayList<>(normalizedWaitingList);
                     List<Map<String, Object>> chosenWinners = new ArrayList<>();
+
                     Random random = new Random();
+
+                    // select numberOfRandomWinners amount of entrants in waiting list
                     for (int i = 0; i < numberRandomWinners; i++) {
+                        // get a random entrant via indexing, add to winners list, remove from waiting list after adding to winners list
                         int index = random.nextInt(tempList.size());
                         Map<String, Object> winner = tempList.get(index);
+                        // Add status field to winner
                         winner.put("status", "Pending");
                         chosenWinners.add(winner);
                         tempList.remove(index);

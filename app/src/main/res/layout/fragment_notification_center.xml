@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Notify me when I'm chosen for an event" />
+            android:text="Notify me when I’m chosen for an event" />
 
         <!-- Clear All Button -->
         <Button
