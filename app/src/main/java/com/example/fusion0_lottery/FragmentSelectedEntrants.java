@@ -174,7 +174,7 @@ public class FragmentSelectedEntrants extends Fragment {
                                     Map<String, Object> currentEntrant = entrantWinners.get(currentEntrantIndex);
                                     if (userSnap.exists()) {
                                         String status = userSnap.getString("status");
-                                        // if status = Declined, add to declined winners,
+                                        // if status = Declined, add to declined winners
                                         if (status == null) {
                                             status = "Pending";
                                         }
