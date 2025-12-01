@@ -46,8 +46,17 @@ public class FragmentMapView extends Fragment implements OnMapReadyCallback {
     private FirebaseFirestore db;
     private String eventId;
 
+    /** Default constructor */
     public FragmentMapView() {}
 
+    /**
+     * Inflate fragment layout, initialize UI and MapView, and load event data.
+     *
+     * @param inflater LayoutInflater to inflate XML
+     * @param container Parent view group
+     * @param savedInstanceState Saved state bundle
+     * @return The root view of the fragment
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -82,6 +91,12 @@ public class FragmentMapView extends Fragment implements OnMapReadyCallback {
         return view;
     }
 
+    /**
+     * Callback when the Google Map is ready.
+     * Configures map UI settings and adds markers if locations are loaded.
+     *
+     * @param map The GoogleMap instance
+     */
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         googleMap = map;
@@ -261,7 +276,9 @@ public class FragmentMapView extends Fragment implements OnMapReadyCallback {
     }
 
     /**
-     * Show empty state with custom message
+     * Show empty state message if no locations are available
+     *
+     * @param message Message to display
      */
     private void showEmptyState(String message) {
         locationListView.setVisibility(View.GONE);

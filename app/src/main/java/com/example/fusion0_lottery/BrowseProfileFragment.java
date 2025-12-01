@@ -185,15 +185,15 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
      */
     @Override
     public void onUserClicked(User user) {
-            new AlertDialog.Builder(requireContext())
-                    .setTitle("User Details")
-                    .setMessage("Name: " + user.getName() +
-                            "\nEmail: " + user.getEmail() +
-                            "\nRole: " + user.getRole() +
-                            "\nPhone: " + user.getPhone_number())
-                    .setPositiveButton("Remove", (dialog, which) ->  confirmDeleteUser(user))
-                    .setNegativeButton("Exit", null)
-                    .show();
+        new AlertDialog.Builder(requireContext())
+                .setTitle("User Details")
+                .setMessage("Name: " + user.getName() +
+                        "\nEmail: " + user.getEmail() +
+                        "\nRole: " + user.getRole() +
+                        "\nPhone: " + user.getPhone_number())
+                .setPositiveButton("Remove", (dialog, which) ->  confirmDeleteUser(user))
+                .setNegativeButton("Exit", null)
+                .show();
     }
 
     /**
@@ -234,4 +234,3 @@ public class BrowseProfileFragment extends Fragment implements BrowseProfileAdap
     }
 
 }
-  
