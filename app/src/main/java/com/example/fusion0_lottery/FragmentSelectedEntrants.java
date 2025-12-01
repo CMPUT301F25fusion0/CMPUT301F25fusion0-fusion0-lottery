@@ -241,16 +241,41 @@ public class FragmentSelectedEntrants extends Fragment {
     private void updateWinnersListDisplay(ArrayList<LotteryWinners> winnersList) {
 
         if (sortFilter.getSelectedItemPosition() == 0) {
-            // sort by name
-            Collections.sort(winnersList, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+            Collections.sort(winnersList, (a, b) -> {
+                String nameA = a.getName();
+                String nameB = b.getName();
+
+                if (nameA == null && nameB == null) {
+                    return 0;
+                }
+                if (nameA == null) {
+                    return 1;
+                }
+                if (nameB == null) {
+                    return -1;
+                }
+                return nameA.compareToIgnoreCase(nameB);
+            });
         }
         else {
-            // sort by status
-            Collections.sort(winnersList, (a, b) -> a.getStatus().compareToIgnoreCase(b.getStatus()));
+            Collections.sort(winnersList, (a, b) -> {
+                String statusA = a.getStatus();
+                String statusB = b.getStatus();
+
+                if (statusA == null && statusB == null) {
+                    return 0;
+                }
+                if (statusA == null) {
+                    return 1;
+                }
+                if (statusB == null) {
+                    return -1;
+                }
+                return statusA.compareToIgnoreCase(statusB);
+            });
         }
 
         ArrayList<String> displayList = new ArrayList<>();
-
         for (LotteryWinners w : winnersList) {
             displayList.add("Name: " + w.getName() + "\n" +
                     "Status: " + w.getStatus()

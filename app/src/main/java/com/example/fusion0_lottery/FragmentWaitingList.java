@@ -267,12 +267,38 @@ public class FragmentWaitingList extends Fragment {
      */
     private void sortAndUpdate() {
         if (sortFilter.getSelectedItemPosition() == 0) {
-            // sort by name
-            Collections.sort(waitingList, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+            Collections.sort(waitingList, (a, b) -> {
+                String nameA = a.getName();
+                String nameB = b.getName();
+
+                if (nameA == null && nameB == null) {
+                  return 0;
+                }
+                if (nameA == null) {
+                    return 1;
+                }
+                if (nameB == null) {
+                    return -1;
+                }
+                return nameA.compareToIgnoreCase(nameB);
+            });
         }
         else {
-            // sort by join date
-            Collections.sort(waitingList, (a, b) -> a.getJoinDate().compareTo(b.getJoinDate()));
+            Collections.sort(waitingList, (a, b) -> {
+                String dateA = a.getJoinDate();
+                String dateB = b.getJoinDate();
+
+                if (dateA == null && dateB == null) {
+                    return 0;
+                }
+                if (dateA == null) {
+                    return 1;
+                }
+                if (dateB == null) {
+                    return -1;
+                }
+                return dateA.compareTo(dateB);
+            });
         }
         updateListView();
     }
