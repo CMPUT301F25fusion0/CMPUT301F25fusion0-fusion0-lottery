@@ -174,11 +174,12 @@ public class UpdateProfileFragment extends Fragment {
 
     /**
      * High-risk deletion:
-     * 1) Remove user from any Events.waitingList (by email)
-     * 2) Delete Users/{uid}/Notifications/*
-     * 3) Delete Users/{uid}
-     * 4) Delete FirebaseAuth user (may require recent login)
-     * 5) Sign out and go to SignUp
+     * 1) Fetch email from Firestore (not FirebaseAuth)
+     * 2) Remove user from Events.waitingList
+     * 3) Delete Notifications subcollection
+     * 4) Delete Users/{uid}
+     * 5) Delete FirebaseAuth user (may require re-login)
+     * 6) Sign out and navigate to SignUp
      */
     private void performAccountDeletion() {
         FirebaseUser user = auth.getCurrentUser();
@@ -186,67 +187,80 @@ public class UpdateProfileFragment extends Fragment {
             Toast.makeText(getContext(), "Not logged in", Toast.LENGTH_SHORT).show();
             return;
         }
-        final String email = user.getEmail();
-        if (email == null) {
-            Toast.makeText(getContext(), "Missing email on account.", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
         setBusy(true);
 
-        // Step 1: remove from any waitingList
-        Task<Void> removeFromEvents = db.collection("Events")
-                .whereArrayContains("waitingList", email)
-                .get()
-                .onSuccessTask(query -> {
-                    List<Task<Void>> updates = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : query) {
-                        updates.add(
-                                doc.getReference().update("waitingList", FieldValue.arrayRemove(email))
-                        );
+        db.collection("Users").document(uid).get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot == null || !snapshot.exists()) {
+                        setBusy(false);
+                        Toast.makeText(getContext(), "User data not found.", Toast.LENGTH_SHORT).show();
+                        return;
                     }
-                    return Tasks.whenAll(updates);
-                });
 
-        // Step 2: delete Notifications subcollection
-        Task<Void> deleteNotifications = db.collection("Users")
-                .document(uid)
-                .collection("Notifications")
-                .get()
-                .onSuccessTask(q -> {
-                    WriteBatch batch = db.batch();
-                    for (QueryDocumentSnapshot d : q) batch.delete(d.getReference());
-                    return batch.commit();
-                });
+                    String email = snapshot.getString("email");
+                    if (email == null || email.trim().isEmpty()) {
+                        setBusy(false);
+                        Toast.makeText(getContext(), "No email found in profile.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
 
-        // Step 3: delete user doc
-        Task<Void> deleteUserDoc = db.collection("Users").document(uid).delete();
+                    // Step 1: remove from any Events.waitingList
+                    Task<Void> removeFromEvents = db.collection("Events")
+                            .whereArrayContains("waitingList", email)
+                            .get()
+                            .onSuccessTask(query -> {
+                                List<Task<Void>> updates = new ArrayList<>();
+                                for (QueryDocumentSnapshot doc : query) {
+                                    updates.add(
+                                            doc.getReference().update("waitingList", FieldValue.arrayRemove(email))
+                                    );
+                                }
+                                return Tasks.whenAll(updates);
+                            });
 
-        // Chain 1–3
-        Tasks.whenAll(removeFromEvents, deleteNotifications, deleteUserDoc)
-                .addOnSuccessListener(_v -> {
-                    // Step 4: delete auth user
-                    user.delete()
-                            .addOnSuccessListener(_v2 -> {
-                                // Step 5: sign out & go to sign-up
-                                auth.signOut();
-                                Toast.makeText(getContext(), "Account deleted.", Toast.LENGTH_SHORT).show();
-                                navigateToSignUp();
+                    // Step 2: delete Notifications subcollection
+                    Task<Void> deleteNotifications = db.collection("Users")
+                            .document(uid)
+                            .collection("Notifications")
+                            .get()
+                            .onSuccessTask(q -> {
+                                WriteBatch batch = db.batch();
+                                for (QueryDocumentSnapshot d : q) {
+                                    batch.delete(d.getReference());
+                                }
+                                return batch.commit();
+                            });
+
+                    // Step 3: delete user document
+                    Task<Void> deleteUserDoc = db.collection("Users").document(uid).delete();
+
+                    // Step 4–6: perform deletions and auth removal
+                    Tasks.whenAll(removeFromEvents, deleteNotifications, deleteUserDoc)
+                            .addOnSuccessListener(_v -> {
+                                user.delete()
+                                        .addOnSuccessListener(_v2 -> {
+                                            auth.signOut();
+                                            Toast.makeText(getContext(), "Account deleted successfully.", Toast.LENGTH_SHORT).show();
+                                            navigateToSignUp();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            String msg = e.getMessage() != null ? e.getMessage() : "Delete failed";
+                                            Toast.makeText(getContext(),
+                                                    "Could not delete login: " + msg + ". Please sign in again and retry.",
+                                                    Toast.LENGTH_LONG).show();
+                                            auth.signOut();
+                                            navigateToSignUp();
+                                        });
                             })
                             .addOnFailureListener(e -> {
-                                // Common case: requires recent login
-                                String msg = e.getMessage() != null ? e.getMessage() : "Delete failed";
-                                Toast.makeText(getContext(),
-                                        "Could not delete login: " + msg + ". Please sign in again and retry.",
-                                        Toast.LENGTH_LONG).show();
-                                // fall back to sign-out so the deleted data can't be used
-                                auth.signOut();
-                                navigateToSignUp();
+                                setBusy(false);
+                                Toast.makeText(getContext(), "Deletion failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
                             });
                 })
                 .addOnFailureListener(e -> {
                     setBusy(false);
-                    Toast.makeText(getContext(), "Deletion failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "Failed to fetch email: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 

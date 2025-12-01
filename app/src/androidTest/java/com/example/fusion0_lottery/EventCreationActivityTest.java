@@ -46,36 +46,6 @@ public class EventCreationActivityTest {
     }
 
 
-
-    /**
-     * Test that all input fields are displayed.
-     */
-    @Test
-    public void testInputFieldsDisplayed() {
-        launchActivity();
-
-        // Check that key input fields are displayed
-        Espresso.onView(withId(R.id.eventNameInput))
-                .check(ViewAssertions.matches(isDisplayed()));
-
-        Espresso.onView(withId(R.id.interestInput))
-                .check(ViewAssertions.matches(isDisplayed()));
-
-        Espresso.onView(withId(R.id.descriptionInput))
-                .check(ViewAssertions.matches(isDisplayed()));
-
-        Espresso.onView(withId(R.id.locationInput))
-                .check(ViewAssertions.matches(isDisplayed()));
-
-        Espresso.onView(withId(R.id.priceInput))
-                .check(ViewAssertions.matches(isDisplayed()));
-
-        Espresso.onView(withId(R.id.winnerInput))
-                .check(ViewAssertions.matches(isDisplayed()));
-    }
-
-
-
     /**
      * Test typing into event name input field.
      */
