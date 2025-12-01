@@ -185,8 +185,20 @@ public class FragmentFinalList extends Fragment {
      */
     private void updateAcceptedWinnersListDisplay() {
         if (sortFilter.getSelectedItemPosition() == 0) {
-            // Sort by name
-            Collections.sort(acceptedWinnersList, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+            Collections.sort(acceptedWinnersList, (a, b) -> {
+                String nameA = a.getName();
+                String nameB = b.getName();
+                if (nameA == null && nameB == null) {
+                    return 0;
+                }
+                if (nameA == null) {
+                    return 1;
+                }
+                if (nameB == null) {
+                    return -1;
+                }
+                return nameA.compareToIgnoreCase(nameB);
+            });
         }
 
         ArrayList<String> displayList = new ArrayList<>();

@@ -52,7 +52,7 @@ public class FragmentCancelledEntrants extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_selected_entrants, container, false);
+        View view = inflater.inflate(R.layout.fragment_cancelled_entrants, container, false);
 
         cancelledListView = view.findViewById(R.id.winnerListView);
         emptyText = view.findViewById(R.id.emptyText);

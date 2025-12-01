@@ -166,8 +166,6 @@ public class FragmentSelectedEntrants extends Fragment {
 
                     com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
                             .addOnSuccessListener(results -> {
-
-                                // separate the declined and non declined winners
                                 List<Map<String, Object>> nonDeclinedWinners = new ArrayList<>();
                                 List<Map<String, Object>> declinedWinners = new ArrayList<>();
                                 int currentEntrantIndex = 0;
@@ -218,9 +216,7 @@ public class FragmentSelectedEntrants extends Fragment {
                                 List<Map<String, Object>> updatedWinnersList = new ArrayList<>();
                                 updatedWinnersList.addAll(nonDeclinedWinners);
                                 updatedWinnersList.addAll(redrawWinners);
-                                // updatedWinnersList.addAll(declinedWinners);
 
-                                // update firestore
                                 Map<String, Object> updates = new HashMap<>();
                                 updates.put("waitingList", tempList);
                                 updates.put("winnersList", updatedWinnersList);
@@ -234,7 +230,6 @@ public class FragmentSelectedEntrants extends Fragment {
                                         .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show());
                             })
                             .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load user statuses: " + e.getMessage(), Toast.LENGTH_LONG).show());
-
                 })
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
@@ -246,16 +241,41 @@ public class FragmentSelectedEntrants extends Fragment {
     private void updateWinnersListDisplay(ArrayList<LotteryWinners> winnersList) {
 
         if (sortFilter.getSelectedItemPosition() == 0) {
-            // sort by name
-            Collections.sort(winnersList, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+            Collections.sort(winnersList, (a, b) -> {
+                String nameA = a.getName();
+                String nameB = b.getName();
+
+                if (nameA == null && nameB == null) {
+                    return 0;
+                }
+                if (nameA == null) {
+                    return 1;
+                }
+                if (nameB == null) {
+                    return -1;
+                }
+                return nameA.compareToIgnoreCase(nameB);
+            });
         }
         else {
-            // sort by status
-            Collections.sort(winnersList, (a, b) -> a.getStatus().compareToIgnoreCase(b.getStatus()));
+            Collections.sort(winnersList, (a, b) -> {
+                String statusA = a.getStatus();
+                String statusB = b.getStatus();
+
+                if (statusA == null && statusB == null) {
+                    return 0;
+                }
+                if (statusA == null) {
+                    return 1;
+                }
+                if (statusB == null) {
+                    return -1;
+                }
+                return statusA.compareToIgnoreCase(statusB);
+            });
         }
 
         ArrayList<String> displayList = new ArrayList<>();
-
         for (LotteryWinners w : winnersList) {
             displayList.add("Name: " + w.getName() + "\n" +
                     "Status: " + w.getStatus()

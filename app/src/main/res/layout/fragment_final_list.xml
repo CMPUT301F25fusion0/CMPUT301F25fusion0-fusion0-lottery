@@ -36,12 +36,12 @@
         android:id="@+id/emptyText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="No one has been selected"
+        android:text="No one is in the final list"
         android:textAlignment="center"
         android:textSize="18sp"
         android:visibility="gone"
         android:padding="16dp"
-        android:layout_marginTop="20dp" />
+        android:layout_marginTop="40dp" />
 
     <LinearLayout
         android:id="@+id/buttonLayout"
