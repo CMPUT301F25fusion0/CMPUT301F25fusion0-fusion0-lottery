@@ -11,6 +11,13 @@ public class WaitingListEntrants {
     public String joinDate;
     public String status;
 
+    /**
+     * Constructs a new WaitingListEntrants object with all fields.
+     *
+     * @param name the entrant's name
+     * @param joinDate date the entrant joined
+     * @param status current status ("pending" or "selected")
+     */
     public WaitingListEntrants(String name, String joinDate, String status) {
         this.name = name;
         this.joinDate = joinDate;

@@ -21,6 +21,14 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+/**
+ * Fragment for displaying and managing notifications for the current user.
+ *
+ * Features:
+ * - Toggle notifications on/off.
+ * - Display user's notifications.
+ * - Clear all notifications with confirmation.
+ */
 public class NotificationCenterFragment extends Fragment {
 
     private LinearLayout notificationsContainer;
@@ -37,6 +45,13 @@ public class NotificationCenterFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_notification_center, container, false);
     }
 
+    /**
+     * Called after view creation. Initializes UI elements, Firebase references,
+     * and loads notifications.
+     *
+     * @param v      the fragment's root view
+     * @param savedInstanceState saved state
+     */
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
@@ -82,6 +97,10 @@ public class NotificationCenterFragment extends Fragment {
         loadNotifications();
     }
 
+    /**
+     * Loads notifications from Firebase and displays them in the container.
+     * Shows a message if there are no notifications or if user is not signed in.
+     */
     private void loadNotifications() {
         if (notificationsContainer == null) return;
         notificationsContainer.removeAllViews();
@@ -105,6 +124,12 @@ public class NotificationCenterFragment extends Fragment {
                 .addOnFailureListener(e -> addMessage("Error loading notifications: " + e.getMessage()));
     }
 
+    /**
+     * Adds a single notification card to the notifications container.
+     *
+     * @param title title of the notification
+     * @param body body/content of the notification
+     */
     private void addNotification(String title, String body) {
         View card = LayoutInflater.from(getContext())
                 .inflate(R.layout.row_notification, notificationsContainer, false);
@@ -118,6 +143,12 @@ public class NotificationCenterFragment extends Fragment {
         notificationsContainer.addView(card);
     }
 
+    /**
+     * Adds a simple message (TextView) to the notifications container.
+     * Used for empty state or error messages.
+     *
+     * @param msg message to display
+     */
     private void addMessage(String msg) {
         TextView tv = new TextView(getContext());
         tv.setText(msg);
