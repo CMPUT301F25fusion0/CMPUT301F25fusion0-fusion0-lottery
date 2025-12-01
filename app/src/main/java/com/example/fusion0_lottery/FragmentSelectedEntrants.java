@@ -166,8 +166,6 @@ public class FragmentSelectedEntrants extends Fragment {
 
                     com.google.android.gms.tasks.Tasks.whenAllSuccess(tasks)
                             .addOnSuccessListener(results -> {
-
-                                // separate the declined and non declined winners
                                 List<Map<String, Object>> nonDeclinedWinners = new ArrayList<>();
                                 List<Map<String, Object>> declinedWinners = new ArrayList<>();
                                 int currentEntrantIndex = 0;
@@ -218,9 +216,7 @@ public class FragmentSelectedEntrants extends Fragment {
                                 List<Map<String, Object>> updatedWinnersList = new ArrayList<>();
                                 updatedWinnersList.addAll(nonDeclinedWinners);
                                 updatedWinnersList.addAll(redrawWinners);
-                                // updatedWinnersList.addAll(declinedWinners);
 
-                                // update firestore
                                 Map<String, Object> updates = new HashMap<>();
                                 updates.put("waitingList", tempList);
                                 updates.put("winnersList", updatedWinnersList);
@@ -234,7 +230,6 @@ public class FragmentSelectedEntrants extends Fragment {
                                         .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show());
                             })
                             .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load user statuses: " + e.getMessage(), Toast.LENGTH_LONG).show());
-
                 })
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }

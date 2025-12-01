@@ -14,7 +14,7 @@
         android:id="@+id/titleText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Final List"
+        android:text="Cancelled Entrants"
         android:textSize="22sp"
         android:textStyle="bold"
         android:gravity="center"
@@ -36,7 +36,7 @@
         android:id="@+id/emptyText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="No one is in the final list"
+        android:text="No one in cancelled list"
         android:textAlignment="center"
         android:textSize="18sp"
         android:visibility="gone"
@@ -50,19 +50,22 @@
         android:layout_alignParentBottom="true"
         android:orientation="vertical">
 
-        <Button
-            android:id="@+id/exportButton"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Export Final List"
-            android:layout_marginBottom="8dp"/>
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_marginBottom="8dp">
 
-        <Button
-            android:id="@+id/sendNotificationButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Send Notification to Final List"
-            android:layout_marginBottom="8dp"/>
+            <Button
+                android:id="@+id/sendNotificationButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Send Notification"
+                android:layout_marginRight="6dp"/>
+
+        </LinearLayout>
 
         <Button
             android:id="@+id/backButton"

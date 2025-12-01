@@ -175,7 +175,6 @@ public class FragmentWaitingList extends Fragment {
     private void drawRandomWinners() {
         db.collection("Events").document(eventId).get()
                 .addOnSuccessListener(snapshot -> {
-
                     if (!snapshot.exists()) {
                         Toast.makeText(getContext(), "Event not found", Toast.LENGTH_SHORT).show();
                         return;
@@ -256,7 +255,6 @@ public class FragmentWaitingList extends Fragment {
                                 loadWaitingList(eventId);
                             })
                             .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update winners: " + e.getMessage(), Toast.LENGTH_LONG).show());
-
                 })
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
 

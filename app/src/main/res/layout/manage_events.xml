@@ -13,8 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:tabMode="scrollable"
-        app:tabIndicatorColor="@android:color/holo_green_dark"
-        app:tabSelectedTextColor="@android:color/holo_green_dark"
+        app:tabIndicatorColor="@android:color/holo_purple"
+        app:tabSelectedTextColor="@android:color/holo_purple"
         app:tabTextColor="@android:color/darker_gray"
         android:layout_marginTop="24dp"/>
 
@@ -22,7 +22,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="24dp"
-        android:background="@color/green_700"
+        android:background="@color/purpleDark"
         android:elevation="4dp"
         android:titleTextColor="@android:color/white"
         android:paddingTop="8dp" />
@@ -174,7 +174,6 @@
                         android:id="@+id/exportCsvButton"
                         android:layout_width="match_parent"
                         android:layout_height="40dp"
-                        android:layout_marginStart="16dp"
                         android:text="Export as CSV"
                         android:textColor="#FFFFFF" />
                 </LinearLayout>
