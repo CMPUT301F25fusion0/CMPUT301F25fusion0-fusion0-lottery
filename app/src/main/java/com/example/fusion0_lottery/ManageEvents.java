@@ -39,6 +39,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Fragment that allows event organizers to manage a single event.
+ * <p>
+ * Provides features like viewing event details, editing event info, updating poster,
+ * generating QR codes, and exporting the final entrants list as a CSV file.
+ * Tabs allow quick navigation between different lists (Waiting List, Selected Entrants, etc.).
+ */
 public class ManageEvents extends Fragment {
 
     private TabLayout tabLayout;
@@ -52,6 +59,9 @@ public class ManageEvents extends Fragment {
     private FirebaseFirestore db;
     private String eventId;
 
+    /**
+     * Inflates the layout and initializes UI components.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,

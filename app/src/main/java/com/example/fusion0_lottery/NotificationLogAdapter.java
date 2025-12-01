@@ -29,6 +29,11 @@ public class NotificationLogAdapter extends RecyclerView.Adapter<NotificationLog
         void onDeleteClicked(NotificationLog log);
     }
 
+    /**
+     * Constructor for NotificationLogAdapter
+     * @param notificationLogs list of notification logs to display
+     * @param listener listener for item actions (click/delete)
+     */
     public NotificationLogAdapter(List<NotificationLog> notificationLogs, OnNotificationLogActionListener listener) {
         this.notificationLogs = notificationLogs;
         this.notificationLogsFiltered = new ArrayList<>(notificationLogs);
@@ -91,6 +96,11 @@ public class NotificationLogAdapter extends RecyclerView.Adapter<NotificationLog
         return notificationLogsFiltered.size();
     }
 
+    /**
+     * Updates the adapter with a new list of logs.
+     * Resets any filtering applied.
+     * @param newLogs new list of notification logs
+     */
     public void updateList(List<NotificationLog> newLogs) {
         this.notificationLogs = newLogs;
         this.notificationLogsFiltered = new ArrayList<>(newLogs);
@@ -155,7 +165,9 @@ public class NotificationLogAdapter extends RecyclerView.Adapter<NotificationLog
     }
 
     /**
-     * Filter by date range
+     * Filters notifications within a timestamp range.
+     * @param startDate start timestamp (inclusive)
+     * @param endDate end timestamp (inclusive)
      */
     public void filterByDateRange(long startDate, long endDate) {
         notificationLogsFiltered.clear();
@@ -167,10 +179,18 @@ public class NotificationLogAdapter extends RecyclerView.Adapter<NotificationLog
         notifyDataSetChanged();
     }
 
+
+    /**
+     * Returns the current filtered list of notification logs.
+     * @return filtered notification logs
+     */
     public List<NotificationLog> getFilteredLogs() {
         return new ArrayList<>(notificationLogsFiltered);
     }
 
+    /**
+     * ViewHolder class for notification log items.
+     */
     static class NotificationViewHolder extends RecyclerView.ViewHolder {
         TextView dateTextView;
         TextView organizerTextView;

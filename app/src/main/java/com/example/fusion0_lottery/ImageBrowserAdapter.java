@@ -16,18 +16,38 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
+/**
+ * Adapter for displaying a list of events with their poster images in a RecyclerView.
+ * <p>
+ * Shows event details including name, start date, time, description, and a poster image.
+ * Users can select events using a checkbox. Default posters disable checkbox selection.
+ */
 public class ImageBrowserAdapter extends RecyclerView.Adapter<ImageBrowserAdapter.ImageViewHolder> {
 
     private List<Event> events;
     private List<String> selectedEventIds;
     private Context context;
 
+    /**
+     * Constructor for the adapter.
+     *
+     * @param events           List of events to display
+     * @param selectedEventIds List of event IDs that are currently selected
+     * @param context          Context for inflating views
+     */
     public ImageBrowserAdapter(List<Event> events, List<String> selectedEventIds, Context context) {
         this.events = events;
         this.selectedEventIds = selectedEventIds;
         this.context = context;
     }
 
+    /**
+     * Inflates the view for each RecyclerView item.
+     *
+     * @param parent   The parent ViewGroup
+     * @param viewType Type of the view
+     * @return A new ImageViewHolder
+     */
     @NonNull
     @Override
     public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -36,6 +56,14 @@ public class ImageBrowserAdapter extends RecyclerView.Adapter<ImageBrowserAdapte
         return new ImageViewHolder(view);
     }
 
+    /**
+     * Binds event data to the item view.
+     * <p>
+     * Displays the poster, event name, start date, time, description, and checkbox selection.
+     *
+     * @param holder   The ViewHolder for the item
+     * @param position Position of the item in the list
+     */
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
         Event event = events.get(position);
@@ -87,11 +115,21 @@ public class ImageBrowserAdapter extends RecyclerView.Adapter<ImageBrowserAdapte
         });
     }
 
+    /**
+     * Returns the number of events in the list.
+     *
+     * @return Total item count
+     */
     @Override
     public int getItemCount() {
         return events.size();
     }
 
+    /**
+     * ViewHolder class for event items.
+     * <p>
+     * Holds references to views for the poster image, event name, date, time, description, and checkbox.
+     */
     public static class ImageViewHolder extends RecyclerView.ViewHolder {
         ImageView poster;
         TextView eventName, startDate, time, description;

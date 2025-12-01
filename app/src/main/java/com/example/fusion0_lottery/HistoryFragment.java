@@ -18,6 +18,13 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.List;
 
+/**
+ * Fragment that displays the user's event registration history.
+ * <p>
+ * Shows a list of events the user has registered for, along with basic details like
+ * event name, date, location, status, and current entrants count.
+ * If no history exists or the user is not signed in, displays an appropriate message.
+ */
 public class HistoryFragment extends Fragment {
 
     private LinearLayout historyContainer;
@@ -26,6 +33,14 @@ public class HistoryFragment extends Fragment {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private String uid;
 
+    /**
+     * Inflates the fragment layout.
+     *
+     * @param inflater LayoutInflater used to inflate views
+     * @param container Parent view
+     * @param savedInstanceState Previous saved state
+     * @return Root view of the fragment
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -34,6 +49,12 @@ public class HistoryFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_history, container, false);
     }
 
+    /**
+     * Initializes the toolbar, input views, and loads the user's history after the view is created.
+     *
+     * @param v The fragment's root view
+     * @param savedInstanceState Previous saved state
+     */
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
@@ -55,6 +76,10 @@ public class HistoryFragment extends Fragment {
         loadHistory();
     }
 
+    /**
+     * Loads the user's registration history from Firestore.
+     * Displays the events in a scrollable list, or shows a message if no events are found.
+     */
     private void loadHistory() {
         if (uid == null) {
             showEmpty("Please sign in to view your history.");
@@ -148,6 +173,11 @@ public class HistoryFragment extends Fragment {
                 .addOnFailureListener(e -> showEmpty("Failed to load history: " + e.getMessage()));
     }
 
+    /**
+     * Displays a message when no history is available.
+     *
+     * @param msg Message to show
+     */
     private void showEmpty(String msg) {
         emptyView.setText(msg);
         emptyView.setVisibility(View.VISIBLE);

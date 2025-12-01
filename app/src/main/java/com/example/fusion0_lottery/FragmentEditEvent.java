@@ -20,6 +20,13 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Calendar;
 import java.util.Locale;
 
+/**
+ * FragmentEditEvent is responsible for displaying and editing the details of an existing event.
+ * <p>
+ * It allows the user to modify event attributes such as title, description, location, time, price,
+ * number of entrants, and lottery criteria. The fragment interacts with Firebase Firestore to
+ * fetch the current event data and save updates.
+ */
 public class FragmentEditEvent extends Fragment {
 
     private EditText titleInput, eventDescriptionInput, interestsInput, locationInput,
@@ -29,6 +36,15 @@ public class FragmentEditEvent extends Fragment {
     FirebaseFirestore db;
     String eventId;
 
+    /**
+     * Sets up the edit event screen: connects input fields, buttons,
+     * date/time pickers, and loads event details if available.
+     *
+     * @param inflater LayoutInflater to create the view
+     * @param container Parent view
+     * @param savedInstanceState Previous saved state
+     * @return The fragment's main view
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -75,6 +91,11 @@ public class FragmentEditEvent extends Fragment {
         return view;
     }
 
+    /**
+     * Shows a date picker dialog and sets the selected date to the given input field.
+     *
+     * @param inputField EditText where the selected date will be displayed
+     */
     private void showDatePicker(EditText inputField) {
         Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
@@ -92,6 +113,11 @@ public class FragmentEditEvent extends Fragment {
         datePickerDialog.show();
     }
 
+    /**
+     * Shows a time picker dialog and sets the selected time to the given input field.
+     *
+     * @param inputField EditText where the selected time will be displayed
+     */
     private void showTimePicker(EditText inputField) {
         Calendar calendar = Calendar.getInstance();
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -108,6 +134,9 @@ public class FragmentEditEvent extends Fragment {
         timePickerDialog.show();
     }
 
+    /**
+     * Loads the current event details from Firestore and populates the input fields.
+     */
     private void loadEventDetails() {
         if (eventId == null) return;
 
@@ -136,6 +165,9 @@ public class FragmentEditEvent extends Fragment {
                 .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed to load event: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Validates input fields and saves the edited event details to Firestore.
+     */
     private void saveEventChanges() {
         // Validate
         if (!validateInputs()) {
@@ -173,7 +205,11 @@ public class FragmentEditEvent extends Fragment {
                 .addOnFailureListener(e -> Toast.makeText(requireContext(), "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    /** * make sure that all of the fields are filled * @return true none of the fields are empty */
+    /**
+     * Validates that none of the input fields are empty.
+     *
+     * @return true if all fields are filled, false otherwise
+     */
     boolean validateInputs() {
         if (titleInput.getText().toString().trim().isEmpty() ||
                 eventDescriptionInput.getText().toString().trim().isEmpty() ||
@@ -191,7 +227,9 @@ public class FragmentEditEvent extends Fragment {
             return true;
         }
     }
-    // Add this inside your FragmentEditEvent class
+    /**
+     * Assigns EditText fields for testing purposes.
+     */
     void testingEdit(EditText title1, EditText text, EditText editText, EditText title, EditText desc,
                      EditText start, EditText end, EditText time, EditText location,
                      EditText price, EditText max, EditText interests, EditText lottery) {
@@ -204,13 +242,13 @@ public class FragmentEditEvent extends Fragment {
         this.priceInput = price;
         this.maxEntrantsInput = max;
         this.interestsInput = interests;
-        this.lotteryCriteriaInput = lottery; // assign lottery criteria too
+        this.lotteryCriteriaInput = lottery;
     }
 
-
-
     /**
-     * check if the information is saves after editing
+     * Checks if editing and validation passes.
+     *
+     * @return true if inputs are valid
      */
     boolean editThenSave() {
         if (!validateInputs()) {
