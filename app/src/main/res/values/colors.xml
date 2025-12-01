@@ -5,4 +5,8 @@
     <color name="toolbar">#4CAF50</color>
     <color name="purple_500">#6200EE</color>
     <color name="green_700">#388E3C</color>
+    <color name="purplePrimary">#6A4FC2</color>
+    <color name="purpleDark">#563BA8</color>
+    <color name="purpleLight">#F2ECFF</color>
+
 </resources>
