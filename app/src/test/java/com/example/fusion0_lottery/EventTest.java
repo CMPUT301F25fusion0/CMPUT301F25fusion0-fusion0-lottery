@@ -30,7 +30,9 @@ public class EventTest {
                 1,
                 1,
                 5,
-                "Must be 18+ and have basic programming skills"
+                "Must be 18+ and have basic programming skills",
+                "organizer123",
+                "Organizer"
         );
 
         // Basic event details
@@ -130,7 +132,9 @@ public class EventTest {
                 1,
                 1,
                 3,
-                "Must be 18+"
+                "Must be 18+",
+                "organizer12",
+                "Organizer1"
         );
 
         assertNull(event.getMaxEntrants());
@@ -190,7 +194,9 @@ public class EventTest {
                 1,
                 1,
                 5,
-                "Location required for entry"
+                "Location required for entry",
+                "organizer1",
+                "Organizer4"
         );
 
         // Set geolocation requirement
