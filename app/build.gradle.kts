@@ -64,11 +64,12 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
 
     // --- Firebase (BOM aligns versions) ---
-    implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
+    implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.protobuf:protobuf-javalite:3.25.3")
 
     // --- ZXing core for QR generation ---
     implementation("com.google.zxing:core:3.5.2")
@@ -99,7 +100,7 @@ dependencies {
     annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
 
 
-
+    androidTestImplementation("androidx.test.espresso:espresso-contrib:3.5.1")
 
     // --- Debug implementation ---
     debugImplementation("androidx.fragment:fragment-testing:1.6.1") // optional for debug-only fragment testing

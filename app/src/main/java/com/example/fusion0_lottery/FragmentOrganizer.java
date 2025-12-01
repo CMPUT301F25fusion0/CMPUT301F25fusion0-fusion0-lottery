@@ -18,6 +18,8 @@ import android.widget.ListView;
 
 import androidx.fragment.app.Fragment;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -68,6 +70,9 @@ public class FragmentOrganizer extends Fragment {
     private CollectionReference eventsRef;
 
     private Button backButton;
+    private FirebaseAuth auth;
+    private FirebaseUser user;
+
 
     /**
      * Creates and initializes the organizer fragment view.
@@ -88,6 +93,13 @@ public class FragmentOrganizer extends Fragment {
 
         ListView eventsOrg = view.findViewById(R.id.eventsOrg);
 
+        auth = FirebaseAuth.getInstance();
+        user = auth.getCurrentUser();
+
+        if (user == null) {
+            return view;
+        }
+        String userId = user.getUid();
         ArrayList<Event> eventsArray = new ArrayList<>();
 
         //Firebase attributes
@@ -98,12 +110,8 @@ public class FragmentOrganizer extends Fragment {
         eventsOrg.setAdapter(eventsAdapter);
 
         // load events from Firestore
-        eventsRef.addSnapshotListener((value, error) -> {
-            if (error != null) {
-                Log.e("Firestore", error.toString());
-                return;
-            }
-            // check if there are any events
+        eventsRef.whereEqualTo("organizerId", userId)
+                .addSnapshotListener((value, error) ->{
             if (value != null && !value.isEmpty()) {
                 eventsAdapter.clear();
 

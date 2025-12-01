@@ -17,6 +17,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -51,6 +53,10 @@ public class EventCreationActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private FirebaseStorage storage;
     private StorageReference storageRef;
+    private FirebaseAuth auth;
+    private FirebaseUser user;
+    private String organizerId;
+    private String organizerName;
 
     // Variables to store data
     private Uri posterImageUri; // Stores the selected poster image
@@ -69,6 +75,18 @@ public class EventCreationActivity extends AppCompatActivity {
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReference();
 
+        user = auth.getInstance().getCurrentUser();
+
+        if (user == null) {
+            Toast.makeText(this, "You must be logged in to create events", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        organizerId = user.getUid();
+        organizerName = user.getDisplayName();
+
+        if (organizerName == null || organizerName.isEmpty()) {
+            organizerName = "Organizer";
+        }
         // Initialize all UI elements
         initializeViews();
 
@@ -341,7 +359,7 @@ public class EventCreationActivity extends AppCompatActivity {
         // Create Event object
         Event event = new Event(eventName, interests, description, startDate, endDate, time,
                 price, location, registrationStart, registrationEnd, maxEntrants,
-                0, 0, 0, numberOfWinners, lotteryCriteria);
+                0, 0, 0, numberOfWinners, lotteryCriteria,organizerId, organizerName);
 
         // First save event to Firestore
         db.collection("Events")
@@ -353,6 +371,8 @@ public class EventCreationActivity extends AppCompatActivity {
                     createdEventId = documentReference.getId();
                     // Update event ID, QR code setting, and geolocation requirement
                     documentReference.update("eventId", createdEventId,
+                            "organizerId", organizerId,
+                            "organizerName", organizerName,
                             "hasQrCode", generateQrCheckbox.isChecked(),
                             "requiresGeolocation", requireGeolocationCheckbox.isChecked());
 
