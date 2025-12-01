@@ -148,4 +148,9 @@ public class BrowseEventAdapter extends RecyclerView.Adapter<BrowseEventAdapter.
             eventStatus = itemView.findViewById(R.id.event_status);
         }
     }
+    public List<Event> getEvents() {
+        return events;
+    }
+
+
 }

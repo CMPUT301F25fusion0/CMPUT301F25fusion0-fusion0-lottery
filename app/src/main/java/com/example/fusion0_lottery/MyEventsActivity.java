@@ -89,6 +89,10 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
         });
     }
 
+    /**
+     * Configures a horizontal scrolling layout for a RecyclerView.
+     * @param recycler the RecyclerView to set horizontal scroll
+     */
     private void horizontal_scroll(RecyclerView recycler) {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         recycler.setLayoutManager(layoutManager);
@@ -195,6 +199,9 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
         }
     }
 
+    /**
+     * Initializes bottom navigation for activity.
+     */
     private void Bottom_navigation() {
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -419,6 +426,10 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                 })
                 .show();
     }
+    /**
+     * Opens the detailed fragment view for the specified event.
+     * @param eventId ID of the event
+     */
     private void openEventDetails(String eventId) {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
@@ -492,6 +503,11 @@ public class MyEventsActivity extends AppCompatActivity implements MyEventAdapte
                     Toast.makeText(this, "Error loading event: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+    /**
+     * Allows user to leave a waiting list for an event.
+     * @param eventId ID of the event
+     * @param position Position in the waiting events list
+     */
     private void leaveWaitingList(String eventId, int position) {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 

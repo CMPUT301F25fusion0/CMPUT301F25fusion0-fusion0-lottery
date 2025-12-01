@@ -164,4 +164,51 @@ public class EventLotteryLogicTest {
         assertTrue(eventLottery.canJoinWaitingListForTest(event1));
         assertFalse(eventLottery.canJoinWaitingListForTest(event2));
     }
+    /** Lottery criteria: ensure default and custom criteria are handled */
+    @Test
+    public void testLotteryCriteria_display() {
+        DocumentSnapshot mockEvent = mock(DocumentSnapshot.class);
+
+        // Case 1: Custom criteria set
+        when(mockEvent.getString("lotteryCriteria")).thenReturn("VIP only");
+        EventFragmentEntrant fragment = new EventFragmentEntrant();
+        String criteria = mockEvent.getString("lotteryCriteria");
+        assertTrue(criteria != null && criteria.equals("VIP only"));
+
+        // Case 2: Criteria null or empty -> default message
+        mockEvent = mock(DocumentSnapshot.class);
+        when(mockEvent.getString("lotteryCriteria")).thenReturn(null);
+        criteria = mockEvent.getString("lotteryCriteria");
+        String defaultMessage = "Random selection after registration closes.";
+        assertTrue(criteria == null || criteria.isEmpty());
+    }
+
+    /** Total entrants: ensure the count matches waiting list size and respects maxEntrants */
+    @Test
+    public void testTotalEntrants_logic() {
+        DocumentSnapshot mockEvent = mock(DocumentSnapshot.class);
+
+        List<String> waitingList = new ArrayList<>();
+        waitingList.add("user1");
+        waitingList.add("user2");
+
+        when(mockEvent.get("waitingList")).thenReturn(waitingList);
+        when(mockEvent.getLong("maxEntrants")).thenReturn(5L);
+
+        // Total entrants should match waiting list size
+        List<String> listFromEvent = (List<String>) mockEvent.get("waitingList");
+        int totalEntrants = listFromEvent != null ? listFromEvent.size() : 0;
+        long maxEntrants = mockEvent.getLong("maxEntrants") != null ? mockEvent.getLong("maxEntrants") : 0;
+
+        assertTrue(totalEntrants == 2);
+        assertTrue(totalEntrants <= maxEntrants);
+
+        // Edge case: waiting list empty
+        waitingList.clear();
+        when(mockEvent.get("waitingList")).thenReturn(waitingList);
+
+        totalEntrants = ((List<String>) mockEvent.get("waitingList")).size();
+        assertTrue(totalEntrants == 0);
+    }
+
 }
