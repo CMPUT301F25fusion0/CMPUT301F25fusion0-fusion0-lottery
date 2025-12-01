@@ -43,6 +43,11 @@
         <item>Sort by Date</item>
     </string-array>
 
+    <string-array name="winners_sort_options">
+        <item>Sort by Name</item>
+        <item>Sort by Status</item>
+    </string-array>
+
     <string name="google_maps_key">YOUR_GOOGLE_MAPS_API_KEY</string>
     <string name="event_details_stuff">
         Registration Opens: \n
@@ -54,5 +59,6 @@
         Date: \n
         Price:
     </string>
+    <string name="select_role">Select a role</string>
 
 </resources>

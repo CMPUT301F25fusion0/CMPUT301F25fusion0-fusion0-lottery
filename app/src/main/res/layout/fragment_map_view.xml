@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <!-- Header -->
+    <LinearLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Entrant Locations"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/eventNameText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:layout_marginBottom="16dp"/>
+    </LinearLayout>
+
+    <!-- Map Container - Google Maps integration -->
+    <FrameLayout
+        android:id="@+id/mapContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_below="@id/headerLayout"
+        android:layout_above="@id/locationListLabel"
+        android:layout_marginBottom="16dp">
+
+        <!-- Google Maps MapView -->
+        <com.google.android.gms.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </FrameLayout>
+
+    <!-- Location List Label -->
+    <TextView
+        android:id="@+id/locationListLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/locationListView"
+        android:text="Entrant Locations:"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Empty State Text -->
+    <TextView
+        android:id="@+id/emptyLocationText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/backButton"
+        android:layout_below="@id/locationListLabel"
+        android:text="No location data available"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:visibility="gone"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Location List View -->
+    <ListView
+        android:id="@+id/locationListView"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_above="@id/backButton"
+        android:layout_marginBottom="16dp"
+        android:background="@android:color/white"
+        android:divider="#E0E0E0"
+        android:dividerHeight="1dp"/>
+
+    <!-- Back Button -->
+    <Button
+        android:id="@+id/backButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="Back to Waiting List"/>
+
+</RelativeLayout>

@@ -31,6 +31,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Fragment to update or delete user profile.
+ * <p>
+ * Features:
+ * - View and edit username, email, phone
+ * - Validate input before updating
+ * - High-risk account deletion
+ */
 public class UpdateProfileFragment extends Fragment {
 
     private EditText inputUsername, inputEmail, inputPhone;
@@ -40,6 +48,15 @@ public class UpdateProfileFragment extends Fragment {
     private FirebaseFirestore db;
     private String uid;
 
+    /**
+     * Inflates the profile update fragment, initializes UI components,
+     * update and delete actions.
+     *
+     * @param inflater LayoutInflater to inflate the fragment
+     * @param container Optional parent ViewGroup
+     * @param savedInstanceState Optional saved state Bundle
+     * @return Root view of the fragment
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -96,6 +113,10 @@ public class UpdateProfileFragment extends Fragment {
         return root;
     }
 
+    /**
+     * Enable or disable UI elements during busy operations.
+     * @param busy true to disable UI, false to enable
+     */
     private void setBusy(boolean busy) {
         btnUpdate.setEnabled(!busy);
         btnDelete.setEnabled(!busy);
@@ -104,6 +125,10 @@ public class UpdateProfileFragment extends Fragment {
         inputPhone.setEnabled(!busy);
     }
 
+    /**
+     * Updates the user's profile in Firestore with current input values.
+     * Validates input before sending updates.
+     */
     private void updateProfile() {
         String username = inputUsername.getText().toString().trim();
         String email    = inputEmail.getText().toString().trim();
@@ -129,6 +154,13 @@ public class UpdateProfileFragment extends Fragment {
                 .addOnCompleteListener(task -> setBusy(false));
     }
 
+    /**
+     * Validates user input.
+     * @param username username input
+     * @param email email input
+     * @param phone phone input
+     * @return true if valid, false if invalid (sets errors on fields)
+     */
     private boolean validate(String username, String email, String phone) {
         if (TextUtils.isEmpty(username)) { inputUsername.setError("Username required"); return false; }
         if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
@@ -218,6 +250,9 @@ public class UpdateProfileFragment extends Fragment {
                 });
     }
 
+    /**
+     * Navigates to SignUp fragment and clears back stack.
+     */
     private void navigateToSignUp() {
         // Clear back stack and show SignUp
         FragmentManager fm = requireActivity().getSupportFragmentManager();

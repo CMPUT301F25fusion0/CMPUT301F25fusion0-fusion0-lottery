@@ -14,25 +14,17 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
 
 import java.io.ByteArrayOutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 
@@ -48,11 +40,11 @@ public class EventCreationActivity extends AppCompatActivity {
 
     // UI Elements - all the input fields from the layout
     private TextInputEditText eventNameInput, interestInput, descriptionInput, startDateInput, endDateInput;
-    private TextInputEditText timeInput, priceInput, locationInput, maxEntrantsInput;
+    private TextInputEditText timeInput, priceInput, locationInput, maxEntrantsInput, winnerInput, lotteryCriteriaInput;
 
     private TextInputEditText registrationStartInput, registrationEndInput;
     private Button uploadPosterButton, createEventButton, cancelButton;
-    private CheckBox generateQrCheckbox;
+    private CheckBox generateQrCheckbox, requireGeolocationCheckbox;
     private ImageView posterImageView;
 
     // Firebase instances
@@ -95,6 +87,8 @@ public class EventCreationActivity extends AppCompatActivity {
         endDateInput = findViewById(R.id.endDateInput);
         timeInput = findViewById(R.id.timeInput);
         priceInput = findViewById(R.id.priceInput);
+        winnerInput = findViewById(R.id.winnerInput);
+
         locationInput = findViewById(R.id.locationInput);
         maxEntrantsInput = findViewById(R.id.maxEntrantsInput);
         registrationStartInput = findViewById(R.id.registrationStartInput);
@@ -104,8 +98,11 @@ public class EventCreationActivity extends AppCompatActivity {
         createEventButton = findViewById(R.id.createEventButton);
         cancelButton = findViewById(R.id.cancelButton);
         generateQrCheckbox = findViewById(R.id.generateQrCheckbox);
+        requireGeolocationCheckbox = findViewById(R.id.requireGeolocationCheckbox);
 
         posterImageView = findViewById(R.id.posterImageView);
+        lotteryCriteriaInput = findViewById(R.id.lotteryCriteriaInput);
+
     }
 
     /**
@@ -244,6 +241,10 @@ public class EventCreationActivity extends AppCompatActivity {
             Toast.makeText(this, "Please enter price", Toast.LENGTH_SHORT).show();
             return false;
         }
+        if (winnerInput.getText().toString().trim().isEmpty()) {
+            Toast.makeText(this, "Please enter number of Winners", Toast.LENGTH_SHORT).show();
+            return false;
+        }
         if (locationInput.getText().toString().trim().isEmpty()) {
             Toast.makeText(this, "Please enter location", Toast.LENGTH_SHORT).show();
             return false;
@@ -254,6 +255,10 @@ public class EventCreationActivity extends AppCompatActivity {
         }
         if (registrationEndInput.getText().toString().trim().isEmpty()) {
             Toast.makeText(this, "Please select registration end date", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (lotteryCriteriaInput.getText().toString().trim().isEmpty()) {
+            Toast.makeText(this, "Please enter criteria or guidelines for this event", Toast.LENGTH_SHORT).show();
             return false;
         }
 
@@ -275,17 +280,31 @@ public class EventCreationActivity extends AppCompatActivity {
     /**
      * Check if date2 is after date1
      */
+    /**
+     * Check if date2 is after date1.
+     * Handles null or empty strings gracefully.
+     */
     private boolean validateDateOrder(String date1, String date2) {
+        // If either date string is null or empty, we can't validate.
+        // We return 'true' to let the empty-check validation handle the user message.
+        if (date1 == null || date1.trim().isEmpty() || date2 == null || date2.trim().isEmpty()) {
+            return true; // Let the required field validator catch this
+        }
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         try {
             Date startDate = sdf.parse(date1);
             Date endDate = sdf.parse(date2);
+            // Important: Use !endDate.before(startDate) to allow same-day events.
+            // If End Date must strictly be AFTER Start Date, use endDate.after(startDate)
             return endDate.after(startDate);
         } catch (ParseException e) {
+            // This can happen if the date format is wrong, but our DatePicker prevents this.
             e.printStackTrace();
             return false;
         }
     }
+
 
     /**
      * Create the event and save it to Firebase
@@ -307,9 +326,12 @@ public class EventCreationActivity extends AppCompatActivity {
         String endDate = endDateInput.getText().toString().trim();
         String time = timeInput.getText().toString().trim();
         double price = Double.parseDouble(priceInput.getText().toString().trim());
+        Integer numberOfWinners = Integer.parseInt(winnerInput.getText().toString().trim());
         String location = locationInput.getText().toString().trim();
         String registrationStart = registrationStartInput.getText().toString().trim();
         String registrationEnd = registrationEndInput.getText().toString().trim();
+        String lotteryCriteria = lotteryCriteriaInput.getText().toString().trim();
+
 
         // Max entrants is optional
         Integer maxEntrants = null;
@@ -317,8 +339,9 @@ public class EventCreationActivity extends AppCompatActivity {
             maxEntrants = Integer.parseInt(maxEntrantsInput.getText().toString().trim());
         }
         // Create Event object
-        Event event = new Event(eventName, description, startDate, endDate, time,
-                price, location, registrationStart, registrationEnd, maxEntrants, 0, 0, 0);
+        Event event = new Event(eventName, interests, description, startDate, endDate, time,
+                price, location, registrationStart, registrationEnd, maxEntrants,
+                0, 0, 0, numberOfWinners, lotteryCriteria);
 
         // First save event to Firestore
         db.collection("Events")
@@ -328,7 +351,10 @@ public class EventCreationActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentReference -> {
                     // create the event ID
                     createdEventId = documentReference.getId();
-                    documentReference.update("eventId", createdEventId);
+                    // Update event ID, QR code setting, and geolocation requirement
+                    documentReference.update("eventId", createdEventId,
+                            "hasQrCode", generateQrCheckbox.isChecked(),
+                            "requiresGeolocation", requireGeolocationCheckbox.isChecked());
 
                     if (posterImageUri != null) {
                         // upload the poster first then save the event
@@ -342,6 +368,7 @@ public class EventCreationActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Error creating event: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    finish(); // Close activity on error
                 });
     }
 
@@ -370,11 +397,13 @@ public class EventCreationActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(this, "Error uploading poster: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        finish(); // Close activity even if poster upload fails
                     });
 
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Error processing poster image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            finish(); // Close activity even if there's an exception
         }
     }
 
@@ -388,9 +417,10 @@ public class EventCreationActivity extends AppCompatActivity {
                     // Store the document ID
                     createdEventId = documentReference.getId();
 
-                    // Update the event with its ID and QR code enabled flag
+                    // Update the event with its ID, QR code enabled flag, and geolocation requirement
                     documentReference.update("eventId", createdEventId,
-                            "hasQrCode", generateQrCheckbox.isChecked());
+                            "hasQrCode", generateQrCheckbox.isChecked(),
+                            "requiresGeolocation", requireGeolocationCheckbox.isChecked());
 
                     Toast.makeText(this, "Event created successfully!", Toast.LENGTH_SHORT).show();
                     finish();

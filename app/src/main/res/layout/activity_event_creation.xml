@@ -163,6 +163,20 @@
                 android:inputType="text"/>
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Number of Winners -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/winnerInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Number of Winners *"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- Max Entrants (Optional) -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -174,6 +188,23 @@
                 android:layout_height="wrap_content"
                 android:hint="Max Entrants (Optional)"
                 android:inputType="number"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Lottery Criteria  -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/lotteryCriteriaLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:hint="Lottery Criteria *">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/lotteryCriteriaInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:minLines="2"
+                android:gravity="top" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Upload Poster Button -->
@@ -196,13 +227,23 @@
             android:layout_marginBottom="12dp"
             android:contentDescription="Event Poster Preview"/>
 
+        <!-- Geolocation Requirement Checkbox -->
+        <CheckBox
+            android:id="@+id/requireGeolocationCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Require Location from Entrants"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:checked="false"/>
+
         <!-- QR Code Generation Checkbox -->
         <CheckBox
             android:id="@+id/generateQrCheckbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Generate QR Code for this event"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:checked="true"/>
 

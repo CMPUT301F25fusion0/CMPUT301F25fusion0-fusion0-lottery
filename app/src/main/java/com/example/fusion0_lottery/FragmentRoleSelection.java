@@ -14,11 +14,18 @@ import androidx.fragment.app.Fragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+/**
+ * Allows the user to select a role ("Entrant" or "Organizer").
+ * Saves the choice in Firestore and navigates to the corresponding screen.
+ */
 public class FragmentRoleSelection extends Fragment {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
+    /**
+     * Inflates the role selection layout and sets button click actions.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -37,6 +44,11 @@ public class FragmentRoleSelection extends Fragment {
         return view;
     }
 
+    /**
+     * Updates the current user's role in Firestore and navigates accordingly.
+     *
+     * @param role "Entrant" or "Organizer"
+     */
     private void updateUserRole(String role) {
         String uid = auth.getCurrentUser().getUid();
 
